@@ -15,17 +15,17 @@
         user_id, account, nick_name, password, email, phone
     </sql>
     <insert id="insertUser" parameterType="com.blog.entity.User">
-        insert into users (user_id, account, nick_name, password, email, phone) values (#{userId},#{account},#{nickName},#{password},#{email},#{phone})
+        insert into user (user_id, account, nick_name, password, email, phone) values (#{userId},#{account},#{nickName},#{password},#{email},#{phone})
     </insert>
     <update id="updateUser" parameterType="com.blog.entity.User">
-        update users set user_id = #{userId}, account = #{account},nick_name = #{nickName},email = #{email}, phone = #{phone}
+        update user set user_id = #{userId}, account = #{account},nick_name = #{nickName},email = #{email}, phone = #{phone}
     </update>
     <delete id="deleteByEmail" parameterType="java.lang.String">
-        delete from users where email = #{email}
+        delete from user where email = #{email}
     </delete>
     <select id="findByEmail" parameterType="com.blog.vo.Loginer" resultType="com.blog.entity.User">
         select
         <include refid="Base_Column_List" />
-            from users where email = #{email}
+            from user where email = #{email}
     </select>
 </mapper>

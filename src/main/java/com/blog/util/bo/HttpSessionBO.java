@@ -19,14 +19,15 @@ public class HttpSessionBO<T,U> {
 
     public static HttpSessionBO<String,String> getHttpSessionBO(HttpSession session,String toMail) {
         String code = CodeUties.getCode();
-        session.setAttribute("code",code);
         session.setAttribute("email",toMail);
+        session.setAttribute("code",code);
         Object emailObj = session.getAttribute("email");
         Object codeObj =  session.getAttribute("code");
-        if (emailObj==null || codeObj==null){
-            log.error("Httpsession 数据丢失");
-            throw new BusinessException("Httpsession 数据丢失");
-        }
+        return new HttpSessionBO( emailObj,codeObj);
+    }
+    public static HttpSessionBO getHttpSessionBO(HttpSession session) {
+        Object emailObj = session.getAttribute("email");
+        Object codeObj =  session.getAttribute("code");
         return new HttpSessionBO( emailObj,codeObj);
     }
 

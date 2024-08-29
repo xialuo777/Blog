@@ -6,7 +6,7 @@ import com.blog.exception.BusinessException;
 import com.blog.util.bo.HttpSessionBO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -20,32 +20,23 @@ import java.util.Date;
 public class MailService {
 
     @Autowired
-    private JavaMailSender javaMailSender;
+    private JavaMailSenderImpl javaMailSender;
 
 
 
     /**
      *
      * @Descriptionn 发送邮件验证码
-     * @param toEmail
      * @param sessionBo
      * @Time 2024-08-22 17:03
      */
-    public boolean sendCodeMailMessage(String toEmail, HttpSessionBO sessionBo) {
-        try {
-            String code = (String) sessionBo.getCode();
-            toEmail = (String) sessionBo.getEmail();
-            String subject = "【博客】验证码";
-            String text = "您的验证码为：" + code;
-            sendTextMailMessage(toEmail, subject, text);
-            log.info("邮件验证码发送成功");
-            return true;
-        }catch (Exception e) {
-            log.error("邮件验证码发送失败：",e);
-            return false;
-        }
-
-
+    public void sendCodeMailMessage(HttpSessionBO sessionBo) {
+        String code = (String) sessionBo.getCode();
+        String toEmail = (String) sessionBo.getEmail();
+        String subject = "【博客】验证码";
+        String text = "您的验证码为：" + code;
+        sendTextMailMessage(toEmail, subject, text);
+        log.info("邮件验证码发送成功");
     }
     /**
      * @Descriptionn 发送文本邮件

@@ -1,7 +1,6 @@
 package com.blog.service;
 
 import com.blog.exception.BusinessException;
-import com.blog.exception.UserExceptionControllerAdvice;
 import com.blog.util.bo.HttpSessionBO;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,10 +13,8 @@ import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import java.util.Properties;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -67,10 +64,8 @@ class MailServiceTest {
         when(mockJavaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         doNothing().when(mockJavaMailSender).send(any(MimeMessage.class));
 
-        boolean result = mailServiceUnderTest.sendCodeMailMessage(toEmail, sessionBO);
+        mailServiceUnderTest.sendCodeMailMessage( sessionBO);
 
-
-        assertTrue(result);
         verify(mockJavaMailSender).send(any(MimeMessage.class));
     }
 
@@ -85,10 +80,8 @@ class MailServiceTest {
         when(mockJavaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         doThrow(new BusinessException("验证码发送失败")).when(mockJavaMailSender).send(any(MimeMessage.class));
 
-        boolean result = mailServiceUnderTest.sendCodeMailMessage(toEmail, sessionBO);
+        assertThrows(BusinessException.class,()->mailServiceUnderTest.sendCodeMailMessage( sessionBO));
 
-        assertFalse(result);
-        verify(mockJavaMailSender).send(any(MimeMessage.class));
     }
 
 

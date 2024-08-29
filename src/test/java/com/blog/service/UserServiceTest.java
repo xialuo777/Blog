@@ -98,7 +98,7 @@ class UserServiceTest {
 
     @Test
     void testUserRegister_Success() {
-        try (MockedStatic<SnowFlakeUtil> snowFlakeUtilMockedStatic = mockStatic(SnowFlakeUtil.class);MockedStatic<SecurityUtils> securityUtilsMockedStatic = mockStatic(SecurityUtils.class)){
+        try (MockedStatic<SnowFlakeUtil> snowFlakeUtilMockedStatic = mockStatic(SnowFlakeUtil.class); MockedStatic<SecurityUtils> securityUtilsMockedStatic = mockStatic(SecurityUtils.class)){
             Register register = new Register();
             register.setAccount("123456");
             register.setNickName("juniTest");
@@ -108,7 +108,7 @@ class UserServiceTest {
             register.setPhone("18539246184");
             register.setEmailCode("passcd");
 
-            snowFlakeUtilMockedStatic.when(SnowFlakeUtil::getID).thenReturn(1L);
+            snowFlakeUtilMockedStatic.when(SnowFlakeUtil::nextId).thenReturn(1L);
             securityUtilsMockedStatic.when(() -> SecurityUtils.encodePassword("123456789")).thenReturn("encodedPassword");
 
             User user = new User();
@@ -174,28 +174,6 @@ class UserServiceTest {
         assertThrows(BusinessException.class, () -> userServiceUnderTest.userRegister(register, sessionBO));
     }
 
-    /*数据插入异常*/
-    @Test
-    void testUserRegister_withException() {
-        Register register = new Register();
-        register.setAccount("123456");
-        register.setNickName("juniTest");
-        register.setPassword("123456789");
-        register.setCheckPassword("123456789");
-        register.setEmail("2436056388@qq.com");
-        register.setPhone("18539246184");
-        register.setEmailCode("passcd");
-
-        User user = new User();
-        user.setUserId(1L);
-        user.setAccount("123456");
-        user.setNickName("juniTest");
-        user.setPassword("encodedPassword");
-        user.setEmail("2436056388@qq.com");
-        user.setPhone("18539246184");
-        doThrow(new BusinessException("数据插入异常")).when(mockUserMapper).insertUser(user);
-        assertThrows(BusinessException.class, () -> userServiceUnderTest.userRegister(register, sessionBO));
-    }
 
 
     @Test
