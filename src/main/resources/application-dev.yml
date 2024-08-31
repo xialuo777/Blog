@@ -8,7 +8,7 @@ spring:
     password: ENC(Lu25MLSvN3H8YpNlM14Y9Q==)
 
 
-  #邮箱配置
+#邮箱配置
   mail:
     host: smtp.qq.com
     username: 2436056388@qq.com
@@ -20,18 +20,29 @@ spring:
         smtp:
           ssl:
             enable: true
+  #redis配置
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+
 mybatis:
   configuration:
     #Mybatis开启驼峰映射
     map-underscore-to-camel-case: true
   mapper-locations: classpath:mapper/*.xml
 
-
+#数据库密码加密
 jasypt:
   encryptor:
     algorithm: PBEWITHMD5ANDDES
     password: secrect          #风险解决：可通过命令行 mvn jasypt:encrypt -Djasypt.encryptor.password=secret_key   打包添加盐
     iv-generator-classname: org.jasypt.iv.NoIvGenerator
+#Jwt配置
+security:
+  jwt:
+    secret: 3b1eef9f4d6944ca7c864c748fc4fc1c7ee66db08fc6288d85a85445832378526ab5c00e63bdabfbf0243acd1934bdfb661cc06837378d8df2c674e5365cede1
+    expiration: 86400
 
 
 

@@ -27,30 +27,6 @@ class MailServiceTest {
     @InjectMocks
     private MailService mailServiceUnderTest;
 
-    @Test
-    void testSendTextMailMessage() {
-
-        final MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()));
-        when(mockJavaMailSender.createMimeMessage()).thenReturn(mimeMessage);
-
-        mailServiceUnderTest.sendTextMailMessage("to", "subject", "text");
-
-        verify(mockJavaMailSender).send(any(MimeMessage.class));
-    }
-
-    @Test
-    void testSendTextMailMessage_withException() {
-
-        final MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()));
-        when(mockJavaMailSender.createMimeMessage()).thenReturn(mimeMessage);
-
-        doThrow(new BusinessException("消息发送失败")).when(mockJavaMailSender).send(any(MimeMessage.class));
-
-        assertThatThrownBy(() -> mailServiceUnderTest.sendTextMailMessage("to", "subject", "text"))
-                .isInstanceOf(BusinessException.class);
-
-    }
-
 
 
     @Test

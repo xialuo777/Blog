@@ -3,7 +3,13 @@ package com.blog.service;
 import com.blog.config.Constant;
 
 import com.blog.exception.BusinessException;
+import com.blog.util.CodeUties;
+import com.blog.util.bo.EmailCodeBo;
 import com.blog.util.bo.HttpSessionBO;
+import com.blog.util.redis.RedisTransKey;
+import com.blog.util.redis.RedisUtils;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -12,38 +18,57 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Date;
-import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 
 @Service
 @Validated
 @Slf4j
+@AllArgsConstructor
 public class MailService {
 
-    @Autowired
-    private JavaMailSenderImpl javaMailSender;
-    private static final Random RANDOM = new Random();
-
+    private final JavaMailSenderImpl javaMailSender;
+    private final EmailCodeBo emailCodeBo;
+    private final RedisUtils redisUtils;
 
     /**
-     *
+     * 发送邮箱验证码，并将验证码信息保存在redis中
+     * @param toEmail
+     */
+    public void getEmailCode(String toEmail){
+        String code = CodeUties.getCode();
+        emailCodeBo.setEmail(toEmail);
+        emailCodeBo.setCode(code);
+        /*redis缓存emailCodeBo，key为邮箱，时间为60s*/
+        redisUtils.set(RedisTransKey.setEmailKey(toEmail), emailCodeBo, 60, TimeUnit.SECONDS);
+        sendCodeMailMessage(toEmail,code);
+   }
+    /**
+     * @param toEmail
+     * @param code
      * @Descriptionn 发送邮件验证码
-     * @param sessionBo
      * @Time 2024-08-22 17:03
      */
-    public void sendCodeMailMessage(HttpSessionBO sessionBo) {
+/*    public void sendCodeMailMessage(HttpSessionBO sessionBo) {
         String code = (String) sessionBo.getCode();
         String toEmail = (String) sessionBo.getEmail();
         String subject = "【博客】验证码";
         String text = "您的验证码为：" + code;
         sendTextMailMessage(toEmail, subject, text);
         log.info("邮件验证码发送成功");
+    }*/
+    private void sendCodeMailMessage(String toEmail, String code) {
+        String subject = "【博客】验证码";
+        String text = "您的验证码为：" + code;
+        sendTextMailMessage(toEmail, subject, text);
+        log.info("邮件验证码发送成功");
     }
+
     /**
-     * @Descriptionn 发送文本邮件
      * @param to
      * @param subject
      * @param text
+     * @Descriptionn 发送文本邮件
      */
     private void sendTextMailMessage(String to, String subject, String text) {
         try {
@@ -63,31 +88,11 @@ public class MailService {
 
             //发送邮件
             javaMailSender.send(mimeMessageHelper.getMimeMessage());
-            log.info("邮件发送成功"+Constant.sendMailer+"->"+to);
+            log.info("邮件发送成功" + Constant.sendMailer + "->" + to);
 
         } catch (Exception e) {
-            log.error("邮件发送失败"+Constant.sendMailer+"->"+to,e);
-            throw new BusinessException("邮件发送失败",e);
+            log.error("邮件发送失败" + Constant.sendMailer + "->" + to, e);
+            throw new BusinessException("邮件发送失败", e);
         }
     }
-
-    private String getCode(){
-        int num = 6;
-        String code = "";
-        for (int i = 0; i < num; i++) {
-            int type = RANDOM.nextInt(3);
-            switch (type){
-                case 0:
-                    code += RANDOM.nextInt(10);
-                    break;
-                case 1:
-                    code += (char)('a' + RANDOM.nextInt(26));
-                    break;
-                default:
-                    code += (char)('A' + RANDOM.nextInt(26));
-            }
-        }
-        return code;
-    }
-
 }
