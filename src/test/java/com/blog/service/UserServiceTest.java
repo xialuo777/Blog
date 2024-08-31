@@ -1,12 +1,10 @@
 package com.blog.service;
 
 import com.blog.entity.User;
-import com.blog.enums.ErrorCode;
 import com.blog.exception.BusinessException;
 import com.blog.mapper.UserMapper;
 import com.blog.util.SecurityUtils;
 import com.blog.util.SnowFlakeUtil;
-import com.blog.util.bo.HttpSessionBO;
 import com.blog.vo.Loginer;
 import com.blog.vo.Register;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,9 +16,6 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.sql.DataTruncation;
-import java.sql.SQLException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

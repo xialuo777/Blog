@@ -1,9 +1,5 @@
 package com.blog.util;
 
-import com.blog.util.bo.HttpSessionBO;
-import org.springframework.stereotype.Component;
-
-import javax.servlet.http.HttpSession;
 import java.util.Random;
 
 public class CodeUties {

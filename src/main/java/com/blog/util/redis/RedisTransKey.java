@@ -2,22 +2,22 @@ package com.blog.util.redis;
 
 public class RedisTransKey {
 
-    public static final String RedisNameSpace="user";
-    public static final String RedisTokenName="token";
-    public static final String RedisLoginName="login";
-    public static final String RedisEmailCodeName="emailCode";
+    private static final String REDIS_NAME_SPACE="user";
+    private static final String REDIS_TOKEN_NAME="token";
+    private static final String REDIS_LOGIN_NAME="login";
+    private static final String REDIS_EMAIL_CODE_NAME="emailCode";
 
     public static String setEmailKey(String key){
-        return RedisNameSpace+":"+RedisEmailCodeName+":"+key;
+        return REDIS_NAME_SPACE+":"+REDIS_EMAIL_CODE_NAME+":"+key;
     }
     public static String setRootKey(String key){
-        return RedisNameSpace+":"+key+"";
+        return REDIS_NAME_SPACE+":"+key+"";
     }
     public static String setTokenKey(String key){
-        return RedisNameSpace+':'+RedisTokenName+":"+key;
+        return REDIS_NAME_SPACE+':'+REDIS_TOKEN_NAME+":"+key;
     }
     public static String setLoginKey(String key){
-        return RedisNameSpace+':'+RedisLoginName+":"+key;
+        return REDIS_NAME_SPACE+':'+REDIS_LOGIN_NAME+":"+key;
     }
 
     public static String getEmailKey(String key){return setEmailKey(key);}

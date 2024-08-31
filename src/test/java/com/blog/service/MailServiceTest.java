@@ -1,7 +1,7 @@
 package com.blog.service;
 
 import com.blog.exception.BusinessException;
-import com.blog.util.bo.HttpSessionBO;
+import com.blog.util.redis.RedisUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -13,7 +13,6 @@ import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import java.util.Properties;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -23,6 +22,8 @@ class MailServiceTest {
 
     @Mock
     private JavaMailSender mockJavaMailSender;
+    @Mock
+    private RedisUtils redisUtils;
 
     @InjectMocks
     private MailService mailServiceUnderTest;

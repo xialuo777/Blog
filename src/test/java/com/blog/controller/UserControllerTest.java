@@ -1,8 +1,6 @@
 package com.blog.controller;
-import com.blog.config.Constant;
+import com.blog.constant.Constant;
 
-import com.blog.util.SnowFlakeUtil;
-import com.blog.util.bo.HttpSessionBO;
 import com.blog.vo.Register;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -19,11 +17,9 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 
 import org.springframework.http.*;
 
-import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
-
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

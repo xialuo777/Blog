@@ -17,13 +17,14 @@ public class SnowFlakeUtil {
     public static String nextIdStr() {
         return snowflake.nextIdStr();
     }
+    public static SnowFlakeUtil getInstance() {
+        return InstanceHolder.INSTANCE;
+    }
 
     // 单例模式获取Snowflake实例的静态方法
     private static class InstanceHolder {
         private static final SnowFlakeUtil INSTANCE = new SnowFlakeUtil(1, 1);
     }
 
-    public static SnowFlakeUtil getInstance() {
-        return InstanceHolder.INSTANCE;
-    }
+
 }

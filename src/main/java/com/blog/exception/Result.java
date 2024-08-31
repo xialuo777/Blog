@@ -14,22 +14,11 @@ public class Result extends HashMap<String, Object> {
         put("msg", "success");
     }
 
-    public static Result error() {
-        return error(HttpStatus.INTERNAL_SERVER_ERROR.value(), "未知异常，请联系管理员");
-    }
-
-    public static Result error(String msg) {
-        return error(HttpStatus.INTERNAL_SERVER_ERROR.value(), msg);
-    }
-
     public static Result error(int code, String msg) {
         Result result = new Result();
         result.put("code", code);
         result.put("msg", msg);
         return result;
-    }
-    public static Result methodArgumentNotValidException(MethodArgumentNotValidException mee){
-        return Result.error(mee.getErrorCount(),mee.getMessage());
     }
     public static Result ok(String msg) {
         Result result = new Result();

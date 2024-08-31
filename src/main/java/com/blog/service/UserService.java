@@ -1,6 +1,5 @@
 package com.blog.service;
 
-import com.alibaba.fastjson.JSON;
 import com.blog.entity.User;
 import com.blog.enums.ErrorCode;
 import com.blog.exception.BusinessException;
@@ -8,22 +7,16 @@ import com.blog.mapper.UserMapper;
 import com.blog.util.SecurityUtils;
 import com.blog.util.SnowFlakeUtil;
 import com.blog.util.bo.EmailCodeBo;
-import com.blog.util.bo.HttpSessionBO;
 import com.blog.util.redis.RedisTransKey;
 import com.blog.util.redis.RedisUtils;
 import com.blog.vo.Loginer;
 import com.blog.vo.Register;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -69,7 +62,7 @@ public class UserService {
      * @Param session
      * @Return User
      */
-    @Transactional
+
     public User userRegister(@Validated Register register) {
         String account = register.getAccount();
         log.info("开始注册新用户：" + account);
