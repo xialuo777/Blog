@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Date;
+import java.util.Random;
 
 
 @Service
@@ -21,7 +22,7 @@ public class MailService {
 
     @Autowired
     private JavaMailSenderImpl javaMailSender;
-
+    private static final Random RANDOM = new Random();
 
 
     /**
@@ -44,7 +45,7 @@ public class MailService {
      * @param subject
      * @param text
      */
-    public void sendTextMailMessage(String to, String subject, String text) {
+    private void sendTextMailMessage(String to, String subject, String text) {
         try {
             //true 代表支持复杂的类型
             MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(javaMailSender.createMimeMessage(), true);
@@ -69,4 +70,24 @@ public class MailService {
             throw new BusinessException("邮件发送失败",e);
         }
     }
+
+    private String getCode(){
+        int num = 6;
+        String code = "";
+        for (int i = 0; i < num; i++) {
+            int type = RANDOM.nextInt(3);
+            switch (type){
+                case 0:
+                    code += RANDOM.nextInt(10);
+                    break;
+                case 1:
+                    code += (char)('a' + RANDOM.nextInt(26));
+                    break;
+                default:
+                    code += (char)('A' + RANDOM.nextInt(26));
+            }
+        }
+        return code;
+    }
+
 }

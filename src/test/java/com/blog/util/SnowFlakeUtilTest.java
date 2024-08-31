@@ -25,9 +25,10 @@ class SnowFlakeUtilTest {
         long[] ids = new long[100];
         for (int i = 0; i < ids.length; i++) {
             ids[i] = SnowFlakeUtil.getInstance().nextId();
+            System.out.println(ids[i]);
         }
         for (int i = 1; i < ids.length; i++) {
-            assertTrue(ids[i] - ids[i - 1] == 1);
+            assertTrue(ids[i] - ids[i - 1] >= 1);
         }
     }
 

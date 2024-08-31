@@ -1,36 +1,36 @@
 # 多环境配置文件激活属性
-#spring:
-#   profiles:
-#     active: dev
-
-
-
-#数据库配置
 spring:
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/blog_db
-    type: com.alibaba.druid.pool.DruidDataSource
-    username: root
-    password: 12345
+   profiles:
+     active: dev
 
-  #邮箱配置
-  mail:
-    host: smtp.qq.com
-    username: 2436056388@qq.com
-    password: tulzhzsocneueaei
-    port: 465
-    default-encoding: UTF-8
-    properties:
-      mail:
-        smtp:
-          ssl:
-            enable: true
-mybatis:
-  configuration:
-    #Mybatis开启驼峰映射
-    map-underscore-to-camel-case: true
-  mapper-locations: classpath:mapper/*.xml
+
+#
+##数据库配置
+#spring:
+#  datasource:
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://localhost:3306/blog_db
+#    type: com.alibaba.druid.pool.DruidDataSource
+#    username: root
+#    password: 12345
+#
+#  #邮箱配置
+#  mail:
+#    host: smtp.qq.com
+#    username: 2436056388@qq.com
+#    password: tulzhzsocneueaei
+#    port: 465
+#    default-encoding: UTF-8
+#    properties:
+#      mail:
+#        smtp:
+#          ssl:
+#            enable: true
+#mybatis:
+#  configuration:
+#    #Mybatis开启驼峰映射
+#    map-underscore-to-camel-case: true
+#  mapper-locations: classpath:mapper/*.xml
 
 
 
