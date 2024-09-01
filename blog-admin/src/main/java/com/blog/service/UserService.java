@@ -37,6 +37,10 @@ public class UserService {
     public void userLogin(Loginer loginer) {
         String email = loginer.getEmail();
         String password = loginer.getPassword();
+        /*验证是否存在旧的refresh token，存在即删除*/
+        if (redisUtils.hasKey(RedisTransKey.getRefreshTokenKey(email))) {
+            redisUtils.del(RedisTransKey.getRefreshTokenKey(email));
+        }
         /*判断用户是否已经登陆*/
         if (redisUtils.hasKey(RedisTransKey.getLoginKey(email))) {
             log.error("用户已登录！");
@@ -51,8 +55,11 @@ public class UserService {
         }
         /*将用户信息存放在token中，时效为7天*/
         String token = jwtService.generateToken(user);
+        String refreshToken = jwtService.generateRefreshToken(user);
         redisUtils.set(RedisTransKey.setTokenKey(email), token, 7, TimeUnit.DAYS);
+        redisUtils.set(RedisTransKey.setTokenKey(email), refreshToken, 7, TimeUnit.DAYS);
         redisUtils.set(RedisTransKey.setLoginKey(email), email, 7, TimeUnit.DAYS);
+
         log.info("用户{}登陆成功", user.getAccount());
     }
 
@@ -151,6 +158,13 @@ public class UserService {
     /*修改用户信息*/
     public void updateUser(User user) {
         userMapper.updateUser(user);
+        /*更新用户信息后清掉旧的access token 和refresh token*/
+        if (redisUtils.hasKey(RedisTransKey.getTokenKey(user.getEmail()))){
+            redisUtils.del(RedisTransKey.getTokenKey(user.getEmail()));
+        }
+        if (redisUtils.hasKey(RedisTransKey.getRefreshTokenKey(user.getEmail()))){
+            redisUtils.del(RedisTransKey.getRefreshTokenKey(user.getEmail()));
+        }
         log.info("用户修改成功");
     }
 }

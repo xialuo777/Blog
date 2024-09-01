@@ -3,14 +3,11 @@ import com.blog.constant.Constant;
 
 import com.blog.vo.Register;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.Extensions;
 
-import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 
@@ -25,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Extensions(@ExtendWith({SpringExtension.class, OutputCaptureExtension.class}))
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class UserControllerTest {
+class UserControllerTest1 {
 
     @Test
     void getCode() throws Exception {

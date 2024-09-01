@@ -36,7 +36,7 @@ public class JwtService {
      * @return String
      */
     public String generateToken(User user) {
-        return createToken(new HashMap<>(), user, jwtExpiration);
+        return createToken(new HashMap<>(), user, jwtExpiration*2);
     }
 
     /**

@@ -42,7 +42,7 @@ jasypt:
 security:
   jwt:
     secret: 3b1eef9f4d6944ca7c864c748fc4fc1c7ee66db08fc6288d85a85445832378526ab5c00e63bdabfbf0243acd1934bdfb661cc06837378d8df2c674e5365cede1
-    expiration: 86400
+    expiration: 900
 
 
 
