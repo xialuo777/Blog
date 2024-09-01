@@ -3,7 +3,7 @@ package com.blog.service;
 import com.blog.constant.Constant;
 
 import com.blog.exception.BusinessException;
-import com.blog.util.CodeUties;
+import com.blog.util.CodeUtils;
 import com.blog.util.bo.EmailCodeBo;
 import com.blog.util.redis.RedisTransKey;
 import com.blog.util.redis.RedisUtils;
@@ -30,16 +30,18 @@ public class MailService {
 
     /**
      * 发送邮箱验证码，并将验证码信息保存在redis中
+     *
      * @param toEmail
      */
-    public void getEmailCode(String toEmail){
-        String code = CodeUties.getCode();
+    public void getEmailCode(String toEmail) {
+        String code = CodeUtils.getCode();
         emailCodeBo.setEmail(toEmail);
         emailCodeBo.setCode(code);
         /*redis缓存emailCodeBo，key为邮箱，时间为60s*/
         redisUtils.set(RedisTransKey.setEmailKey(toEmail), emailCodeBo, 60, TimeUnit.SECONDS);
-        sendCodeMailMessage(toEmail,code);
-   }
+        sendCodeMailMessage(toEmail, code);
+    }
+
     /**
      * @param toEmail
      * @param code

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import javax.validation.constraints.Email;
-
+import javax.validation.constraints.NotBlank;
 
 
 @RestController
@@ -68,7 +68,7 @@ public class UserController {
     }
 
     @GetMapping("/profile/verify")
-    public void verifyUser(@RequestParam String password) {
+    public void verifyUser(@RequestParam @NotBlank String password) {
         String email = (String) session.getAttribute("email");
         userService.verifyUser(password, email);
     }

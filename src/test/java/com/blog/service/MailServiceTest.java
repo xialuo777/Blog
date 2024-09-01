@@ -1,19 +1,27 @@
 package com.blog.service;
 
 import com.blog.exception.BusinessException;
+import com.blog.util.CodeUtils;
+import com.blog.util.bo.EmailCodeBo;
+import com.blog.util.redis.RedisTransKey;
 import com.blog.util.redis.RedisUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.slf4j.Logger;
+import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -21,45 +29,58 @@ import static org.mockito.Mockito.*;
 class MailServiceTest {
 
     @Mock
-    private JavaMailSender mockJavaMailSender;
+    private JavaMailSenderImpl mockJavaMailSender;
     @Mock
-    private RedisUtils redisUtils;
+    private EmailCodeBo mockEmailCodeBo;
+    @Mock
+    private RedisUtils mockRedisUtils;
 
-    @InjectMocks
     private MailService mailServiceUnderTest;
 
-
-
-    @Test
-    void testSendCodeMailMessage() {
-
-        String toEmail = "212270053@hdu.edu.cn";
-        String code = "123456";
-        HttpSessionBO sessionBO = new HttpSessionBO(toEmail, code);
-
-        MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()));
-        when(mockJavaMailSender.createMimeMessage()).thenReturn(mimeMessage);
-        doNothing().when(mockJavaMailSender).send(any(MimeMessage.class));
-
-        mailServiceUnderTest.sendCodeMailMessage( sessionBO);
-
-        verify(mockJavaMailSender).send(any(MimeMessage.class));
+    @BeforeEach
+    void setUp() {
+        mailServiceUnderTest = new MailService(mockJavaMailSender, mockEmailCodeBo, mockRedisUtils);
     }
 
     @Test
-    void testSendCodeMailMessage_withException() {
+    void testGetEmailCode() {
 
-        String toEmail = "212270053@hdu.edu.cn";
-        String code = "123456";
-        HttpSessionBO sessionBO = new HttpSessionBO(toEmail, code);
+        try (MockedStatic<CodeUtils> mockedCodeUties = mockStatic(CodeUtils.class)){
+            final MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()));
+            when(mockJavaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+            mockedCodeUties.when(CodeUtils::getCode).thenReturn("tested");
 
-        MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()));
-        when(mockJavaMailSender.createMimeMessage()).thenReturn(mimeMessage);
-        doThrow(new BusinessException("验证码发送失败")).when(mockJavaMailSender).send(any(MimeMessage.class));
+            mailServiceUnderTest.getEmailCode("2436056388@qq.com");
 
-        assertThrows(BusinessException.class,()->mailServiceUnderTest.sendCodeMailMessage( sessionBO));
+            verify(mockEmailCodeBo).setEmail("2436056388@qq.com");
+            verify(mockEmailCodeBo).setCode("tested");
 
+            final EmailCodeBo value = new EmailCodeBo();
+            value.setCode("tested");
+            value.setEmail("2436056388@qq.com");
+            verify(mockRedisUtils).set(eq(RedisTransKey.setEmailKey("2436056388@qq.com")), any(EmailCodeBo.class), eq(60L), eq(TimeUnit.SECONDS));
+            verify(mockJavaMailSender).send(any(MimeMessage.class));
+
+            mockedCodeUties.verify(CodeUtils::getCode);
+        }
     }
 
+    @Test
+    void testGetEmailCode_JavaMailSenderImplSendThrowsMailException() {
 
+        try(MockedStatic<CodeUtils> codeUtiesMockedStatic = mockStatic(CodeUtils.class)) {
+            final MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()));
+            when(mockJavaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+            codeUtiesMockedStatic.when(CodeUtils::getCode).thenReturn("tested");
+
+            doThrow(new RuntimeException()).when(mockJavaMailSender).send(any(MimeMessage.class));
+
+            assertThrows(BusinessException.class, () -> {
+                mailServiceUnderTest.getEmailCode("2436056388@qq.com");
+            });
+            verify(mockEmailCodeBo).setEmail("2436056388@qq.com");
+            verify(mockEmailCodeBo).setCode(anyString());
+            verify(mockRedisUtils).set(anyString(), any(EmailCodeBo.class), eq(60L), eq(TimeUnit.SECONDS));
+        }
+    }
 }

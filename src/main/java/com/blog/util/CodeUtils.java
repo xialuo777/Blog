@@ -2,7 +2,7 @@ package com.blog.util;
 
 import java.util.Random;
 
-public class CodeUties {
+public class CodeUtils {
     private static final Random RANDOM = new Random();
     /**
      * @Title CodeUties

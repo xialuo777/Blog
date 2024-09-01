@@ -26,13 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Extensions(@ExtendWith({SpringExtension.class, OutputCaptureExtension.class}))
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class UserControllerTest {
-    @MockBean
-    private HttpSessionBO sessionBO;
-    @BeforeEach
-    void setUp() {
-        Mockito.when(sessionBO.getEmail()).thenReturn("2436056388@qq.com");
-        Mockito.when(sessionBO.getCode()).thenReturn("tested");
-    }
 
     @Test
     void getCode() throws Exception {
