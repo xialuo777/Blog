@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.blog.mapper.BlogMapper">
+  <resultMap id="BaseResultMap" type="com.blog.entity.Blog">
+    <!--@mbg.generated-->
+    <!--@Table blog-->
+    <result column="blog_id" jdbcType="BIGINT" property="blogId" />
+    <result column="blog_title" jdbcType="VARCHAR" property="blogTitle" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="blog_desc" jdbcType="VARCHAR" property="blogDesc" />
+    <result column="category_id" jdbcType="BIGINT" property="categoryId" />
+    <result column="blog_status" jdbcType="INTEGER" property="blogStatus" />
+    <result column="creat_time" jdbcType="TIMESTAMP" property="creatTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="blogContent" jdbcType="VARCHAR" property="blogcontent" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    <!--@mbg.generated-->
+    blog_id, blog_title, user_id, blog_desc, category_id, blog_status, creat_time, update_time, 
+    blogContent
+  </sql>
+  <insert id="insert" parameterType="com.blog.entity.Blog">
+    <!--@mbg.generated-->
+    insert into blog (blog_id, blog_title, user_id, 
+      blog_desc, category_id, blog_status, 
+      creat_time, update_time, blogContent
+      )
+    values (#{blogId,jdbcType=BIGINT}, #{blogTitle,jdbcType=VARCHAR}, #{userId,jdbcType=BIGINT}, 
+      #{blogDesc,jdbcType=VARCHAR}, #{categoryId,jdbcType=BIGINT}, #{blogStatus,jdbcType=INTEGER}, 
+      #{creatTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{blogcontent,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.blog.entity.Blog">
+    <!--@mbg.generated-->
+    insert into blog
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="blogId != null">
+        blog_id,
+      </if>
+      <if test="blogTitle != null">
+        blog_title,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="blogDesc != null">
+        blog_desc,
+      </if>
+      <if test="categoryId != null">
+        category_id,
+      </if>
+      <if test="blogStatus != null">
+        blog_status,
+      </if>
+      <if test="creatTime != null">
+        creat_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="blogcontent != null">
+        blogContent,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="blogId != null">
+        #{blogId,jdbcType=BIGINT},
+      </if>
+      <if test="blogTitle != null">
+        #{blogTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="blogDesc != null">
+        #{blogDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryId != null">
+        #{categoryId,jdbcType=BIGINT},
+      </if>
+      <if test="blogStatus != null">
+        #{blogStatus,jdbcType=INTEGER},
+      </if>
+      <if test="creatTime != null">
+        #{creatTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="blogcontent != null">
+        #{blogcontent,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+
+<!--  <select id="selectArticleListByCondition" resultMap="BlogConditionQuery">
+    SELECT a.blog_id,
+    a.blog_title,
+    a.creat_time,
+    c.category_id AS category_id,
+    c.category_name,
+    t.tag_id AS tag_id,
+    t.tag_name
+    FROM blog a
+    INNER JOIN category c ON a.category_id = c.category_id
+    INNER JOIN blog_tag bta ON a.blog_id = bta.blog_id
+    INNER JOIN tag t ON t.tag_id = bta.blog_id
+    <where> blog_status = 1
+      <if test="param.categoryId != null">
+        and category_id = #{param.categoryId}
+      </if>
+      <if test="param.tagId != null">
+        and tag_id = #{param.tagId}
+      </if>
+    </where>
+    ORDER BY a.blog_id DESC
+    LIMIT #{param.current}, #{param.size}
+  </select>-->
+</mapper>
