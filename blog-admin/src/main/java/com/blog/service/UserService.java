@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -89,7 +90,7 @@ public class UserService {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入密码不一致，请重新输入");
         }
         /*验证邮箱验证码*/
-        EmailCodeBo emailCodeBo = (com.blog.util.bo.EmailCodeBo) redisUtils.get(RedisTransKey.getEmailKey(email));
+        EmailCodeBo emailCodeBo = Optional.ofNullable((EmailCodeBo) redisUtils.get(RedisTransKey.getEmailKey(email))).orElseThrow(()->new BusinessException(ErrorCode.PARAMS_ERROR,"请先获取验证码"));
         if (!emailCodeBo.getCode().equals(emailCode)) {
             log.error("邮箱验证码输入错误，注册失败：{}", account);
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请确认邮箱验证码是否正确");
