@@ -8,27 +8,27 @@ public class RedisTransKey {
     private static final String REDIS_LOGIN_NAME="login";
     private static final String REDIS_EMAIL_CODE_NAME="emailCode";
 
-    public static String setEmailKey(String key){
+    public static String emailKey(String key){
         return REDIS_NAME_SPACE+":"+REDIS_EMAIL_CODE_NAME+":"+key;
     }
-    public static String setRootKey(String key){
+    public static String rootKey(String key){
         return REDIS_NAME_SPACE+":"+key+"";
     }
-    public static String setTokenKey(String key){
+    public static String tokenKey(String key){
         return REDIS_NAME_SPACE+':'+REDIS_TOKEN_NAME+":"+key;
     }
-    public static String setRefreshTokenKey(String key){
+    public static String refreshTokenKey(String key){
         return REDIS_NAME_SPACE+':'+REDIS_REFRESH_TOKEN_NAME+":"+key;
     }
-    public static String setLoginKey(String key){
+    public static String loginKey(String key){
         return REDIS_NAME_SPACE+':'+REDIS_LOGIN_NAME+":"+key;
     }
 
-    public static String getEmailKey(String key){return setEmailKey(key);}
-    public static String getRootKey(String key){return setRootKey(key);}
-    public static String getTokenKey(String key){return setTokenKey(key);}
-    public static String getRefreshTokenKey(String key){return setRefreshTokenKey(key);}
-    public static String getLoginKey(String key){return setLoginKey(key);}
+    public static String getEmailKey(String key){return emailKey(key);}
+    public static String getRootKey(String key){return rootKey(key);}
+    public static String getTokenKey(String key){return tokenKey(key);}
+    public static String getRefreshTokenKey(String key){return refreshTokenKey(key);}
+    public static String getLoginKey(String key){return loginKey(key);}
 
 }
 

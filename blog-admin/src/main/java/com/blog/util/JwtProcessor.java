@@ -1,18 +1,19 @@
-package com.blog.service;
+package com.blog.util;
 
-import com.blog.entity.User;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
+
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-@Service
-public class JwtService {
+@Component
+public class JwtProcessor {
     @Value("${security.jwt.secret}")
     private String secretKey;
 
@@ -22,40 +23,43 @@ public class JwtService {
     /**
      * Token令牌验证
      * @param token
-     * @param user
+     * @param userId
      * @return Boolean
      */
-    public Boolean validateToken(String token, User user) {
-        final String emailFromToken = extractEmail(token);
-        return (emailFromToken.equals(user.getEmail()) && !isTokenExpired(token));
+    public Boolean validateToken(String token, Long userId) {
+        final Long userIdFromToken = extractUserId(token);
+        return (userIdFromToken.equals(userId) && !isTokenExpired(token));
     }
+
+
 
     /**
      * 生成Token令牌
-     * @param user
+     * @param userId
      * @return String
      */
-    public String generateToken(User user) {
-        return createToken(new HashMap<>(), user, jwtExpiration*2);
+    public String generateToken(Long userId) {
+        return createToken(new HashMap<>(), userId, jwtExpiration);
     }
 
     /**
      * 刷新令牌
-     * @param user
+     * @param userId
      * @return String
      */
 
-    public String generateRefreshToken(User user) {
+    public String generateRefreshToken(Long userId) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, user, jwtExpiration);
+        return createToken(claims, userId, jwtExpiration*2);
+    }
+
+    public Long extractUserId(String token) {
+        return Long.valueOf(extractClaim(token, Claims::getSubject));
     }
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    private String extractEmail(String token) {
-        return extractClaim(token, Claims::getSubject);
-    }
     private  <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
@@ -73,9 +77,9 @@ public class JwtService {
     }
 
 
-    private String createToken(Map<String, Object> claims, User user, long expiration) {
+    private String createToken(Map<String, Object> claims, Long userId, long expiration) {
         return Jwts.builder().setClaims(claims)
-                .setSubject(user.getEmail())
+                .setSubject(String.valueOf(userId))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(SignatureAlgorithm.HS512, secretKey).compact();

@@ -4,19 +4,23 @@ import com.blog.entity.User;
 import com.blog.enums.ErrorCode;
 import com.blog.exception.BusinessException;
 import com.blog.mapper.UserMapper;
+import com.blog.util.JwtProcessor;
 import com.blog.util.SecurityUtils;
 import com.blog.util.SnowFlakeUtil;
 import com.blog.util.bo.EmailCodeBo;
 import com.blog.util.redis.RedisTransKey;
-import com.blog.util.redis.RedisUtils;
+import com.blog.util.redis.RedisProcessor;
 import com.blog.vo.Loginer;
 import com.blog.vo.Register;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -26,28 +30,30 @@ import java.util.concurrent.TimeUnit;
 public class UserService {
     private final UserMapper userMapper;
 
-    private final RedisUtils redisUtils;
+    private final RedisProcessor redisProcessor;
 
-    private final JwtService jwtService;
+    private final JwtProcessor jwtProcessor;
+
 
     /**
+     * 用户登录，登陆成功后返回accessToke，refreshToken，userId
      * @param loginer
      * @Descriptionn 用户登录
-     * @Return boolean
+     * @Return Map<String,Object>
      */
-    public void userLogin(Loginer loginer) {
+    public Map<String, Object> userLogin(Loginer loginer) {
         String email = loginer.getEmail();
         String password = loginer.getPassword();
-        /*验证是否存在旧的refresh token，存在即删除*/
-        if (redisUtils.hasKey(RedisTransKey.getRefreshTokenKey(email))) {
-            redisUtils.del(RedisTransKey.getRefreshTokenKey(email));
+        //验证是否存在旧的refresh token，存在即删除
+        if (redisProcessor.hasKey(RedisTransKey.getRefreshTokenKey(email))) {
+            redisProcessor.del(RedisTransKey.getRefreshTokenKey(email));
         }
-        /*判断用户是否已经登陆*/
-        if (redisUtils.hasKey(RedisTransKey.getLoginKey(email))) {
+        //判断用户是否已经登陆
+        if (redisProcessor.hasKey(RedisTransKey.getLoginKey(email))) {
             log.error("用户已登录！");
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户已登录！");
         }
-        /*用户此时不为null，是否为null已经在selectUserByEmail判断*/
+        //用户此时不为null，是否为null已经在selectUserByEmail判断
         User user = selectUserByEmail(email);
         boolean loginFlag = SecurityUtils.checkPassword(password, user.getPassword());
         if (!loginFlag) {
@@ -55,20 +61,46 @@ public class UserService {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误,请重新输入");
         }
         /*将用户信息存放在token中，时效为7天*/
-        String token = jwtService.generateToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
-        redisUtils.set(RedisTransKey.setTokenKey(email), token, 7, TimeUnit.DAYS);
-        redisUtils.set(RedisTransKey.setTokenKey(email), refreshToken, 7, TimeUnit.DAYS);
-        redisUtils.set(RedisTransKey.setLoginKey(email), email, 7, TimeUnit.DAYS);
-
+        String token = jwtProcessor.generateToken(user.getUserId());
+        String refreshToken = jwtProcessor.generateRefreshToken(user.getUserId());
+        redisProcessor.set(RedisTransKey.tokenKey(email), token, 7, TimeUnit.DAYS);
+        redisProcessor.set(RedisTransKey.refreshTokenKey(email), refreshToken, 7, TimeUnit.DAYS);
+        redisProcessor.set(RedisTransKey.loginKey(email), email, 7, TimeUnit.DAYS);
+        Map<String, Object> result = new HashMap<>();
+        result.put("accessToken", token);
+        result.put("refreshToken", refreshToken);
+        result.put("userId", user.getUserId());
         log.info("用户{}登陆成功", user.getAccount());
+        return result;
     }
 
     /**
-     * @Transactional 如果事务抛出异常，则进行回滚
+     * 刷新accessToken信息，并生成新的refreshToken
+     * @param userId
+     * @return Map<String,Object>
+     */
+    public Map<String, Object> refreshAccessToken(Long userId) {
+        User user = userMapper.selectByPrimaryKey(userId);
+        //从redis中拿到refreshToken，判断其是否过期
+        String refreshTokenRedis = (String) redisProcessor.get(RedisTransKey.getRefreshTokenKey(user.getEmail()));
+        if (refreshTokenRedis == null) {
+            log.error("refreshToken已过期，请重新登录");
+            throw new BusinessException(ErrorCode.TOKEN_ERROR, "token已过期！");
+        }
+        //没过期生成一个新的token
+        String accessToken = jwtProcessor.generateToken(userId);
+        String newRefreshToken = jwtProcessor.generateRefreshToken(userId);
+        Map<String, Object> result = new HashMap<>();
+        result.put("accessToken", accessToken);
+        result.put("refreshToken", newRefreshToken);
+        result.put("userId", userId);
+        return result;
+    }
+
+    /**
+     * 注册新用户，并最后清理redis中的验证码信息
      * @Description 注册新用户
      * @Param register
-     * @Param session
      * @Return User
      */
     public User userRegister(@Validated Register register) {
@@ -84,13 +116,13 @@ public class UserService {
             log.error("邮箱已注册，请重新输入：{}", email);
             throw new BusinessException(ErrorCode.USER_ALREADY_EXISTS, "邮箱已注册，请重新输入");
         }
-        /*验证两次输入密码是否一致*/
+        //验证两次输入密码是否一致
         if (!checkPassword.equals(password)) {
             log.error("两次输入密码不一致，注册失败：{}", account);
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入密码不一致，请重新输入");
         }
         /*验证邮箱验证码*/
-        EmailCodeBo emailCodeBo = Optional.ofNullable((EmailCodeBo) redisUtils.get(RedisTransKey.getEmailKey(email))).orElseThrow(()->new BusinessException(ErrorCode.PARAMS_ERROR,"请先获取验证码"));
+        EmailCodeBo emailCodeBo = Optional.ofNullable((EmailCodeBo) redisProcessor.get(RedisTransKey.getEmailKey(email))).orElseThrow(() -> new BusinessException(ErrorCode.PARAMS_ERROR, "请先获取验证码"));
         if (!emailCodeBo.getCode().equals(emailCode)) {
             log.error("邮箱验证码输入错误，注册失败：{}", account);
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请确认邮箱验证码是否正确");
@@ -110,9 +142,9 @@ public class UserService {
         user.setPassword(BCPassword);
         user.setEmail(email);
         user.setPhone(phone);
-        /*添加用户到数据库*/
+        /*添加用户到数据库,并清理redis中存放的验证码*/
         userMapper.insertUser(user);
-        redisUtils.del(RedisTransKey.getEmailKey(email));
+        redisProcessor.del(RedisTransKey.getEmailKey(email));
         log.info("用户 {} 添加成功", account);
         return user;
     }
@@ -133,39 +165,25 @@ public class UserService {
     }
 
     /**
-     * @param email
+     * @param userId
      * @Description 根据用户邮箱删除用户
      */
-    public void deleteUserByEmail(String email) {
-        User user = userMapper.findByEmail(email);
+    public void deleteUserById(Long userId) {
+        User user = userMapper.selectByPrimaryKey(userId);
         if (user == null) {
-            log.error("邮箱{}未注册，无需删除", email);
+            log.error("邮箱未注册，无需删除");
             throw new BusinessException(ErrorCode.USER_NOT_FOUND, "邮箱未注册，无需删除");
         }
-        userMapper.deleteByEmail(email);
-        log.info("用户{}删除成功", email);
+        userMapper.deleteByPrimaryKey(userId);
+        log.info("用户{}删除成功", user.getEmail());
     }
 
-    /*修改用户信息前进行密码验证*/
-    public void verifyUser(String password, String email) {
-        User user = userMapper.findByEmail(email);
-        boolean verify = SecurityUtils.checkPassword(password, user.getPassword());
-        if (!verify) {
-            log.error("密码验证失败，请重新输入");
-            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS, "密码验证失败，请验证成功后修改用户信息");
-        }
-        log.info("用户验证成功，请修改用户信息");
-    }
-    /*修改用户信息*/
+    /**
+     * 更新用户信息
+     * @param user
+     */
     public void updateUser(User user) {
-        userMapper.updateUser(user);
-        /*更新用户信息后清掉旧的access token 和refresh token*/
-        if (redisUtils.hasKey(RedisTransKey.getTokenKey(user.getEmail()))){
-            redisUtils.del(RedisTransKey.getTokenKey(user.getEmail()));
-        }
-        if (redisUtils.hasKey(RedisTransKey.getRefreshTokenKey(user.getEmail()))){
-            redisUtils.del(RedisTransKey.getRefreshTokenKey(user.getEmail()));
-        }
+        userMapper.updateByPrimaryKeySelective(user);
         log.info("用户修改成功");
     }
 }

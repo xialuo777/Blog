@@ -6,6 +6,7 @@ public enum ErrorCode {
     USER_NOT_FOUND(10002,"用户不存在"),
     USER_ALREADY_EXISTS(10003,"用户已存在"),
     INVALID_CREDENTIALS(10004,"用户密码错误"),
+    TOKEN_ERROR(10005,"token出现异常"),
     SUCCESS(20000,"成功");
     private int code;
     private String message;

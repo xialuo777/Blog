@@ -4,15 +4,13 @@ import com.blog.exception.BusinessException;
 import com.blog.util.CodeUtils;
 import com.blog.util.bo.EmailCodeBo;
 import com.blog.util.redis.RedisTransKey;
-import com.blog.util.redis.RedisUtils;
+import com.blog.util.redis.RedisProcessor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
-import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 import javax.mail.Session;
@@ -33,13 +31,13 @@ class MailServiceTest {
     @Mock
     private EmailCodeBo mockEmailCodeBo;
     @Mock
-    private RedisUtils mockRedisUtils;
+    private RedisProcessor mockRedisProcessor;
 
     private MailService mailServiceUnderTest;
 
     @BeforeEach
     void setUp() {
-        mailServiceUnderTest = new MailService(mockJavaMailSender, mockEmailCodeBo, mockRedisUtils);
+        mailServiceUnderTest = new MailService(mockJavaMailSender, mockEmailCodeBo, mockRedisProcessor);
     }
 
     @Test
@@ -58,7 +56,7 @@ class MailServiceTest {
             final EmailCodeBo value = new EmailCodeBo();
             value.setCode("tested");
             value.setEmail("2436056388@qq.com");
-            verify(mockRedisUtils).set(eq(RedisTransKey.setEmailKey("2436056388@qq.com")), any(EmailCodeBo.class), eq(60L), eq(TimeUnit.SECONDS));
+            verify(mockRedisProcessor).set(eq(RedisTransKey.emailKey("2436056388@qq.com")), any(EmailCodeBo.class), eq(60L), eq(TimeUnit.SECONDS));
             verify(mockJavaMailSender).send(any(MimeMessage.class));
 
             mockedCodeUties.verify(CodeUtils::getCode);
@@ -80,7 +78,7 @@ class MailServiceTest {
             });
             verify(mockEmailCodeBo).setEmail("2436056388@qq.com");
             verify(mockEmailCodeBo).setCode(anyString());
-            verify(mockRedisUtils).set(anyString(), any(EmailCodeBo.class), eq(60L), eq(TimeUnit.SECONDS));
+            verify(mockRedisProcessor).set(anyString(), any(EmailCodeBo.class), eq(60L), eq(TimeUnit.SECONDS));
         }
     }
 }

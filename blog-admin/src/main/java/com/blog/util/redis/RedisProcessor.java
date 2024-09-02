@@ -8,7 +8,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.concurrent.TimeUnit;
 @Component
 @RequiredArgsConstructor
-public class RedisUtils {
+public class RedisProcessor {
     private RedisTemplate<String,Object> redisTemplate;
 
     /**
@@ -16,7 +16,7 @@ public class RedisUtils {
      * @param redisTemplate 模板
      */
     @Autowired
-    public RedisUtils(RedisTemplate<String, Object> redisTemplate) {
+    public RedisProcessor(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 

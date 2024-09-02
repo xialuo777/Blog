@@ -1,9 +1,12 @@
 package com.blog.controller;
 import com.blog.entity.User;
 
-import com.blog.service.JwtService;
+import com.blog.authentication.RequestAuthentication;
+import com.blog.mapper.UserMapper;
 import com.blog.service.MailService;
 import com.blog.service.UserService;
+import com.blog.util.redis.RedisProcessor;
+import com.blog.util.redis.RedisTransKey;
 import com.blog.vo.Loginer;
 import com.blog.vo.Register;
 import lombok.RequiredArgsConstructor;
@@ -13,9 +16,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
+
+import java.util.Map;
+
 
 
 @RestController
@@ -26,16 +31,16 @@ public class UserController {
 
     private final UserService userService;
     private final MailService mailService;
-    private final JwtService jwtService;
+    private final RedisProcessor redisProcessor;
 
-    private final HttpSession session;
+    private final UserMapper userMapper;
+
 
 
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody @Validated Register register) {
         User user = userService.userRegister(register);
-        String token = jwtService.generateToken(user);
-        return ResponseEntity.ok(token);
+        return ResponseEntity.ok(user);
     }
 
     @GetMapping("/email_code")
@@ -44,40 +49,54 @@ public class UserController {
         mailService.getEmailCode(email);
     }
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     @ResponseBody
-    public void login(@Validated Loginer loginer) {
-        userService.userLogin(loginer);
+    public ResponseEntity login(@Validated @RequestBody Loginer loginer) {
+        //用户登陆后返回给前端accessToken和refreshToken
+        Map<String, Object> tokenMap = userService.userLogin(loginer);
+        return ResponseEntity.ok(tokenMap);
+    }
 
+    /**
+     * 当短时间的accessToken过期后，前端需要通过refreshToke访问后端，
+     * 并生成新的accessToken返回给前端
+     * @param request
+     * @return
+     */
+    @PostMapping("/token")
+    public ResponseEntity refreshToken(HttpServletRequest request) {
+        Long userId = Long.valueOf(request.getHeader("userId"));
+        Map<String, Object> tokenMap = userService.refreshAccessToken(userId);
+        //返回给前端刷新后的accessToken,同时也会产生新的refreshToken,以防refreshToken过期
+        return ResponseEntity.ok(tokenMap);
+    }
+
+    /***
+     * 用户退出登陆时，需要删除token信息
+     * @param request
+     * @return
+     */
+    @GetMapping("/logout")
+    public ResponseEntity logout(HttpServletRequest request) {
+        String token = request.getHeader("accessToken");
+        Long userId = Long.valueOf(request.getHeader("userId"));
+        User user = userMapper.selectByPrimaryKey(userId);
+        RedisTransKey.getTokenKey(token);
+        redisProcessor.del(RedisTransKey.getRefreshTokenKey(user.getEmail()),RedisTransKey.getTokenKey(user.getEmail()),RedisTransKey.getLoginKey(user.getEmail()));
+        return ResponseEntity.ok("退出成功");
     }
 
     @DeleteMapping("/delete")
-    public void delete(@RequestParam String email) {
-        userService.deleteUserByEmail(email);
+    public ResponseEntity delete(HttpServletRequest request) {
+        Long userId = Long.valueOf(request.getHeader("userId"));
+        userService.deleteUserById(userId);
+        return ResponseEntity.ok("用户删除成功");
     }
 
-    @GetMapping("/profile")
-    public String profile() {
-        String email = (String) session.getAttribute("email");
-        User user = userService.selectUserByEmail(email);
-        session.setAttribute("path", "profile");
-        session.setAttribute("account", user.getAccount());
-        session.setAttribute("nickName", user.getNickName());
-        session.setAttribute("id", user.getUserId());
-        return "users/profile";
-    }
-
-    @GetMapping("/profile/verify")
-    public void verifyUser(@RequestParam @NotBlank String password) {
-        String email = (String) session.getAttribute("email");
-        userService.verifyUser(password, email);
-    }
-
-    @PutMapping("/profile/update")
-    public void updateUser(@RequestBody User newUser) {
-        Long id = (Long) session.getAttribute("id");
-        newUser.setUserId(id);
-        userService.updateUser(newUser);
+    @PutMapping("/update")
+    public ResponseEntity updateUser(@RequestBody User user) {
+        userService.updateUser(user);
+        return ResponseEntity.ok("用户信息更新成功");
     }
 
 

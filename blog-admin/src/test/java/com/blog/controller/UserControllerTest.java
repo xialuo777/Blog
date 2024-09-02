@@ -1,30 +1,22 @@
 package com.blog.controller;
 
 import com.blog.constant.Constant;
-import com.blog.entity.User;
-import com.blog.service.JwtService;
-import com.blog.service.MailService;
 import com.blog.service.UserService;
-import com.blog.util.SnowFlakeUtil;
+import com.blog.util.JwtProcessor;
 import com.blog.util.bo.EmailCodeBo;
 import com.blog.util.redis.RedisTransKey;
-import com.blog.util.redis.RedisUtils;
+import com.blog.util.redis.RedisProcessor;
 import com.blog.vo.Loginer;
 import com.blog.vo.Register;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.servlet.http.HttpSession;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,29 +33,27 @@ public class UserControllerTest {
     private UserService userService;
 
     @Autowired
-    private JwtService jwtService;
+    private JwtProcessor jwtService;
 
     @Mock
-    private RedisUtils redisUtils;
+    private RedisProcessor redisProcessor;
 
 
     @Test
     @Transactional
     void testRegister() throws Exception {
-//        try (MockedStatic<RedisTransKey> redisTransKeyMockedStatic = mockStatic(RedisTransKey.class)) {
         Register register = new Register("accountTest", "SuperMan", "passwordTest", "passwordTest", "2436056388@qq.com", "18539246184", "tested");
         EmailCodeBo emailCodeBo = new EmailCodeBo();
         emailCodeBo.setEmail(register.getEmail());
         emailCodeBo.setCode("tested");
 
-        when(redisUtils.get(RedisTransKey.getEmailKey(register.getEmail()))).thenReturn(emailCodeBo);
+        when(redisProcessor.get(RedisTransKey.getEmailKey(register.getEmail()))).thenReturn(emailCodeBo);
 
-        ResponseEntity<String> responseEntity = testRestTemplate.postForEntity("/users/register", register, String.class);
+        ResponseEntity<String> responseEntity = testRestTemplate.postForEntity(Constant.BASE_URL+"/users/register", register, String.class);
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         // 这里假设生成的 token 是正确的
-        String expectedToken = jwtService.generateToken(userService.userRegister(register));
+        String expectedToken = jwtService.generateToken(userService.userRegister(register).getUserId());
         assertEquals(expectedToken, responseEntity.getBody());
-//        }
     }
 
 

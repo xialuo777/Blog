@@ -6,7 +6,7 @@ import com.blog.exception.BusinessException;
 import com.blog.util.CodeUtils;
 import com.blog.util.bo.EmailCodeBo;
 import com.blog.util.redis.RedisTransKey;
-import com.blog.util.redis.RedisUtils;
+import com.blog.util.redis.RedisProcessor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -26,7 +26,7 @@ public class MailService {
 
     private final JavaMailSenderImpl javaMailSender;
     private final EmailCodeBo emailCodeBo;
-    private final RedisUtils redisUtils;
+    private final RedisProcessor redisProcessor;
 
     /**
      * 发送邮箱验证码，并将验证码信息保存在redis中
@@ -38,7 +38,7 @@ public class MailService {
         emailCodeBo.setEmail(toEmail);
         emailCodeBo.setCode(code);
         /*redis缓存emailCodeBo，key为邮箱，时间为60s*/
-        redisUtils.set(RedisTransKey.setEmailKey(toEmail), emailCodeBo, 60, TimeUnit.SECONDS);
+        redisProcessor.set(RedisTransKey.emailKey(toEmail), emailCodeBo, 60, TimeUnit.SECONDS);
         sendCodeMailMessage(toEmail, code);
     }
 

@@ -5,9 +5,14 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface UserMapper {
-    void insertUser(User user);
-    void updateUser(User user);
-    void deleteByEmail(String Email);
+    int insertUser(User user);
+    int deleteByEmail(String Email);
     User findByEmail(String Email);
+    int deleteByPrimaryKey(Long userId);
+    int insertSelective(User user);
+    User selectByPrimaryKey(Long userId);
 
+    int updateByPrimaryKeySelective(User record);
+
+    int updateByPrimaryKey(User record);
 }

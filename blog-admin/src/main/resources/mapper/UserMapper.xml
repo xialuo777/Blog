@@ -17,9 +17,50 @@
     <insert id="insertUser" parameterType="com.blog.entity.User">
         insert into user (user_id, account, nick_name, password, email, phone) values (#{userId},#{account},#{nickName},#{password},#{email},#{phone})
     </insert>
-    <update id="updateUser" parameterType="com.blog.entity.User">
-        update user set user_id = #{userId}, account = #{account},nick_name = #{nickName},email = #{email}, phone = #{phone}
-    </update>
+    <insert id="insertSelective" parameterType="com.blog.entity.User">
+        <!--@mbg.generated-->
+        insert into `user`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="account != null">
+                account,
+            </if>
+            <if test="nickName != null">
+                nick_name,
+            </if>
+            <if test="password != null">
+                `password`,
+            </if>
+            <if test="email != null">
+                email,
+            </if>
+            <if test="phone != null">
+                phone,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">
+                #{userId,jdbcType=BIGINT},
+            </if>
+            <if test="account != null">
+                #{account,jdbcType=VARCHAR},
+            </if>
+            <if test="nickName != null">
+                #{nickName,jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
+                #{password,jdbcType=VARCHAR},
+            </if>
+            <if test="email != null">
+                #{email,jdbcType=VARCHAR},
+            </if>
+            <if test="phone != null">
+                #{phone,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
     <delete id="deleteByEmail" parameterType="java.lang.String">
         delete from user where email = #{email}
     </delete>
@@ -28,4 +69,49 @@
         <include refid="Base_Column_List" />
             from user where email = #{email}
     </select>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        <!--@mbg.generated-->
+        select
+        <include refid="Base_Column_List" />
+        from `user`
+        where user_id = #{userId,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        <!--@mbg.generated-->
+        delete from `user`
+        where user_id = #{userId,jdbcType=BIGINT}
+    </delete>
+    <update id="updateByPrimaryKeySelective" parameterType="com.blog.entity.User">
+        <!--@mbg.generated-->
+        update `user`
+        <set>
+            <if test="account != null">
+                account = #{account,jdbcType=VARCHAR},
+            </if>
+            <if test="nickName != null">
+                nick_name = #{nickName,jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
+                `password` = #{password,jdbcType=VARCHAR},
+            </if>
+            <if test="email != null">
+                email = #{email,jdbcType=VARCHAR},
+            </if>
+            <if test="phone != null">
+                phone = #{phone,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where user_id = #{userId,jdbcType=BIGINT}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.blog.entity.User">
+        <!--@mbg.generated-->
+        update `user`
+        set account = #{account,jdbcType=VARCHAR},
+        nick_name = #{nickName,jdbcType=VARCHAR},
+        `password` = #{password,jdbcType=VARCHAR},
+        email = #{email,jdbcType=VARCHAR},
+        phone = #{phone,jdbcType=VARCHAR}
+        where user_id = #{userId,jdbcType=BIGINT}
+    </update>
 </mapper>
