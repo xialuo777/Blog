@@ -2,7 +2,6 @@ package com.blog.authentication;
 
 import com.blog.enums.ErrorCode;
 import com.blog.exception.BusinessException;
-import com.blog.util.CurrentUserHolder;
 import com.blog.util.JwtProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

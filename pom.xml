@@ -11,7 +11,8 @@
     <modules>
         <module>blog-common</module>
         <module>blog-admin</module>
-        <module>blog-vue</module>
+        <module>blog-controller</module>
+        <module>blog-model</module>
     </modules>
     <properties>
         <java.version>1.8</java.version>
