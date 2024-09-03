@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Email;
-import java.util.Currency;
+
 
 
 @RestController
@@ -73,7 +73,7 @@ public class UserController {
     /***
      * 用户退出登陆时，需要删除token信息
      * @param request
-     * @return
+     * @return ResponseEntity
      */
     @GetMapping("/logout")
     public ResponseEntity<String> logout(HttpServletRequest request) {
@@ -102,7 +102,12 @@ public class UserController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<String> updateUser(@RequestBody User user) {
+    public ResponseEntity<String> updateUser(@RequestBody User user, HttpServletRequest request) {
+        String accessToken = request.getHeader("accessToken");
+        Long userId = Long.valueOf(request.getHeader("userId"));
+        if (!jwtProcessor.validateToken(accessToken, userId)) {
+            return ResponseEntity.ok("token验证失败");
+        }
         userService.updateUser(user);
         return ResponseEntity.ok("用户信息更新成功");
     }

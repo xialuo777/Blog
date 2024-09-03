@@ -1,8 +1,6 @@
 package com.blog.config;
 
 import com.blog.authentication.AuthenticationFilter;
-import com.blog.util.JwtProcessor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

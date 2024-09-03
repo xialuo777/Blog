@@ -15,7 +15,6 @@ import com.blog.vo.Loginer;
 import com.blog.vo.Register;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -37,8 +36,8 @@ public class UserService {
     /**
      * 用户登录，登陆成功后返回accessToke，refreshToken，userId
      * @param loginer
-     * @Descriptionn 用户登录
-     * @Return Map<String,Object>
+     * @description 用户登录
+     * @return String
      */
     public String userLogin(Loginer loginer) {
         String email = loginer.getEmail();
@@ -159,7 +158,7 @@ public class UserService {
 
     /**
      * @param userId
-     * @Description 根据用户邮箱删除用户
+     * @description 根据用户邮箱删除用户
      */
     public void deleteUserById(Long userId) {
         User user = userMapper.selectByPrimaryKey(userId);
