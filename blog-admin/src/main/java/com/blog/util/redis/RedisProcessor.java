@@ -89,9 +89,9 @@ public class RedisProcessor {
      * @return true成功 false 失败
      */
 
-    public void set(String key, Object value, long time,TimeUnit tiemtype) {
+    public void set(String key, Object value, long time,TimeUnit timeType) {
         if (time > 0) {
-            redisTemplate.opsForValue().set(key, value, time, tiemtype);
+            redisTemplate.opsForValue().set(key, value, time, timeType);
         } else {
             throw new RuntimeException("设置的验证码超时时间小于0");
         }

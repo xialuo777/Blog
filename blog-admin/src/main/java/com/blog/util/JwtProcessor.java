@@ -1,9 +1,12 @@
 package com.blog.util;
 
 
+import com.blog.enums.ErrorCode;
+import com.blog.exception.BusinessException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 @Component
+@Slf4j
 public class JwtProcessor {
     @Value("${security.jwt.secret}")
     private String secretKey;
@@ -27,10 +31,28 @@ public class JwtProcessor {
      * @return Boolean
      */
     public Boolean validateToken(String token, Long userId) {
+        if (token==null){
+            log.error("token为空");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"token为空");
+        }
+        if (isTokenExpired(token)){
+            log.error("token已失效");
+            throw new BusinessException(ErrorCode.TOKEN_EXPIRED,"token已失效");
+        }
         final Long userIdFromToken = extractUserId(token);
         return (userIdFromToken.equals(userId) && !isTokenExpired(token));
     }
-
+    public Long extractUserId(String token) {
+        if (token==null){
+            log.error("token为空");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR,"token为空");
+        }
+        if (isTokenExpired(token)){
+            log.error("token已失效");
+            throw new BusinessException(ErrorCode.TOKEN_EXPIRED,"token失效");
+        }
+        return Long.valueOf(extractClaim(token, Claims::getSubject));
+    }
 
 
     /**
@@ -50,12 +72,10 @@ public class JwtProcessor {
 
     public String generateRefreshToken(Long userId) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, userId, jwtExpiration*2);
+        return createToken(claims, userId, jwtExpiration*4*24*7);
     }
 
-    public Long extractUserId(String token) {
-        return Long.valueOf(extractClaim(token, Claims::getSubject));
-    }
+
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
@@ -80,9 +100,10 @@ public class JwtProcessor {
     private String createToken(Map<String, Object> claims, Long userId, long expiration) {
         return Jwts.builder().setClaims(claims)
                 .setSubject(String.valueOf(userId))
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(SignatureAlgorithm.HS512, secretKey).compact();
+                .setIssuedAt(new Date(System.currentTimeMillis()+ 8 * 3600 * 1000))
+                .setExpiration(new Date(System.currentTimeMillis()+ 8 * 3600 * 1000 + expiration))
+                .signWith(SignatureAlgorithm.HS512, secretKey)
+                .compact();
     }
 
 }

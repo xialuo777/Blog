@@ -8,6 +8,7 @@ public enum ErrorCode {
     INVALID_CREDENTIALS(10004,"用户密码错误"),
     TOKEN_ERROR(10005,"token出现异常"),
     FAIL(10006,"失败"),
+    TOKEN_EXPIRED(10007,"token已过期"),
     SUCCESS(20000,"成功");
     private int code;
     private String message;

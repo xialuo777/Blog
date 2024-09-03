@@ -1,10 +1,12 @@
 package com.blog.controller;
+
+import com.blog.authentication.CurrentUserHolder;
 import com.blog.entity.User;
 
-import com.blog.authentication.RequestAuthentication;
 import com.blog.mapper.UserMapper;
 import com.blog.service.MailService;
 import com.blog.service.UserService;
+import com.blog.util.JwtProcessor;
 import com.blog.util.redis.RedisProcessor;
 import com.blog.util.redis.RedisTransKey;
 import com.blog.vo.Loginer;
@@ -18,9 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Email;
-
-import java.util.Map;
-
+import java.util.Currency;
 
 
 @RestController
@@ -32,15 +32,14 @@ public class UserController {
     private final UserService userService;
     private final MailService mailService;
     private final RedisProcessor redisProcessor;
-
     private final UserMapper userMapper;
-
+    private final JwtProcessor jwtProcessor;
 
 
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody @Validated Register register) {
-        User user = userService.userRegister(register);
-        return ResponseEntity.ok(user);
+    public ResponseEntity<String> register(@RequestBody @Validated Register register) {
+        userService.userRegister(register);
+        return ResponseEntity.ok("用户注册成功");
     }
 
     @GetMapping("/email_code")
@@ -51,24 +50,24 @@ public class UserController {
 
     @PostMapping("/login")
     @ResponseBody
-    public ResponseEntity login(@Validated @RequestBody Loginer loginer) {
+    public ResponseEntity<String> login(@Validated @RequestBody Loginer loginer) {
         //用户登陆后返回给前端accessToken和refreshToken
-        Map<String, Object> tokenMap = userService.userLogin(loginer);
-        return ResponseEntity.ok(tokenMap);
+        String accessToken = userService.userLogin(loginer);
+        return ResponseEntity.ok(accessToken);
     }
 
     /**
-     * 当短时间的accessToken过期后，前端需要通过refreshToke访问后端，
-     * 并生成新的accessToken返回给前端
-     * @param request
-     * @return
+     * 刷新token
+     * @return accessToken
      */
-    @PostMapping("/token")
-    public ResponseEntity refreshToken(HttpServletRequest request) {
-        Long userId = Long.valueOf(request.getHeader("userId"));
-        Map<String, Object> tokenMap = userService.refreshAccessToken(userId);
+    @PostMapping("/refresh")
+    public ResponseEntity<String> refreshToken() {
+        Long userId = CurrentUserHolder.getUserId();
+        User user = userMapper.selectByPrimaryKey(userId);
+        String refreshToken = (String) redisProcessor.get(RedisTransKey.getRefreshTokenKey(user.getEmail()));
+        String accessToken = userService.refreshAccessToken(refreshToken);
         //返回给前端刷新后的accessToken,同时也会产生新的refreshToken,以防refreshToken过期
-        return ResponseEntity.ok(tokenMap);
+        return ResponseEntity.ok(accessToken);
     }
 
     /***
@@ -77,24 +76,33 @@ public class UserController {
      * @return
      */
     @GetMapping("/logout")
-    public ResponseEntity logout(HttpServletRequest request) {
-        String token = request.getHeader("accessToken");
-        Long userId = Long.valueOf(request.getHeader("userId"));
+    public ResponseEntity<String> logout(HttpServletRequest request) {
+        String accessToken = request.getHeader("accessToken");
+        Long userId = jwtProcessor.extractUserId(accessToken);
+        if (!jwtProcessor.validateToken(accessToken, userId)) {
+            return ResponseEntity.ok("token验证失败");
+        }
         User user = userMapper.selectByPrimaryKey(userId);
-        RedisTransKey.getTokenKey(token);
-        redisProcessor.del(RedisTransKey.getRefreshTokenKey(user.getEmail()),RedisTransKey.getTokenKey(user.getEmail()),RedisTransKey.getLoginKey(user.getEmail()));
-        return ResponseEntity.ok("退出成功");
+        redisProcessor.del(RedisTransKey.getRefreshTokenKey(user.getEmail()));
+        redisProcessor.del(RedisTransKey.getLoginKey(user.getEmail()));
+        redisProcessor.del(RedisTransKey.getTokenKey(user.getEmail()));
+        log.info("用户退出登陆成功");
+        return ResponseEntity.ok("用户退出登陆成功");
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity delete(HttpServletRequest request) {
+    public ResponseEntity<String> delete(HttpServletRequest request) {
+        String accessToken = request.getHeader("accessToken");
         Long userId = Long.valueOf(request.getHeader("userId"));
+        if (!jwtProcessor.validateToken(accessToken, userId)) {
+            return ResponseEntity.ok("token验证失败");
+        }
         userService.deleteUserById(userId);
         return ResponseEntity.ok("用户删除成功");
     }
 
     @PutMapping("/update")
-    public ResponseEntity updateUser(@RequestBody User user) {
+    public ResponseEntity<String> updateUser(@RequestBody User user) {
         userService.updateUser(user);
         return ResponseEntity.ok("用户信息更新成功");
     }
