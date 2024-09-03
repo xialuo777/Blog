@@ -1,17 +1,24 @@
 package com.blog.entity;
 
-public class BlogTag {
-    private Long id;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
+@ApiModel(description = "blog_tag")
+public class BlogTag {
+    @ApiModelProperty(value = "博客标签关联id")
+    private Integer id;
+
+    @ApiModelProperty(value = "博客id")
     private Long blogId;
 
-    private Long tagId;
+    @ApiModelProperty(value = "标签id")
+    private Integer tagId;
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -23,11 +30,11 @@ public class BlogTag {
         this.blogId = blogId;
     }
 
-    public Long getTagId() {
+    public Integer getTagId() {
         return tagId;
     }
 
-    public void setTagId(Long tagId) {
+    public void setTagId(Integer tagId) {
         this.tagId = tagId;
     }
 }

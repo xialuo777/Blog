@@ -3,13 +3,13 @@ package com.blog.mapper;
 import com.blog.entity.Category;
 
 public interface CategoryMapper {
-    int deleteByPrimaryKey(Long categoryId);
+    int deleteByPrimaryKey(Integer categoryId);
 
     int insert(Category record);
 
     int insertSelective(Category record);
 
-    Category selectByPrimaryKey(Long categoryId);
+    Category selectByPrimaryKey(Integer categoryId);
 
     int updateByPrimaryKeySelective(Category record);
 

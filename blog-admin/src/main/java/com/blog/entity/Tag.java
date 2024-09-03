@@ -6,26 +6,23 @@ import java.util.Date;
 
 @ApiModel(description = "tag")
 public class Tag {
-    @ApiModelProperty(value = "")
-    private Long tagId;
+    @ApiModelProperty(value = "标签id")
+    private Integer tagId;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "标签名称")
     private String tagName;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "标签创建时间")
     private Date createTime;
 
-    @ApiModelProperty(value = "")
-    private Date updateTime;
-
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "是否删除该分类 0 否 1 是")
     private Integer deleteFlag;
 
-    public Long getTagId() {
+    public Integer getTagId() {
         return tagId;
     }
 
-    public void setTagId(Long tagId) {
+    public void setTagId(Integer tagId) {
         this.tagId = tagId;
     }
 
@@ -43,14 +40,6 @@ public class Tag {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
     }
 
     public Integer getDeleteFlag() {

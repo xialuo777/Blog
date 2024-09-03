@@ -5,16 +5,10 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
-import java.util.List;
 
 @Data
 @ApiModel(description = "文章VO")
 public class BlogVO {
-    /**
-     * 文章id
-     */
-    @ApiModelProperty(value = "文章id")
-    private Integer id;
 
     /**
      * 文章缩略图
@@ -48,19 +42,19 @@ public class BlogVO {
      */
     @NotBlank(message = "文章分类不能为空")
     @ApiModelProperty(value = "分类名", required = true)
-    private String categoryName;
+    private Integer categoryId;
 
     /**
      * 标签名
      */
     @ApiModelProperty(value = "标签名")
-    private List<String> tagNameList;
+    private String tagNames;
 
     /**
      * 是否置顶 (0否 1是)
      */
     @ApiModelProperty(value = "是否置顶 (0否 1是)", required = true)
-    private Integer isTop;
+    private Integer topFlag;
 
 
     /**

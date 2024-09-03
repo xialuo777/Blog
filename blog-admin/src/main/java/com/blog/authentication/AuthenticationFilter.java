@@ -21,9 +21,9 @@ public class AuthenticationFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
-
-        // 排除登录接口
-        if (request.getRequestURI().equals("/login")) {
+        String requestURI = request.getRequestURI();
+        /*登录接口不验证身份，对其他的业务操作进行验证*/
+        if (requestURI.equals("/users/login")) {
             filterChain.doFilter(request, response);
             return;
         }
