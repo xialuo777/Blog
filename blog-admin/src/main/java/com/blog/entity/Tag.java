@@ -18,6 +18,10 @@ public class Tag {
     @ApiModelProperty(value = "是否删除该分类 0 否 1 是")
     private Integer deleteFlag;
 
+    public Tag(String tagName) {
+        this.tagName = tagName;
+    }
+
     public Integer getTagId() {
         return tagId;
     }

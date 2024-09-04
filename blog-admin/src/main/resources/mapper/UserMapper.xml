@@ -1,65 +1,142 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.blog.mapper.UserMapper">
+  <resultMap id="BaseResultMap" type="com.blog.entity.User">
+    <!--@mbg.generated-->
+    <!--@Table `user`-->
+    <id column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="account" jdbcType="VARCHAR" property="account" />
+    <result column="nick_name" jdbcType="VARCHAR" property="nickName" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="email" jdbcType="VARCHAR" property="email" />
+    <result column="phone" jdbcType="VARCHAR" property="phone" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="website" jdbcType="LONGVARCHAR" property="website" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    <!--@mbg.generated-->
+    user_id, account, nick_name, `password`, email, phone, `status`, website
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    <!--@mbg.generated-->
+    select 
+    <include refid="Base_Column_List" />
+    from `user`
+    where user_id = #{userId,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    <!--@mbg.generated-->
+    delete from `user`
+    where user_id = #{userId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.blog.entity.User">
+    <!--@mbg.generated-->
+    insert into `user` (user_id, account, nick_name, 
+      `password`, email, phone, 
+      `status`, website)
+    values (#{userId,jdbcType=BIGINT}, #{account,jdbcType=VARCHAR}, #{nickName,jdbcType=VARCHAR}, 
+      #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, 
+      #{status,jdbcType=INTEGER}, #{website,jdbcType=LONGVARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.blog.entity.User">
+    <!--@mbg.generated-->
+    insert into `user`
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="account != null">
+        account,
+      </if>
+      <if test="nickName != null">
+        nick_name,
+      </if>
+      <if test="password != null">
+        `password`,
+      </if>
+      <if test="email != null">
+        email,
+      </if>
+      <if test="phone != null">
+        phone,
+      </if>
+      <if test="status != null">
+        `status`,
+      </if>
+      <if test="website != null">
+        website,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="userId != null">
+        #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="account != null">
+        #{account,jdbcType=VARCHAR},
+      </if>
+      <if test="nickName != null">
+        #{nickName,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null">
+        #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null">
+        #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null">
+        #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="website != null">
+        #{website,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.blog.entity.User">
+    <!--@mbg.generated-->
+    update `user`
+    <set>
+      <if test="account != null">
+        account = #{account,jdbcType=VARCHAR},
+      </if>
+      <if test="nickName != null">
+        nick_name = #{nickName,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null">
+        `password` = #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null">
+        email = #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null">
+        phone = #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        `status` = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="website != null">
+        website = #{website,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where user_id = #{userId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.blog.entity.User">
+    <!--@mbg.generated-->
+    update `user`
+    set account = #{account,jdbcType=VARCHAR},
+      nick_name = #{nickName,jdbcType=VARCHAR},
+      `password` = #{password,jdbcType=VARCHAR},
+      email = #{email,jdbcType=VARCHAR},
+      phone = #{phone,jdbcType=VARCHAR},
+      `status` = #{status,jdbcType=INTEGER},
+      website = #{website,jdbcType=LONGVARCHAR}
+    where user_id = #{userId,jdbcType=BIGINT}
+  </update>
 
-    <resultMap id="BaseResultMap" type="com.blog.entity.User">
-        <id column="user_id" jdbcType="BIGINT" property="userId" />
-        <result column="account" jdbcType="VARCHAR" property="account" />
-        <result column="nick_name" jdbcType="VARCHAR" property="nickName" />
-        <result column="password" jdbcType="VARCHAR" property="password" />
-        <result column="email" jdbcType="VARCHAR" property="email" />
-        <result column="phone" jdbcType="VARCHAR" property="phone" />
-    </resultMap>
-    <sql id="Base_Column_List">
-        user_id, account, nick_name, password, email, phone
-    </sql>
     <insert id="insertUser" parameterType="com.blog.entity.User">
         insert into user (user_id, account, nick_name, password, email, phone) values (#{userId},#{account},#{nickName},#{password},#{email},#{phone})
-    </insert>
-    <insert id="insertSelective" parameterType="com.blog.entity.User">
-        <!--@mbg.generated-->
-        insert into `user`
-        <trim prefix="(" suffix=")" suffixOverrides=",">
-            <if test="userId != null">
-                user_id,
-            </if>
-            <if test="account != null">
-                account,
-            </if>
-            <if test="nickName != null">
-                nick_name,
-            </if>
-            <if test="password != null">
-                `password`,
-            </if>
-            <if test="email != null">
-                email,
-            </if>
-            <if test="phone != null">
-                phone,
-            </if>
-        </trim>
-        <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <if test="userId != null">
-                #{userId,jdbcType=BIGINT},
-            </if>
-            <if test="account != null">
-                #{account,jdbcType=VARCHAR},
-            </if>
-            <if test="nickName != null">
-                #{nickName,jdbcType=VARCHAR},
-            </if>
-            <if test="password != null">
-                #{password,jdbcType=VARCHAR},
-            </if>
-            <if test="email != null">
-                #{email,jdbcType=VARCHAR},
-            </if>
-            <if test="phone != null">
-                #{phone,jdbcType=VARCHAR},
-            </if>
-        </trim>
     </insert>
     <delete id="deleteByEmail" parameterType="java.lang.String">
         delete from user where email = #{email}
@@ -69,49 +146,10 @@
         <include refid="Base_Column_List" />
             from user where email = #{email}
     </select>
-    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
-        <!--@mbg.generated-->
-        select
-        <include refid="Base_Column_List" />
-        from `user`
-        where user_id = #{userId,jdbcType=BIGINT}
-    </select>
-    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
-        <!--@mbg.generated-->
-        delete from `user`
-        where user_id = #{userId,jdbcType=BIGINT}
-    </delete>
-    <update id="updateByPrimaryKeySelective" parameterType="com.blog.entity.User">
-        <!--@mbg.generated-->
-        update `user`
-        <set>
-            <if test="account != null">
-                account = #{account,jdbcType=VARCHAR},
-            </if>
-            <if test="nickName != null">
-                nick_name = #{nickName,jdbcType=VARCHAR},
-            </if>
-            <if test="password != null">
-                `password` = #{password,jdbcType=VARCHAR},
-            </if>
-            <if test="email != null">
-                email = #{email,jdbcType=VARCHAR},
-            </if>
-            <if test="phone != null">
-                phone = #{phone,jdbcType=VARCHAR},
-            </if>
-        </set>
-        where user_id = #{userId,jdbcType=BIGINT}
-    </update>
 
-    <update id="updateByPrimaryKey" parameterType="com.blog.entity.User">
-        <!--@mbg.generated-->
-        update `user`
-        set account = #{account,jdbcType=VARCHAR},
-        nick_name = #{nickName,jdbcType=VARCHAR},
-        `password` = #{password,jdbcType=VARCHAR},
-        email = #{email,jdbcType=VARCHAR},
-        phone = #{phone,jdbcType=VARCHAR}
-        where user_id = #{userId,jdbcType=INTEGER}
-    </update>
+  <select id="selectUsersByNickName" parameterType="string" resultMap="BaseResultMap">
+        select
+          <include refid="Base_Column_List" />
+            from user where nick_name = #{nickName}
+  </select>
 </mapper>

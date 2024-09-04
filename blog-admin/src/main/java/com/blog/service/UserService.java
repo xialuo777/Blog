@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -30,6 +31,8 @@ public class UserService {
     private final RedisProcessor redisProcessor;
 
     private final JwtProcessor jwtProcessor;
+
+    private final CurrentUserHolder currentUserHolder;
 
 
 
@@ -69,11 +72,11 @@ public class UserService {
      * @return Map<String,Object>
      */
     public String refreshAccessToken(String refreshToken) {
-        Long userId = CurrentUserHolder.getUserId();
+        Long userId = currentUserHolder.getUserId();
         //对刷新令牌进行验证，以防恶意利用其他用户refreshToken刷新
         if (!jwtProcessor.validateToken(refreshToken, userId)) {
-            log.error("refreshToken验证失败");
-            throw new BusinessException(ErrorCode.TOKEN_ERROR, "refreshToken验证失败");
+            log.error("refreshToken验证失败,当前用户id："+userId);
+            throw new BusinessException(ErrorCode.TOKEN_ERROR, "refreshToken验证失败,当前用户id："+userId);
         }
         User user = userMapper.selectByPrimaryKey(userId);
         Boolean tokenFlag = jwtProcessor.validateToken(refreshToken, userId);
@@ -135,6 +138,9 @@ public class UserService {
         user.setPassword(BCPassword);
         user.setEmail(email);
         user.setPhone(phone);
+        String baseUrl = "https://www.blog.com/users/";
+        String baseHomePageUrl = baseUrl + userId;
+        user.setWebsite(baseHomePageUrl);
         /*添加用户到数据库,并清理redis中存放的验证码*/
         userMapper.insertUser(user);
         redisProcessor.del(RedisTransKey.getEmailKey(email));
@@ -152,6 +158,31 @@ public class UserService {
             log.error("邮箱{}未注册，请注册", email);
             throw new BusinessException(ErrorCode.USER_NOT_FOUND, "邮箱未注册，请注册");
         }
+        log.info("查找用户成功");
+        return user;
+    }
+
+    /**
+     * 根据用户昵称去查找用户信息
+     * @param nickName
+     * @return
+     */
+    public List<User> selectUsersByNickName(String nickName){
+        List<User> users = userMapper.selectUsersByNickName(nickName);
+        if (users.isEmpty()){
+            log.error("未找到用户");
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND, "未找到用户");
+        }
+        return users;
+    }
+
+    /**
+     * @Description 根据用户id查找用户
+     * @Param userId
+     * @Return User
+     */
+    public User selectUserByUserId(Long userId) {
+        User user = userMapper.selectByPrimaryKey(userId);
         log.info("查找用户成功");
         return user;
     }
@@ -175,12 +206,12 @@ public class UserService {
      * @param user
      */
     public void updateUser(User user) {
-        Long userId = CurrentUserHolder.getUserId();
+        Long userId = currentUserHolder.getUserId();
         String password = user.getPassword();
         String encodePassword = SecurityUtils.encodePassword(password);
         user.setPassword(encodePassword);
         user.setUserId(userId);
-        userMapper.updateByPrimaryKey(user);
+        userMapper.updateByPrimaryKeySelective(user);
         log.info("用户修改成功");
     }
 }

@@ -3,7 +3,12 @@ package com.blog.entity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
+import lombok.Data;
+
+
 @ApiModel(description = "blog_tag")
+@Data
+
 public class BlogTag {
     @ApiModelProperty(value = "博客标签关联id")
     private Integer id;
@@ -13,6 +18,11 @@ public class BlogTag {
 
     @ApiModelProperty(value = "标签id")
     private Integer tagId;
+
+    public BlogTag(Long blogId, Integer tagId) {
+        this.blogId = blogId;
+        this.tagId = tagId;
+    }
 
     public Integer getId() {
         return id;

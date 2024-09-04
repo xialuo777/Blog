@@ -3,6 +3,8 @@ package com.blog.authentication;
 import com.blog.enums.ErrorCode;
 import com.blog.exception.BusinessException;
 import com.blog.util.JwtProcessor;
+import com.blog.util.redis.RedisProcessor;
+import com.blog.util.redis.RedisTransKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,7 +23,15 @@ import java.util.Set;
 @Slf4j
 public class AuthenticationFilter implements Filter {
     private final JwtProcessor jwtProcessor;
-
+    private final CurrentUserHolder currentUserHolder;
+    private final RedisProcessor redisProcessor;
+    private final Set<String> ALLOWED_PATHS = new HashSet<>(Arrays.asList(
+            "/users/login",
+            "/users/refresh",
+            "/users/email_code",
+            "/users/register",
+            "/users/logout"
+    ));
 
     @Override
     public void doFilter(@NotNull ServletRequest servletRequest, @NotNull ServletResponse servletResponse, FilterChain filterChain)
@@ -29,24 +39,18 @@ public class AuthenticationFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         String accessToken = request.getHeader("accessToken");
+
         String requestURI = request.getRequestURI();
         /*登录、注册、令牌刷新等操作不验证身份，对其他的业务操作进行验证*/
-        Set<String> allowedPaths = new HashSet<>(Arrays.asList(
-                "/users/login",
-                "/users/refresh",
-                "/users/email_code",
-                "/users/register",
-                "/users/logout"
-        ));
 
         try {
-            if (allowedPaths.contains(requestURI)) {
+            if (ALLOWED_PATHS.contains(requestURI)) {
                 filterChain.doFilter(request, response);
                 return;
             }
-            Long userId = extractUserIdFromToken(accessToken);
-            //如果从当前token中取得的用户id为空或与当前线程中存放的userId不一致，则判其为非法用户
-            CurrentUserHolder.setUserId(userId);
+            //extractUserId内部进行token验证时会对invalidToken的异常进行处理
+            Long userId = jwtProcessor.extractUserId(accessToken);
+            currentUserHolder.setUserId(userId);
             if (userId == null) {
                 log.error("非法用户");
                 throw new BusinessException(ErrorCode.TOKEN_ERROR, "非法用户");
@@ -55,26 +59,12 @@ public class AuthenticationFilter implements Filter {
         } finally {
             //注意：当前请求结束后一定要清理线程，不然会有内存泄漏，
             // 下一个请求会服用上一个请求用户Id等风险
-            clear();
+            currentUserHolder.clear();
         }
 
     }
 
-    public Long getCurrentUserId() {
-        return CurrentUserHolder.getUserId();
-    }
 
-    private Long extractUserIdFromToken(String accessToken) {
-        try {
-            return jwtProcessor.extractUserId(accessToken);
-        } catch (Exception e) {
-            log.error("Error extracting user ID from token", e);
-            return null;
-        }
-    }
 
-    // 清除当前用户信息
-    public void clear() {
-        CurrentUserHolder.clear();
-    }
+
 }

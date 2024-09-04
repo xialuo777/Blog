@@ -8,8 +8,6 @@ import java.util.List;
 
 /**
  * 拷贝工具
- *
- * @author ican
  */
 @Slf4j
 public class BeanCopyUtils {

@@ -6,50 +6,56 @@ import java.util.Date;
 
 @ApiModel(description = "blog")
 public class Blog {
-    @ApiModelProperty(value = "博客id")
+    @ApiModelProperty(value = "")
     private Long blogId;
 
-    @ApiModelProperty(value = "博客标题")
+    @ApiModelProperty(value = "")
     private String blogTitle;
 
-    @ApiModelProperty(value = "发布用户id")
+    @ApiModelProperty(value = "")
     private Long userId;
 
-    @ApiModelProperty(value = "博客内容简介")
+    @ApiModelProperty(value = "")
     private String blogDesc;
 
-    @ApiModelProperty(value = "博客内容")
+    @ApiModelProperty(value = "")
     private String blogContent;
 
-    @ApiModelProperty(value = "分类id")
+    @ApiModelProperty(value = "")
     private Integer categoryId;
 
-    @ApiModelProperty(value = "分类名")
+    @ApiModelProperty(value = "")
     private String categoryName;
 
-    @ApiModelProperty(value = "博客状态 (1公开 2私密 3草稿)")
+    @ApiModelProperty(value = "")
     private Integer blogStatus;
 
-    @ApiModelProperty(value = "博客标签")
+    @ApiModelProperty(value = "")
     private String blogTags;
 
-    @ApiModelProperty(value = "博客缩略图")
+    @ApiModelProperty(value = "")
     private String thumbnail;
 
-    @ApiModelProperty(value = "博客浏览量")
+    @ApiModelProperty(value = "")
     private Long viewCount;
 
-    @ApiModelProperty(value = "博客发布时间")
+    @ApiModelProperty(value = "")
     private Date creatTime;
 
-    @ApiModelProperty(value = "博客更新时间")
+    @ApiModelProperty(value = "")
     private Date updateTime;
 
-    @ApiModelProperty(value = "是否置顶 0 否 1 是")
-    private Integer topFlag;
+    @ApiModelProperty(value = "")
+    private Boolean isTop;
 
-    @ApiModelProperty(value = "是否可以评论 0 否 1 是")
-    private Integer enableComment;
+    @ApiModelProperty(value = "")
+    private Boolean enableComment;
+
+    @ApiModelProperty(value = "")
+    private Integer isDelete;
+
+    @ApiModelProperty(value = "")
+    private String subUrl;
 
     public Long getBlogId() {
         return blogId;
@@ -155,19 +161,35 @@ public class Blog {
         this.updateTime = updateTime;
     }
 
-    public Integer getTopFlag() {
-        return topFlag;
+    public Boolean getIsTop() {
+        return isTop;
     }
 
-    public void setTopFlag(Integer topFlag) {
-        this.topFlag = topFlag;
+    public void setIsTop(Boolean isTop) {
+        this.isTop = isTop;
     }
 
-    public Integer getEnableComment() {
+    public Boolean getEnableComment() {
         return enableComment;
     }
 
-    public void setEnableComment(Integer enableComment) {
+    public void setEnableComment(Boolean enableComment) {
         this.enableComment = enableComment;
+    }
+
+    public Integer getIsDelete() {
+        return isDelete;
+    }
+
+    public void setIsDelete(Integer isDelete) {
+        this.isDelete = isDelete;
+    }
+
+    public String getSubUrl() {
+        return subUrl;
+    }
+
+    public void setSubUrl(String subUrl) {
+        this.subUrl = subUrl;
     }
 }

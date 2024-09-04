@@ -31,19 +31,11 @@ public class JwtProcessor {
      * @return Boolean
      */
     public Boolean validateToken(String token, Long userId) {
-        if (token==null){
-            log.error("token为空");
-            throw new BusinessException(ErrorCode.PARAMS_ERROR,"token为空");
-        }
-        if (isTokenExpired(token)){
-            log.error("token已失效");
-            throw new BusinessException(ErrorCode.TOKEN_EXPIRED,"token已失效");
-        }
         final Long userIdFromToken = extractUserId(token);
         return (userIdFromToken.equals(userId) && !isTokenExpired(token));
     }
     public Long extractUserId(String token) {
-        if (token==null){
+        if (token ==null){
             log.error("token为空");
             throw new BusinessException(ErrorCode.PARAMS_ERROR,"token为空");
         }
@@ -51,9 +43,9 @@ public class JwtProcessor {
             log.error("token已失效");
             throw new BusinessException(ErrorCode.TOKEN_EXPIRED,"token失效");
         }
-        return Long.valueOf(extractClaim(token, Claims::getSubject));
+        Long userId = Long.valueOf(extractClaim(token, Claims::getSubject));
+        return userId;
     }
-
 
     /**
      * 生成Token令牌
@@ -93,7 +85,14 @@ public class JwtProcessor {
     }
 
     private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        boolean ret;
+        try {
+            ret = extractExpiration(token).before(new Date());
+        }catch (Exception e){
+            log.error("token解析失败,invalid token");
+            throw new BusinessException(ErrorCode.TOKEN_ERROR,"token解析失败,invalid token");
+        }
+        return ret;
     }
 
 
