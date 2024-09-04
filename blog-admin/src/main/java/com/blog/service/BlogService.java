@@ -63,7 +63,11 @@ public class BlogService {
         handleTags(blog);
         log.info("文章提交成功");
     }
-
+    /**
+     * 更新博客，同时对博客的标签以及分类等关系进行处理
+     *
+     * @param blog
+     */
     @Transactional
     public void updateBlog(Blog blog) {
         Blog blogForUpdate = blogMapper.selectByPrimaryKey(blog.getBlogId());
@@ -75,10 +79,10 @@ public class BlogService {
         blogForUpdate.setBlogDesc(blog.getBlogDesc());
         blogForUpdate.setIsTop(blog.getIsTop());
         blogForUpdate.setBlogTags(blog.getBlogTags());
-        blogForUpdate.setCategoryId(blog.getCategoryId());
+        blogForUpdate.setCategoryId(Optional.ofNullable(blog.getCategoryId()).orElse(blogForUpdate.getCategoryId()));
         blogForUpdate.setCategoryName(blog.getCategoryName());
-        Category categoryExist = categoryMapper.selectByPrimaryKey(blog.getCategoryId());
-        if (blogMapper.insertSelective(blogForUpdate)<0) {
+        Category categoryExist = categoryMapper.selectByPrimaryKey(blogForUpdate.getCategoryId());
+        if (blogMapper.updateByPrimaryKeySelective(blogForUpdate)<0) {
             log.error("文章更新提交至数据库失败");
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "文章更新提交至数据库失败");
         }

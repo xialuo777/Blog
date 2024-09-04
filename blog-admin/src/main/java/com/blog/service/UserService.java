@@ -189,7 +189,7 @@ public class UserService {
 
     /**
      * @param userId
-     * @description 根据用户邮箱删除用户
+     * @description 根据用户id删除用户
      */
     public void deleteUserById(Long userId) {
         User user = userMapper.selectByPrimaryKey(userId);

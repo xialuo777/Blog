@@ -13,11 +13,10 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/blog")
+@RequestMapping("/blogs")
 @RequiredArgsConstructor
 public class BlogController {
     private final BlogService blogService;
-    private final CurrentUserHolder currentUserHolder;
     @PostMapping("/save")
     public ResponseEntity<String> saveBlog(@RequestBody Blog blog){
         blogService.saveBlog(blog);
