@@ -1,4 +1,4 @@
-package com.blog.vo;
+package com.blog.vo.blog;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;

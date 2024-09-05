@@ -8,10 +8,11 @@ import com.blog.mapper.UserMapper;
 import com.blog.service.MailService;
 import com.blog.service.UserService;
 import com.blog.util.JwtProcessor;
+import com.blog.util.bo.LoginResponse;
 import com.blog.util.redis.RedisProcessor;
 import com.blog.util.redis.RedisTransKey;
-import com.blog.vo.Loginer;
-import com.blog.vo.Register;
+import com.blog.vo.user.Loginer;
+import com.blog.vo.user.Register;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -53,10 +54,10 @@ public class UserController {
 
     @PostMapping("/login")
     @ResponseBody
-    public ResponseEntity<String> login(@Validated @RequestBody Loginer loginer) {
+    public ResponseEntity<LoginResponse> login(@Validated @RequestBody Loginer loginer) {
         //用户登陆后返回给前端accessToken和refreshToken
-        String accessToken = userService.userLogin(loginer);
-        return ResponseEntity.ok(accessToken);
+        LoginResponse loginResponse = userService.userLogin(loginer);
+        return ResponseEntity.ok(loginResponse);
     }
 
     /**
@@ -65,16 +66,15 @@ public class UserController {
      * @return accessToken
      */
     @PostMapping("/refresh")
-    public ResponseEntity<String> refreshToken() {
-        Long userId = currentUserHolder.getUserId();
+    public ResponseEntity<String> refreshToken(@RequestParam Long userId) {
         User user = userMapper.selectByPrimaryKey(userId);
         if (user.getStatus() == 0){
             log.error("该用户处于异常状态，无法执行下一步操作");
             throw new BusinessException("该用户处于异常状态，无法执行下一步操作");
         }
         String refreshToken = (String) redisProcessor.get(RedisTransKey.getRefreshTokenKey(user.getEmail()));
-        String accessToken = userService.refreshAccessToken(refreshToken);
         //返回给前端刷新后的accessToken,同时也会产生新的refreshToken,以防refreshToken过期
+        String accessToken = userService.refreshAccessToken(refreshToken, userId);
         return ResponseEntity.ok(accessToken);
     }
 
@@ -86,7 +86,7 @@ public class UserController {
     @GetMapping("/logout")
     public ResponseEntity<String> logout(HttpServletRequest request) {
         String accessToken = request.getHeader("accessToken");
-        Long userId = jwtProcessor.extractUserId(accessToken);
+        Long userId = currentUserHolder.getUserId();
         if (!jwtProcessor.validateToken(accessToken, userId)) {
             return ResponseEntity.ok("token验证失败");
         }

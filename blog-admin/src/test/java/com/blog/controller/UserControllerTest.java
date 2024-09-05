@@ -2,12 +2,11 @@ package com.blog.controller;
 
 import com.blog.constant.Constant;
 import com.blog.service.UserService;
-import com.blog.util.JwtProcessor;
 import com.blog.util.bo.EmailCodeBo;
 import com.blog.util.redis.RedisTransKey;
 import com.blog.util.redis.RedisProcessor;
-import com.blog.vo.Loginer;
-import com.blog.vo.Register;
+import com.blog.vo.user.Loginer;
+import com.blog.vo.user.Register;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,11 +28,6 @@ public class UserControllerTest {
     @Autowired
     private TestRestTemplate testRestTemplate;
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private JwtProcessor jwtService;
 
     @Mock
     private RedisProcessor redisProcessor;
@@ -41,7 +35,7 @@ public class UserControllerTest {
 
     @Test
     @Transactional
-    void testRegister() throws Exception {
+    void testRegister() {
         Register register = new Register("accountTest", "SuperMan", "passwordTest", "passwordTest", "2436056388@qq.com", "18539246184", "tested");
         EmailCodeBo emailCodeBo = new EmailCodeBo();
         emailCodeBo.setEmail(register.getEmail());
@@ -62,7 +56,7 @@ public class UserControllerTest {
     void testGetCode() {
         String email = "test@example.com";
         testRestTemplate.getForEntity("/users/email_code?email=" + email, Void.class);
-        // Verify that the email code was sent by checking the mail service logic or database
+
     }
 
     @Test

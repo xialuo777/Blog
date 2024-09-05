@@ -28,15 +28,18 @@
   </delete>
   <insert id="insert" keyColumn="category_id" keyProperty="categoryId" parameterType="com.blog.entity.Category" useGeneratedKeys="true">
     <!--@mbg.generated-->
-    insert into category (category_name, category_rank, create_time, 
+    insert into category (category_id, category_name, category_rank, create_time,
       delete_flag)
-    values (#{categoryName,jdbcType=VARCHAR}, #{categoryRank,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+    values (#{categoryId,javaType=_int}#{categoryName,jdbcType=VARCHAR}, #{categoryRank,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
       #{deleteFlag,jdbcType=INTEGER})
   </insert>
   <insert id="insertSelective" keyColumn="category_id" keyProperty="categoryId" parameterType="com.blog.entity.Category" useGeneratedKeys="true">
     <!--@mbg.generated-->
     insert into category
     <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="categoryId != null">
+        category_id,
+      </if>
       <if test="categoryName != null">
         category_name,
       </if>
@@ -51,6 +54,9 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="categoryId != null">
+        #{categoryId,javaType=_int},
+      </if>
       <if test="categoryName != null">
         #{categoryName,jdbcType=VARCHAR},
       </if>
@@ -85,12 +91,12 @@
     where category_id = #{categoryId,jdbcType=INTEGER}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.blog.entity.Category">
-    <!--@mbg.generated-->
-    update category
-    set category_name = #{categoryName,jdbcType=VARCHAR},
-      category_rank = #{categoryRank,jdbcType=INTEGER},
-      create_time = #{createTime,jdbcType=TIMESTAMP},
-      delete_flag = #{deleteFlag,jdbcType=INTEGER}
-    where category_id = #{categoryId,jdbcType=INTEGER}
+      <!--@mbg.generated-->
+      update category
+      set category_name = #{categoryName,jdbcType=VARCHAR},
+          category_rank = #{categoryRank,jdbcType=INTEGER} + 1,
+          create_time   = #{createTime,jdbcType=TIMESTAMP},
+          delete_flag   = #{deleteFlag,jdbcType=INTEGER}
+      where category_id = #{categoryId,jdbcType=INTEGER}
   </update>
 </mapper>

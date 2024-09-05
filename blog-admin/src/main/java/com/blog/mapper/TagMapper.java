@@ -20,4 +20,6 @@ public interface TagMapper {
     Tag selectByTagName(String tagName);
 
     void insertList(List<Tag> tagListForInsert);
+
+    List<Tag> selectListByTagNames(List<String> tagNames);
 }

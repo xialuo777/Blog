@@ -2,9 +2,14 @@ package com.blog.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 
+import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 拷贝工具
@@ -12,30 +17,21 @@ import java.util.List;
 @Slf4j
 public class BeanCopyUtils {
 
-    public static <T> T copyBean(Object source, Class<T> target) {
-        // 创建目标对象
-        T result = null;
-        try {
-            result = target.getDeclaredConstructor().newInstance();
-            if (source != null) {
-                // 实现属性copy
-                BeanUtils.copyProperties(source, result);
-            }
-        } catch (Exception e) {
-            log.error("copyBean is error, {}", e.getMessage());
-        }
-        // 返回结果
-        return result;
-    }
+    public static void copyBeanSelective(Object source, Object target) {
+        final BeanWrapper src = new BeanWrapperImpl(source);
+        PropertyDescriptor[] pds = src.getPropertyDescriptors();
 
-    public static <T, S> List<T> copyBeanList(List<S> source, Class<T> target) {
-        List<T> list = new ArrayList<>();
-        if (null != source && !source.isEmpty()) {
-            for (Object obj : source) {
-                list.add(copyBean(obj, target));
+        Set<String> emptyNames = new HashSet<>();
+        for (PropertyDescriptor pd : pds) {
+            Object srcValue = src.getPropertyValue(pd.getName());
+            if (srcValue != null) {
+                BeanWrapper targetWrapper = new BeanWrapperImpl(target);
+                Object targetValue = targetWrapper.getPropertyValue(pd.getName());
+                if (targetValue == null) {
+                    targetWrapper.setPropertyValue(pd.getName(), srcValue);
+                }
             }
         }
-        return list;
     }
 
 }

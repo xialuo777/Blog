@@ -1,5 +1,9 @@
 package com.blog.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson.serializer.ToStringSerializer;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.Date;
@@ -7,6 +11,7 @@ import java.util.Date;
 @ApiModel(description = "blog")
 public class Blog {
     @ApiModelProperty(value = "")
+
     private Long blogId;
 
     @ApiModelProperty(value = "")

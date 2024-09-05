@@ -1,6 +1,7 @@
 package com.blog.mapper;
 
 import com.blog.entity.BlogTag;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -17,5 +18,5 @@ public interface BlogTagMapper {
 
     int updateByPrimaryKey(BlogTag record);
 
-    int insertList(List<BlogTag> blogTags);
+    int insertList(@Param("relationList") List<BlogTag> blogTags);
 }

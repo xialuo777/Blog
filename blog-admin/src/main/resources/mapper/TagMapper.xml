@@ -97,4 +97,11 @@
       (#{item.tagName,jdbcType=VARCHAR})
     </foreach>
   </insert>
+
+  <select id="selectListByTagNames" resultType="com.blog.entity.Tag">
+    SELECT * FROM tag WHERE tag_name IN
+    <foreach item="tagName" collection="list" open="(" separator="," close=")">
+      #{tagName}
+    </foreach>
+  </select>
 </mapper>

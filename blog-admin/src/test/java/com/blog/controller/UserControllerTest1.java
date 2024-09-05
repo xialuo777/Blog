@@ -1,7 +1,7 @@
 package com.blog.controller;
 import com.blog.constant.Constant;
 
-import com.blog.vo.Register;
+import com.blog.vo.user.Register;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

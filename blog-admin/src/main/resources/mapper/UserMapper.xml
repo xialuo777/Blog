@@ -141,7 +141,7 @@
     <delete id="deleteByEmail" parameterType="java.lang.String">
         delete from user where email = #{email}
     </delete>
-    <select id="findByEmail" parameterType="com.blog.vo.Loginer" resultType="com.blog.entity.User">
+    <select id="findByEmail" parameterType="com.blog.vo.user.Loginer" resultType="com.blog.entity.User">
         select
         <include refid="Base_Column_List" />
             from user where email = #{email}
