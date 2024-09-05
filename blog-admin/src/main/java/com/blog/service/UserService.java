@@ -13,6 +13,8 @@ import com.blog.util.redis.RedisTransKey;
 import com.blog.util.redis.RedisProcessor;
 import com.blog.vo.Loginer;
 import com.blog.vo.Register;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -167,12 +169,14 @@ public class UserService {
      * @param nickName
      * @return
      */
-    public List<User> selectUsersByNickName(String nickName){
+    public List<User> selectUsersByNickName(String nickName, int pageNo, int pageSize){
+        PageHelper.startPage(pageNo,pageSize);
         List<User> users = userMapper.selectUsersByNickName(nickName);
         if (users.isEmpty()){
             log.error("未找到用户");
             throw new BusinessException(ErrorCode.USER_NOT_FOUND, "未找到用户");
         }
+        log.info("用户查找成功");
         return users;
     }
 

@@ -146,8 +146,8 @@ public class UserController {
     }
 
     @GetMapping("/{nickName}")
-    public ResponseEntity<List<String>> getUserWebByNickName(@PathVariable String nickName) {
-        List<User> users = userService.selectUsersByNickName(nickName);
+    public ResponseEntity<List<String>> getUserWebByNickName(@PathVariable String nickName, @RequestParam int pageNo, @RequestParam int pageSize) {
+        List<User> users = userService.selectUsersByNickName(nickName,pageNo,pageSize);
         List<String> result = new ArrayList<>();
         for (User user : users) {
             result.add(user.getWebsite());

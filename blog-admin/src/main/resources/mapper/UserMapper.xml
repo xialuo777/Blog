@@ -150,6 +150,6 @@
   <select id="selectUsersByNickName" parameterType="string" resultMap="BaseResultMap">
         select
           <include refid="Base_Column_List" />
-            from user where nick_name = #{nickName}
+            from user where nick_name like concat (#{nickName},'%')
   </select>
 </mapper>
