@@ -527,7 +527,7 @@ public ResponseEntity<String> saveBlog(@RequestBody Blog blog){
 }
 ```
 
-```
+```java
 @PutMapping("/update")
 public ResponseEntity<String> updateBlog(@RequestBody Blog blog){
     blogService.updateBlog(blog);
@@ -565,7 +565,7 @@ public ResponseEntity<List<String>> getUserWebByNickName(@PathVariable String ni
 }
 ```
 
-`PageHelper`分页`ThreadLocal`问题：因为`PageHelper`将分页信息存储在`ThreadLocal`中，并且在调用后就会清理，因此在使用时要将分页查询的语句紧跟着分页设置语句，中间不要穿插其他查询语句。不然会导致其他查询语句将ThreadLocal中的分页信息用掉。正确示例如下：
+注意`PageHelper`分页时内部使用`ThreadLocal`会出现的问题：因为`PageHelper`将分页信息存储在`ThreadLocal`中，并且在调用后就会清理，因此在使用时要将分页查询的语句紧跟着分页设置语句，中间不要穿插其他查询语句。不然会导致其他查询语句将ThreadLocal中的分页信息用掉。正确示例如下：
 
 ```java
 PageHelper.startPage(pageNo,pageSize);

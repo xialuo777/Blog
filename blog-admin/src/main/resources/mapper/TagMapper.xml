@@ -91,15 +91,15 @@
   </select>
 
   <insert id="insertList" keyProperty="tagId" parameterType="java.util.List" useGeneratedKeys="true">
-    INSERT into tag(tag_name)
-    VALUES
+    insert into tag(tag_name)
+    values
     <foreach collection="list" item="item" separator=",">
       (#{item.tagName,jdbcType=VARCHAR})
     </foreach>
   </insert>
 
   <select id="selectListByTagNames" resultType="com.blog.entity.Tag">
-    SELECT * FROM tag WHERE tag_name IN
+    select * from tag where tag_name in
     <foreach item="tagName" collection="list" open="(" separator="," close=")">
       #{tagName}
     </foreach>

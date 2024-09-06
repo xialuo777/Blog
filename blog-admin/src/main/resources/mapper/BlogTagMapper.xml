@@ -71,8 +71,8 @@
   </update>
 
   <insert id="insertList" parameterType="java.util.List">
-    INSERT into blog_tag(blog_id,tag_id)
-    VALUES
+    insert into blog_tag(blog_id,tag_id)
+    values
     <foreach collection="relationList" item="item" separator=",">
       (#{item.blogId,jdbcType=BIGINT},#{item.tagId,jdbcType=INTEGER})
     </foreach>
