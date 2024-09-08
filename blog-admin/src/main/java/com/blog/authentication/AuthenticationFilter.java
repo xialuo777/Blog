@@ -1,7 +1,5 @@
 package com.blog.authentication;
 
-import com.blog.enums.ErrorCode;
-import com.blog.exception.BusinessException;
 import com.blog.util.JwtProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,9 +25,10 @@ public class AuthenticationFilter implements Filter {
     private final Set<String> ALLOWED_PATHS = new HashSet<>(Arrays.asList(
             "/users/login",
             "/users/refresh",
-            "/users/email_code",
+            "/users/getCode",
             "/users/register",
-            "/users/logout"
+            "/users/logout",
+            "/users/getUsers"
     ));
 
     @Override

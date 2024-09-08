@@ -54,7 +54,7 @@ public class BlogService {
         Integer categoryId = blogVo.getCategoryId();
         Category categoryExist = categoryMapper.selectByPrimaryKey(categoryId);
         Long userId = currentUserHolder.getUserId();
-        Long blogId = SnowFlakeUtil.getInstance().nextId();
+        Long blogId = SnowFlakeUtil.nextId();
         String baseHomePageUrl = String.format(Constant.BLOG_BASE_PATH + "%s/%s", userId, blogId);
         blogVo.setSubUrl(baseHomePageUrl);
         blogVo.setUserId(userId);

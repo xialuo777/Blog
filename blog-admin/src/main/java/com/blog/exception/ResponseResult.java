@@ -1,20 +1,18 @@
 package com.blog.exception;
 
 import com.blog.enums.ErrorCode;
+import com.blog.vo.user.UserVo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import java.util.List;
 
 
 @Data
 @ApiModel(description = "结果返回类")
 public class ResponseResult<T> {
 
-    /**
-     * 返回状态
-     */
-    @ApiModelProperty(value = "返回状态")
-    private Boolean flag;
 
     /**
      * 状态码
@@ -34,25 +32,27 @@ public class ResponseResult<T> {
     @ApiModelProperty(value = "返回数据")
     private T data;
 
-    public static <T> ResponseResult<T> success() {
-        return buildResult(true, null, ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMessage());
+
+    public static <T> ResponseResult<T> success(List<UserVo> result, int totalCount) {
+        return buildResult(null, ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMessage());
     }
 
+
     public static <T> ResponseResult<T> success(T data) {
-        return buildResult(true, data, ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMessage());
+        return buildResult( data, ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMessage());
     }
 
     public static <T> ResponseResult<T> fail(String message) {
-        return buildResult(false, null, ErrorCode.FAIL.getCode(), message);
+        return buildResult( null, ErrorCode.FAIL.getCode(), message);
     }
 
     public static <T> ResponseResult<T> fail(Integer code, String message) {
-        return buildResult(false, null, code, message);
+        return buildResult( null, code, message);
     }
 
-    private static <T> ResponseResult<T> buildResult(Boolean flag, T data, Integer code, String message) {
+
+    private static <T> ResponseResult<T> buildResult( T data, Integer code, String message) {
         ResponseResult<T> r = new ResponseResult<>();
-        r.setFlag(flag);
         r.setData(data);
         r.setCode(code);
         r.setMsg(message);

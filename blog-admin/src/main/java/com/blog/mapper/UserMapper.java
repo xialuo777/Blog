@@ -21,4 +21,8 @@ public interface UserMapper {
     User findByEmail(String Email);
 
     List<User> selectUsersByNickName(String nickName);
+
+    List<User> selectUsers();
+
+    int selectTotalCount();
 }

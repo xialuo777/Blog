@@ -56,7 +56,7 @@ public class UserService {
         boolean loginFlag = SecurityUtils.checkPassword(password, user.getPassword());
         if (!loginFlag) {
             log.error("密码错误，登陆失败，请重新输入");
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误,请重新输入");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误，登陆失败，请重新输入");
         }
         /*将用户信息存放在token中，时效为7天*/
 
@@ -67,7 +67,7 @@ public class UserService {
         redisProcessor.set(RedisTransKey.tokenKey(email), accessToken, 7, TimeUnit.DAYS);
         redisProcessor.set(RedisTransKey.loginKey(email), email, 7, TimeUnit.DAYS);
         log.info("用户{}登陆成功", user.getAccount());
-        LoginResponse loginResponse = new LoginResponse(accessToken, user.getUserId());
+        LoginResponse loginResponse = new LoginResponse(accessToken,refreshToken);
         return loginResponse;
     }
 
@@ -138,7 +138,7 @@ public class UserService {
 
         /*封装用户*/
         User user = new User();
-        Long userId = SnowFlakeUtil.getInstance().nextId();
+        Long userId = SnowFlakeUtil.nextId();
         user.setUserId(userId);
         user.setAccount(account);
         user.setNickName(nickName);
@@ -187,6 +187,16 @@ public class UserService {
     }
 
     /**
+     * 查询所有用户
+     * @return List<User>
+     */
+    public List<User> getUsers(int pageNo, int pageSize) {
+        PageHelper.startPage(pageNo, pageSize);
+        return userMapper.selectUsers();
+    }
+
+
+    /**
      * @Description 根据用户id查找用户
      * @Param userId
      * @Return User
@@ -226,5 +236,16 @@ public class UserService {
         log.info("用户{}修改成功", user.getEmail());
     }
 
+    /**
+     * 查询所有用户
+     * @return List<User>
+     */
+    public List<User> getUsers() {
+        return userMapper.selectUsers();
+    }
 
+
+    public int getTotalCount() {
+        return userMapper.selectTotalCount();
+    }
 }

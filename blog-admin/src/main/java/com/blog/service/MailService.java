@@ -83,7 +83,7 @@ public class MailService {
 
         } catch (Exception e) {
             log.error("邮件发送失败" + Constant.SEND_MAILER + "->" + to, e);
-            throw new BusinessException("邮件发送失败", e);
+            throw new BusinessException("邮件发送失败，请检查邮箱是否输入正确");
         }
     }
 }

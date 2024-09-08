@@ -1,3 +1,4 @@
+
 #数据库配置
 spring:
   datasource:
@@ -49,4 +50,6 @@ pagehelper:
   support-methods-arguments: true
   params: count=countsql
 
+server:
+  port: 8081
 
