@@ -36,7 +36,12 @@ public class AuthenticationFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
-        String accessToken = request.getHeader("accessToken");
+        //从"Authorization"请求头中获取accessToken
+        String authHeader = request.getHeader("Authorization");
+        String accessToken = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            accessToken = authHeader.substring("Bearer ".length());
+        }
 
         String requestURI = request.getRequestURI();
         /*登录、注册、令牌刷新等操作不验证身份，对其他的业务操作进行验证*/

@@ -150,13 +150,6 @@ public class UserController {
         return ResponseResult.success(userInfoVo);
     }
 
-    @GetMapping("/{email}")
-    public ResponseResult<String> getUserWebByEmail(@PathVariable String email) {
-        User user = userService.selectUserByEmail(email);
-        String website = user.getWebsite();
-        return ResponseResult.success(website);
-    }
-
     @GetMapping("/{nickName}")
     public ResponseResult<PageResult<UserVo>> getUserWebByNickName(@PathVariable String nickName, @RequestParam int pageNo, @RequestParam int pageSize) {
         List<User> users = userService.selectUsersByNickName(nickName, pageNo, pageSize);
@@ -166,7 +159,7 @@ public class UserController {
             BeanUtil.copyProperties(user,userVo);
             result.add(userVo);
         }
-        int totalCount = userService.getTotalCount();
+        int totalCount = users.size();
         PageResult<UserVo> pageResult = new PageResult<>(result, totalCount);
         return ResponseResult.success(pageResult);
     }
