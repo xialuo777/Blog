@@ -30,6 +30,7 @@ import javax.validation.constraints.Email;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -116,6 +117,11 @@ public class UserController {
     public ResponseResult<String> delete(HttpServletRequest request) {
         String accessToken = request.getHeader("accessToken");
         Long userId = currentUserHolder.getUserId();
+        User user = userMapper.selectByPrimaryKey(userId);
+        if (user == null) {
+            log.error("用户不存在！");
+            return ResponseResult.fail(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在！");
+        }
         if (!jwtProcessor.validateToken(accessToken, userId)) {
             return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
         }
@@ -153,13 +159,9 @@ public class UserController {
     @GetMapping("/{nickName}")
     public ResponseResult<PageResult<UserVo>> getUserWebByNickName(@PathVariable String nickName, @RequestParam int pageNo, @RequestParam int pageSize) {
         List<User> users = userService.selectUsersByNickName(nickName, pageNo, pageSize);
-        List<UserVo> result = new ArrayList<>();
-        for (User user : users) {
-            UserVo userVo = new UserVo();
-            BeanUtil.copyProperties(user,userVo);
-            result.add(userVo);
-        }
-        int totalCount = users.size();
+        List<UserVo> result = users.stream().map(user -> BeanUtil.copyProperties(user, UserVo.class))
+                .collect(Collectors.toList());
+        int totalCount = result.size();
         PageResult<UserVo> pageResult = new PageResult<>(result, totalCount);
         return ResponseResult.success(pageResult);
     }
@@ -167,12 +169,9 @@ public class UserController {
     @GetMapping("/getUsers")
     public ResponseResult<PageResult<UserVo>> getUsers(@RequestParam int pageNo, @RequestParam int pageSize) {
         List<User> users = userService.getUsers(pageNo, pageSize);
-        List<UserVo> result = new ArrayList<>(users.size());
-        for (User user : users) {
-            UserVo userVo = new UserVo();
-            BeanUtil.copyProperties(user,userVo);
-            result.add(userVo);
-        }
+        List<UserVo> result = users.stream()
+                .map(user -> BeanUtil.copyProperties(user, UserVo.class))
+                .collect(Collectors.toList());
         int totalCount = userService.getTotalCount();
         PageResult<UserVo> pageResult = new PageResult<>(result, totalCount);
         return ResponseResult.success(pageResult);

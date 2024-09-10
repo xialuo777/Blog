@@ -79,11 +79,6 @@ public class UserService {
             throw new BusinessException(ErrorCode.TOKEN_ERROR, "refreshToken验证失败,当前用户id：" + userId);
         }
         User user = userMapper.selectByPrimaryKey(userId);
-        Boolean tokenFlag = jwtProcessor.validateToken(refreshToken, userId);
-        if (!tokenFlag) {
-            log.error("refreshToken已过期，请重新登录");
-            throw new BusinessException(ErrorCode.TOKEN_ERROR, "token已过期！");
-        }
         //没过期生成一个新的token
         Map<String, Object> userMap = UserTransUtils.getUserMap(user);
         String accessToken = jwtProcessor.generateToken(userMap);
@@ -146,7 +141,6 @@ public class UserService {
         /*添加用户到数据库,并清理redis中存放的验证码*/
         userMapper.insertUser(user);
         redisProcessor.del(RedisTransKey.getEmailKey(email));
-        log.info("用户 {} 添加成功", account);
     }
 
     /**
@@ -160,7 +154,6 @@ public class UserService {
             log.error("邮箱{}未注册，请注册", email);
             throw new BusinessException(ErrorCode.USER_NOT_FOUND, "邮箱{}未注册，请注册", email);
         }
-        log.info("查找用户成功");
         return user;
     }
 
@@ -177,7 +170,6 @@ public class UserService {
             log.error("未找到用户");
             throw new BusinessException(ErrorCode.USER_NOT_FOUND, "未找到用户");
         }
-        log.info("用户查找成功");
         return users;
     }
 
@@ -197,9 +189,7 @@ public class UserService {
      * @Return User
      */
     public User selectUserByUserId(Long userId) {
-        User user = userMapper.selectByPrimaryKey(userId);
-        log.info("查找用户成功");
-        return user;
+        return userMapper.selectByPrimaryKey(userId);
     }
 
     /**
@@ -207,13 +197,7 @@ public class UserService {
      * @description 根据用户id删除用户
      */
     public void deleteUserById(Long userId) {
-        User user = userMapper.selectByPrimaryKey(userId);
-        if (user == null) {
-            log.error("邮箱未注册，无需删除");
-            throw new BusinessException(ErrorCode.USER_NOT_FOUND, "邮箱未注册，无需删除");
-        }
         userMapper.deleteByPrimaryKey(userId);
-        log.info("用户{}删除成功", user.getEmail());
     }
 
     /**
@@ -230,8 +214,6 @@ public class UserService {
         userMapper.updateByPrimaryKeySelective(user);
         log.info("用户{}修改成功", user.getEmail());
     }
-
-
 
 
     public int getTotalCount() {

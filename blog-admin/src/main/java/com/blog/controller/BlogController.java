@@ -2,6 +2,8 @@ package com.blog.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.blog.authentication.CurrentUserHolder;
+import com.blog.dto.PageRequest;
+import com.blog.dto.PageResult;
 import com.blog.entity.Blog;
 import com.blog.exception.ResponseResult;
 import com.blog.service.BlogService;
@@ -9,10 +11,11 @@ import com.blog.vo.blog.BlogDesc;
 import com.blog.vo.blog.BlogUpdateVo;
 import com.blog.vo.blog.BlogVo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/blogs")
@@ -47,24 +50,26 @@ public class BlogController {
     }
 
     @GetMapping("/list")
-    public ResponseResult<List<BlogDesc>> getBlogList(@RequestParam int pageNo, @RequestParam int pageSize) {
+    public ResponseResult<PageResult<BlogDesc>> getCurrentUserBlogList(@RequestParam int pageNo, @RequestParam int pageSize) {
         Long userId = currentUserHolder.getUserId();
         List<Blog> blogList = blogService.getBlogList(userId, pageNo, pageSize);
-        if (blogList == null || blogList.isEmpty()) {
-            return ResponseResult.fail("当前用户暂未发表文章");
+        if (CollectionUtils.isEmpty(blogList)) {
+            return ResponseResult.fail("当前用户博客列表为空");
         }
-        List<BlogDesc> blogDescList = new ArrayList<>(blogList.size());
-        for (Blog blog : blogList) {
-            BlogDesc blogDesc = new BlogDesc();
-            BeanUtil.copyProperties(blog, blogDesc);
-            blogDescList.add(blogDesc);
-        }
-        return ResponseResult.success(blogDescList);
+        List<BlogDesc> blogDescList = blogList.stream()
+                .map(blog ->BeanUtil.copyProperties(blog, BlogDesc.class))
+                .collect(Collectors.toList());
+        int totalCount = blogList.size();
+        PageResult<BlogDesc> pageResult = new PageResult<>(blogDescList, totalCount);
+        return ResponseResult.success(pageResult);
     }
 
     @GetMapping("/{blogId}")
     public ResponseResult<BlogVo> getBlog(@PathVariable Long blogId) {
         Blog blog = blogService.getBlogById(blogId);
+        if (blog == null){
+            return ResponseResult.fail("文章不存在");
+        }
         BlogVo blogVo = new BlogVo();
         BeanUtil.copyProperties(blog, blogVo);
         return ResponseResult.success(blogVo);
@@ -73,14 +78,12 @@ public class BlogController {
     @GetMapping("/category/{categoryId}")
     public ResponseResult<List<BlogVo>> getBlogListByCategoryId(@PathVariable Long categoryId, @RequestParam int pageNo, @RequestParam int pageSize) {
         List<Blog> blogList = blogService.getBlogListByCategoryId(categoryId, pageNo, pageSize);
-        if (blogList == null || blogList.isEmpty()) {
+        if (CollectionUtils.isEmpty(blogList)) {
             return ResponseResult.fail("该分类下暂无文章");
         }
-        List<BlogVo> blogVoList = new ArrayList<>(blogList.size());
-        for (Blog blog : blogList) {
-            BlogVo blogVo = new BlogVo();
-            BeanUtil.copyProperties(blog, blogVo);
-        }
+        List<BlogVo> blogVoList = blogList.stream()
+                .map(blog -> BeanUtil.copyProperties(blog, BlogVo.class))
+                .collect(Collectors.toList());
         return ResponseResult.success(blogVoList);
     }
 }

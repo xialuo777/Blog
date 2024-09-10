@@ -15,7 +15,6 @@ public class BlogUpdateVo {
      */
     @JsonProperty("blogId")
     @JsonFormat(shape = JsonFormat.Shape.STRING)
-    @JSONField(serializeUsing = ToStringSerializer.class)
     private Long blogId;
 
     /**

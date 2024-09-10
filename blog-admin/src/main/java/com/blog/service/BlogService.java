@@ -16,20 +16,17 @@ import com.blog.mapper.BlogTagMapper;
 import com.blog.mapper.CategoryMapper;
 import com.blog.mapper.TagMapper;
 import com.blog.util.SnowFlakeUtil;
-import com.blog.vo.blog.BlogUpdateVo;
-import com.blog.vo.blog.BlogVo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.util.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -53,6 +50,7 @@ public class BlogService {
     public void saveBlog(Blog blog) {
         Integer categoryId = blog.getCategoryId();
         Category categoryExist = categoryMapper.selectByPrimaryKey(categoryId);
+        Optional<Category> optionalCategory = Optional.ofNullable(categoryExist);
         Long userId = currentUserHolder.getUserId();
         Long blogId = SnowFlakeUtil.nextId();
         String baseHomePageUrl = String.format(Constant.BLOG_BASE_PATH + "%s/%s", userId, blogId);
@@ -60,12 +58,8 @@ public class BlogService {
         blog.setUserId(userId);
         blog.setBlogId(blogId);
         blogMapper.insertSelective(blog);
-
-        //处理博客分类信息
-        handleCategoryAndBlog(blog, categoryExist);
-        //处理博客标签信息
+        handleCategoryAndBlog(blog, optionalCategory);
         handleTags(blog);
-        log.info("文章提交成功");
     }
 
     /**
@@ -78,11 +72,10 @@ public class BlogService {
         Blog blogForUpdate = blogMapper.selectByPrimaryKey(blog.getBlogId());
         BeanUtil.copyProperties(blog, blogForUpdate, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
         Category categoryExist = categoryMapper.selectByPrimaryKey(blogForUpdate.getCategoryId());
+        Optional<Category> optionalCategory = Optional.ofNullable(categoryExist);
         blogMapper.updateByPrimaryKeySelective(blogForUpdate);
-        handleCategoryAndBlog(blogForUpdate, categoryExist);
+        handleCategoryAndBlog(blogForUpdate, optionalCategory);
         handleTags(blogForUpdate);
-        log.info("文章更新成功");
-
     }
 
     /**
@@ -92,14 +85,14 @@ public class BlogService {
      * @param categoryExist
      * @return Blog
      */
-    private void handleCategoryAndBlog(Blog blog, Category categoryExist) {
+    private void handleCategoryAndBlog(Blog blog, Optional<Category> categoryExist) {
         /*如果分类是新增分类，需要输入categoryId和categoryName信息
          * 如果分类信息在分类表中存在，则对分类表rank进行更新*/
-        if (categoryExist == null) {
+        if (!categoryExist.isPresent()) {
             Category category = new Category(blog.getCategoryId(), blog.getCategoryName());
             categoryMapper.insertSelective(category);
         } else {
-            categoryMapper.increatCategoryRank(categoryExist);
+            categoryMapper.increatCategoryRank(categoryExist.get());
         }
     }
 
@@ -117,21 +110,27 @@ public class BlogService {
             }
             List<String> distinctTagNames = Arrays.stream(tags).distinct().collect(Collectors.toList());
 
-            List<Tag> tagListForInsert = new ArrayList<>();
-            List<Tag> allTagsList = new ArrayList<>();
-            // 一次性查询所有标签
+            /*插入标签*/
             List<Tag> tagsFromDb = tagMapper.selectListByTagNames(distinctTagNames);
-            for (String tagName : tags) {
-                Tag tag = new Tag(tagName);
-                if (!tagsFromDb.contains(tagName)) {
-                    tagListForInsert.add(tag);
+            if (tagsFromDb == null) {
+                for (String distinctTagName : distinctTagNames) {
+                    tagMapper.insert(new Tag(distinctTagName));
                 }
-                allTagsList.add(tag);
+            }else {
+                List<Tag> tagListForInsert = distinctTagNames.stream()
+                        .filter(tagName -> !tagsFromDb.contains(tagName))
+                        .map(tagName -> new Tag(tagName))
+                        .collect(Collectors.toList());
+
+                if (!CollectionUtils.isEmpty(tagListForInsert)) {
+                    tagMapper.insertList(tagListForInsert);
+                }
             }
 
-            if (!CollectionUtils.isEmpty(tagListForInsert)) {
-                tagMapper.insertList(tagListForInsert);
-            }
+           /*处理blog -tag 映射关系*/
+            List<Tag> allTagsList = distinctTagNames.stream().map(tagName -> tagMapper.selectByTagName(tagName))
+                    .collect(Collectors.toList());
+
             List<BlogTag> blogTags = createBlogTags(blog, allTagsList);
             blogTagMapper.insertList(blogTags);
         }

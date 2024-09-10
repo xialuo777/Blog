@@ -2,10 +2,14 @@ package com.blog.entity;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @ApiModel(description = "`user`")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class User {
     @ApiModelProperty(value = "")
     private Long userId;
