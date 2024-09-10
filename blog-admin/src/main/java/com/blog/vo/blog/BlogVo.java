@@ -60,13 +60,13 @@ public class BlogVo {
     /**
      * 分类id
      */
-    @NotBlank(message = "文章分类不能为空")
+    @NotBlank(message = "文章分类id不能为空")
     @ApiModelProperty(value = "分类id", required = true)
     private Integer categoryId;
     /**
      * 分类名
      */
-    @NotBlank(message = "文章分类不能为空")
+    @NotBlank(message = "文章分类名不能为空")
     @ApiModelProperty(value = "分类名", required = true)
     private String categoryName;
 

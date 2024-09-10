@@ -8,7 +8,6 @@ import lombok.Data;
 
 @ApiModel(description = "blog_tag")
 @Data
-
 public class BlogTag {
     @ApiModelProperty(value = "博客标签关联id")
     private Integer id;

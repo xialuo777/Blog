@@ -11,7 +11,7 @@ public interface CategoryMapper {
 
     Category selectByPrimaryKey(Integer categoryId);
 
-    int updateByPrimaryKeySelective(Category record);
+    int increatCategoryRank(Category record);
 
     int updateByPrimaryKey(Category record);
 }

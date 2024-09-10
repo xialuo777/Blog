@@ -71,24 +71,24 @@
       </if>
     </trim>
   </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.blog.entity.Category">
-    <!--@mbg.generated-->
-    update category
-    <set>
-      <if test="categoryName != null">
-        category_name = #{categoryName,jdbcType=VARCHAR},
-      </if>
-      <if test="categoryRank != null">
-        category_rank = #{categoryRank,jdbcType=INTEGER},
-      </if>
-      <if test="createTime != null">
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="deleteFlag != null">
-        delete_flag = #{deleteFlag,jdbcType=INTEGER},
-      </if>
-    </set>
-    where category_id = #{categoryId,jdbcType=INTEGER}
+  <update id="increatCategoryRank" parameterType="com.blog.entity.Category">
+      <!--@mbg.generated-->
+      update category
+      <set>
+          <if test="categoryName != null">
+              category_name = #{categoryName,jdbcType=VARCHAR},
+          </if>
+          <if test="categoryRank != null">
+              category_rank = #{categoryRank,jdbcType=INTEGER} + 1,
+          </if>
+          <if test="createTime != null">
+              create_time = #{createTime,jdbcType=TIMESTAMP},
+          </if>
+          <if test="deleteFlag != null">
+              delete_flag = #{deleteFlag,jdbcType=INTEGER},
+          </if>
+      </set>
+      where category_id = #{categoryId,jdbcType=INTEGER}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.blog.entity.Category">
       <!--@mbg.generated-->

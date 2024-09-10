@@ -19,17 +19,16 @@ import com.blog.util.SnowFlakeUtil;
 import com.blog.vo.blog.BlogUpdateVo;
 import com.blog.vo.blog.BlogVo;
 import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,13 +59,12 @@ public class BlogService {
         blog.setSubUrl(baseHomePageUrl);
         blog.setUserId(userId);
         blog.setBlogId(blogId);
-        Blog saveBlog = new Blog();
-        blogMapper.insertSelective(saveBlog);
+        blogMapper.insertSelective(blog);
 
         //处理博客分类信息
-        handleCategoryAndBlog(saveBlog, categoryExist);
+        handleCategoryAndBlog(blog, categoryExist);
         //处理博客标签信息
-        handleTags(saveBlog);
+        handleTags(blog);
         log.info("文章提交成功");
     }
 
@@ -98,13 +96,10 @@ public class BlogService {
         /*如果分类是新增分类，需要输入categoryId和categoryName信息
          * 如果分类信息在分类表中存在，则对分类表rank进行更新*/
         if (categoryExist == null) {
-            String categoryName = Optional.ofNullable(blog.getCategoryName())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.PARAMS_ERROR, "请输入新增分类名"));
-            Category category = new Category(blog.getCategoryId(), categoryName);
+            Category category = new Category(blog.getCategoryId(), blog.getCategoryName());
             categoryMapper.insertSelective(category);
         } else {
-            blog.setCategoryName(categoryExist.getCategoryName());
-            categoryMapper.updateByPrimaryKeySelective(categoryExist);
+            categoryMapper.increatCategoryRank(categoryExist);
         }
     }
 
@@ -114,24 +109,18 @@ public class BlogService {
      * @param blog
      */
     private void handleTags(Blog blog) {
-        if (blog.getBlogTags() != null) {
+        if (StringUtil.isNotEmpty(blog.getBlogTags())) {
             String[] tags = blog.getBlogTags().split(",");
             if (tags.length > MAX_TAG_COUNT) {
                 log.error("输入标签数量限制为{}，请重新输入", MAX_TAG_COUNT);
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "输入标签数量限制为{}，请重新输入", MAX_TAG_COUNT);
             }
+            List<String> distinctTagNames = Arrays.stream(tags).distinct().collect(Collectors.toList());
 
-            // 收集所有标签名
-            List<String> tagNames = new ArrayList<>();
-            for (String tagName : tags) {
-                if (!tagNames.contains(tagName)) {
-                    tagNames.add(tagName);
-                }
-            }
             List<Tag> tagListForInsert = new ArrayList<>();
             List<Tag> allTagsList = new ArrayList<>();
             // 一次性查询所有标签
-            List<Tag> tagsFromDb = tagMapper.selectListByTagNames(tagNames);
+            List<Tag> tagsFromDb = tagMapper.selectListByTagNames(distinctTagNames);
             for (String tagName : tags) {
                 Tag tag = new Tag(tagName);
                 if (!tagsFromDb.contains(tagName)) {

@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.blog.mapper.BlogMapper">
+  <resultMap id="BaseResultMap" type="com.blog.entity.Blog">
+    <!--@mbg.generated-->
+    <!--@Table blog-->
+    <id column="blog_id" jdbcType="BIGINT" property="blogId" />
+    <result column="blog_title" jdbcType="VARCHAR" property="blogTitle" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="blog_desc" jdbcType="VARCHAR" property="blogDesc" />
+    <result column="blog_content" jdbcType="LONGVARCHAR" property="blogContent" />
+    <result column="category_id" jdbcType="INTEGER" property="categoryId" />
+    <result column="category_name" jdbcType="VARCHAR" property="categoryName" />
+    <result column="blog_status" jdbcType="INTEGER" property="blogStatus" />
+    <result column="blog_tags" jdbcType="VARCHAR" property="blogTags" />
+    <result column="thumbnail" jdbcType="VARCHAR" property="thumbnail" />
+    <result column="view_count" jdbcType="BIGINT" property="viewCount" />
+    <result column="creat_time" jdbcType="TIMESTAMP" property="creatTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="is_top" jdbcType="BOOLEAN" property="isTop" />
+    <result column="enable_comment" jdbcType="BOOLEAN" property="enableComment" />
+    <result column="is_delete" jdbcType="INTEGER" property="isDelete" />
+    <result column="sub_url" jdbcType="VARCHAR" property="subUrl" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    <!--@mbg.generated-->
+    blog_id, blog_title, user_id, blog_desc, blog_content, category_id, category_name, 
+    blog_status, blog_tags, thumbnail, view_count, creat_time, update_time, is_top, enable_comment, 
+    is_delete, sub_url
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    <!--@mbg.generated-->
+    select 
+    <include refid="Base_Column_List" />
+    from blog
+    where blog_id = #{blogId,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    <!--@mbg.generated-->
+    delete from blog
+    where blog_id = #{blogId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.blog.entity.Blog">
+    <!--@mbg.generated-->
+    insert into blog (blog_id, blog_title, user_id, 
+      blog_desc, blog_content, category_id, 
+      category_name, blog_status, blog_tags, 
+      thumbnail, view_count, creat_time, 
+      update_time, is_top, enable_comment, 
+      is_delete, sub_url)
+    values (#{blogId,jdbcType=BIGINT}, #{blogTitle,jdbcType=VARCHAR}, #{userId,jdbcType=BIGINT}, 
+      #{blogDesc,jdbcType=VARCHAR}, #{blogContent,jdbcType=LONGVARCHAR}, #{categoryId,jdbcType=INTEGER}, 
+      #{categoryName,jdbcType=VARCHAR}, #{blogStatus,jdbcType=INTEGER}, #{blogTags,jdbcType=VARCHAR}, 
+      #{thumbnail,jdbcType=VARCHAR}, #{viewCount,jdbcType=BIGINT}, #{creatTime,jdbcType=TIMESTAMP}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{isTop,jdbcType=BOOLEAN}, #{enableComment,jdbcType=BOOLEAN}, 
+      #{isDelete,jdbcType=INTEGER}, #{subUrl,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.blog.entity.Blog">
+    <!--@mbg.generated-->
+    insert into blog
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="blogId != null">
+        blog_id,
+      </if>
+      <if test="blogTitle != null">
+        blog_title,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+      <if test="blogDesc != null">
+        blog_desc,
+      </if>
+      <if test="blogContent != null">
+        blog_content,
+      </if>
+      <if test="categoryId != null">
+        category_id,
+      </if>
+      <if test="categoryName != null">
+        category_name,
+      </if>
+      <if test="blogStatus != null">
+        blog_status,
+      </if>
+      <if test="blogTags != null">
+        blog_tags,
+      </if>
+      <if test="thumbnail != null">
+        thumbnail,
+      </if>
+      <if test="viewCount != null">
+        view_count,
+      </if>
+      <if test="creatTime != null">
+        creat_time,
+      </if>
+      <if test="updateTime != null">
+        update_time,
+      </if>
+      <if test="isTop != null">
+        is_top,
+      </if>
+      <if test="enableComment != null">
+        enable_comment,
+      </if>
+      <if test="isDelete != null">
+        is_delete,
+      </if>
+      <if test="subUrl != null">
+        sub_url,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="blogId != null">
+        #{blogId,jdbcType=BIGINT},
+      </if>
+      <if test="blogTitle != null">
+        #{blogTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="blogDesc != null">
+        #{blogDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="blogContent != null">
+        #{blogContent,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="categoryId != null">
+        #{categoryId,jdbcType=INTEGER},
+      </if>
+      <if test="categoryName != null">
+        #{categoryName,jdbcType=VARCHAR},
+      </if>
+      <if test="blogStatus != null">
+        #{blogStatus,jdbcType=INTEGER},
+      </if>
+      <if test="blogTags != null">
+        #{blogTags,jdbcType=VARCHAR},
+      </if>
+      <if test="thumbnail != null">
+        #{thumbnail,jdbcType=VARCHAR},
+      </if>
+      <if test="viewCount != null">
+        #{viewCount,jdbcType=BIGINT},
+      </if>
+      <if test="creatTime != null">
+        #{creatTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isTop != null">
+        #{isTop,jdbcType=BOOLEAN},
+      </if>
+      <if test="enableComment != null">
+        #{enableComment,jdbcType=BOOLEAN},
+      </if>
+      <if test="isDelete != null">
+        #{isDelete,jdbcType=INTEGER},
+      </if>
+      <if test="subUrl != null">
+        #{subUrl,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.blog.entity.Blog">
+    <!--@mbg.generated-->
+    update blog
+    <set>
+      <if test="blogTitle != null">
+        blog_title = #{blogTitle,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null">
+        user_id = #{userId,jdbcType=BIGINT},
+      </if>
+      <if test="blogDesc != null">
+        blog_desc = #{blogDesc,jdbcType=VARCHAR},
+      </if>
+      <if test="blogContent != null">
+        blog_content = #{blogContent,jdbcType=LONGVARCHAR},
+      </if>
+      <if test="categoryId != null">
+        category_id = #{categoryId,jdbcType=INTEGER},
+      </if>
+      <if test="categoryName != null">
+        category_name = #{categoryName,jdbcType=VARCHAR},
+      </if>
+      <if test="blogStatus != null">
+        blog_status = #{blogStatus,jdbcType=INTEGER},
+      </if>
+      <if test="blogTags != null">
+        blog_tags = #{blogTags,jdbcType=VARCHAR},
+      </if>
+      <if test="thumbnail != null">
+        thumbnail = #{thumbnail,jdbcType=VARCHAR},
+      </if>
+      <if test="viewCount != null">
+        view_count = #{viewCount,jdbcType=BIGINT},
+      </if>
+      <if test="creatTime != null">
+        creat_time = #{creatTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isTop != null">
+        is_top = #{isTop,jdbcType=BOOLEAN},
+      </if>
+      <if test="enableComment != null">
+        enable_comment = #{enableComment,jdbcType=BOOLEAN},
+      </if>
+      <if test="isDelete != null">
+        is_delete = #{isDelete,jdbcType=INTEGER},
+      </if>
+      <if test="subUrl != null">
+        sub_url = #{subUrl,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where blog_id = #{blogId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.blog.entity.Blog">
+    <!--@mbg.generated-->
+    update blog
+    set blog_title = #{blogTitle,jdbcType=VARCHAR},
+      user_id = #{userId,jdbcType=BIGINT},
+      blog_desc = #{blogDesc,jdbcType=VARCHAR},
+      blog_content = #{blogContent,jdbcType=LONGVARCHAR},
+      category_id = #{categoryId,jdbcType=INTEGER},
+      category_name = #{categoryName,jdbcType=VARCHAR},
+      blog_status = #{blogStatus,jdbcType=INTEGER},
+      blog_tags = #{blogTags,jdbcType=VARCHAR},
+      thumbnail = #{thumbnail,jdbcType=VARCHAR},
+      view_count = #{viewCount,jdbcType=BIGINT},
+      creat_time = #{creatTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      is_top = #{isTop,jdbcType=BOOLEAN},
+      enable_comment = #{enableComment,jdbcType=BOOLEAN},
+      is_delete = #{isDelete,jdbcType=INTEGER},
+      sub_url = #{subUrl,jdbcType=VARCHAR}
+    where blog_id = #{blogId,jdbcType=BIGINT}
+  </update>
+
+  <select id="selectListByUserId" resultMap="BaseResultMap">
+        select
+          <include refid="Base_Column_List" />
+            from blog b
+            where b.user_id = #{userId,jdbcType=BIGINT}
+  </select>
+
+  <select id="selectListByCategoryId" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from blog b
+    where b.category_id = #{categoryId,jdbcType=INTEGER}
+  </select>
+</mapper>
