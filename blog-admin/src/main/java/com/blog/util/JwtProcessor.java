@@ -3,6 +3,7 @@ package com.blog.util;
 import com.blog.enums.ErrorCode;
 import com.blog.exception.BusinessException;
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 @Component
 @Slf4j
@@ -65,14 +65,14 @@ public class JwtProcessor {
         return createToken(userMap, jwtExpiration * 4 * 24 * 7);
     }
 
-    public Claims extractAllClaims(String token) {
+    private Claims extractAllClaims(String token) {
         Claims claims;
         try {
             claims =  Jwts.parser()
                     .setSigningKey(secretKey)
                     .parseClaimsJws(token)
                     .getBody();
-        }catch (MalformedJwtException|UnsupportedJwtException|IllegalArgumentException e){
+        }catch (MalformedJwtException | UnsupportedJwtException | IllegalArgumentException | SignatureException e){
             log.error("非法的令牌格式");
             throw new BusinessException(ErrorCode.TOKEN_ERROR,"非法的令牌格式");
         }catch (ExpiredJwtException e){

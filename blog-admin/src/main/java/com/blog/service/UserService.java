@@ -47,10 +47,6 @@ public class UserService {
     public LoginResponse userLogin(Loginer loginer) {
         String email = loginer.getEmail();
         String password = loginer.getPassword();
-        //验证是否存在旧的refresh token，存在即删除
-        if (redisProcessor.hasKey(RedisTransKey.getRefreshTokenKey(email))) {
-            redisProcessor.del(RedisTransKey.getRefreshTokenKey(email));
-        }
         //用户此时不为null，是否为null已经在selectUserByEmail判断
         User user = selectUserByEmail(email);
         boolean loginFlag = SecurityUtils.checkPassword(password, user.getPassword());
@@ -59,7 +55,6 @@ public class UserService {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误，登陆失败，请重新输入");
         }
         /*将用户信息存放在token中，时效为7天*/
-
         Map<String, Object> userMap = UserTransUtils.getUserMap(user);
         String accessToken = jwtProcessor.generateToken(userMap);
         String refreshToken = jwtProcessor.generateRefreshToken(userMap);
@@ -236,13 +231,7 @@ public class UserService {
         log.info("用户{}修改成功", user.getEmail());
     }
 
-    /**
-     * 查询所有用户
-     * @return List<User>
-     */
-    public List<User> getUsers() {
-        return userMapper.selectUsers();
-    }
+
 
 
     public int getTotalCount() {

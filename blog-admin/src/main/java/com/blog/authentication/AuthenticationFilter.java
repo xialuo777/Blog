@@ -36,6 +36,7 @@ public class AuthenticationFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
+//        String accessToken = request.getHeader("accessToken");
         //从"Authorization"请求头中获取accessToken
         String authHeader = request.getHeader("Authorization");
         String accessToken = null;

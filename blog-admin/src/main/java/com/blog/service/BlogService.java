@@ -18,6 +18,7 @@ import com.blog.mapper.TagMapper;
 import com.blog.util.SnowFlakeUtil;
 import com.blog.vo.blog.BlogUpdateVo;
 import com.blog.vo.blog.BlogVo;
+import com.github.pagehelper.PageHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -47,38 +48,37 @@ public class BlogService {
     /**
      * 新增博客，同时对博客的标签以及分类等关系进行处理
      *
-     * @param blogVo
+     * @param blog
      */
     @Transactional
-    public void saveBlog(BlogVo blogVo) {
-        Integer categoryId = blogVo.getCategoryId();
+    public void saveBlog(Blog blog) {
+        Integer categoryId = blog.getCategoryId();
         Category categoryExist = categoryMapper.selectByPrimaryKey(categoryId);
         Long userId = currentUserHolder.getUserId();
         Long blogId = SnowFlakeUtil.nextId();
         String baseHomePageUrl = String.format(Constant.BLOG_BASE_PATH + "%s/%s", userId, blogId);
-        blogVo.setSubUrl(baseHomePageUrl);
-        blogVo.setUserId(userId);
-        blogVo.setBlogId(blogId);
-        Blog blog = new Blog();
-        BeanUtils.copyProperties(blogVo, blog);
-        blogMapper.insertSelective(blog);
+        blog.setSubUrl(baseHomePageUrl);
+        blog.setUserId(userId);
+        blog.setBlogId(blogId);
+        Blog saveBlog = new Blog();
+        blogMapper.insertSelective(saveBlog);
 
         //处理博客分类信息
-        handleCategoryAndBlog(blog, categoryExist);
+        handleCategoryAndBlog(saveBlog, categoryExist);
         //处理博客标签信息
-        handleTags(blog);
+        handleTags(saveBlog);
         log.info("文章提交成功");
     }
 
     /**
      * 更新博客，同时对博客的标签以及分类等关系进行处理
      *
-     * @param blogUpdateVo
+     * @param blog
      */
     @Transactional
-    public void updateBlog(BlogUpdateVo blogUpdateVo) {
-        Blog blogForUpdate = blogMapper.selectByPrimaryKey(blogUpdateVo.getBlogId());
-        BeanUtil.copyProperties(blogUpdateVo, blogForUpdate, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
+    public void updateBlog(Blog blog) {
+        Blog blogForUpdate = blogMapper.selectByPrimaryKey(blog.getBlogId());
+        BeanUtil.copyProperties(blog, blogForUpdate, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
         Category categoryExist = categoryMapper.selectByPrimaryKey(blogForUpdate.getCategoryId());
         blogMapper.updateByPrimaryKeySelective(blogForUpdate);
         handleCategoryAndBlog(blogForUpdate, categoryExist);
@@ -162,4 +162,24 @@ public class BlogService {
         return blogTags;
     }
 
+    public List<Blog> getBlogList(Long userId, int pageNo, int pageSize) {
+        PageHelper.startPage(pageNo, pageSize);
+        List<Blog> blogs = blogMapper.selectListByUserId(userId);
+        return blogs;
+    }
+
+    public Blog getBlogById(Long blogId) {
+        Blog blog = blogMapper.selectByPrimaryKey(blogId);
+        return blog;
+    }
+
+    public List<Blog> getBlogListByCategoryId(Long categoryId, int pageNo, int pageSize) {
+        PageHelper.startPage(pageNo, pageSize);
+        List<Blog> blogs = blogMapper.selectListByCategoryId(categoryId);
+        return blogs;
+    }
+
+    public void deleteBlog(Long blogId) {
+        blogMapper.deleteByPrimaryKey(blogId);
+    }
 }

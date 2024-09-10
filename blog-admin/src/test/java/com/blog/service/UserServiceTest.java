@@ -1,12 +1,14 @@
-/*
 package com.blog.service;
 
+import com.blog.authentication.CurrentUserHolder;
 import com.blog.entity.User;
 import com.blog.exception.BusinessException;
 import com.blog.mapper.UserMapper;
 import com.blog.util.JwtProcessor;
 import com.blog.util.SecurityUtils;
+import com.blog.util.UserTransUtils;
 import com.blog.util.bo.EmailCodeBo;
+import com.blog.util.bo.LoginResponse;
 import com.blog.util.redis.RedisTransKey;
 import com.blog.util.redis.RedisProcessor;
 import com.blog.vo.user.Loginer;
@@ -16,13 +18,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -32,6 +39,8 @@ class UserServiceTest {
 
     @Mock
     private UserMapper mockUserMapper;
+    @Mock
+    private CurrentUserHolder currentUserHolder;
 
     @Mock
     private RedisProcessor mockRedisProcessor;
@@ -43,50 +52,43 @@ class UserServiceTest {
 
     @InjectMocks
     private UserService mockUserService;
-
-
-    @BeforeEach
-    void setUp() {
-        ReflectionTestUtils.setField(mockUserService, "userMapper", mockUserMapper);
-        ReflectionTestUtils.setField(mockUserService, "redisUtils", mockRedisProcessor);
-        ReflectionTestUtils.setField(mockUserService, "jwtService", mockJwtService);
-    }
+    @Mock
+    private JwtProcessor mockJwtProcessor;
 
     @Test
     void UserLogin() {
-        final Loginer loginer = new Loginer("2436056388@qq.com", "password");
-        when(mockRedisProcessor.hasKey(RedisTransKey.getLoginKey("2436056388@qq.com"))).thenReturn(false);
+        try (MockedStatic<SecurityUtils> mockedStatic = Mockito.mockStatic(SecurityUtils.class)) {
+            final Loginer loginer = new Loginer("2436056388@qq.com", "password");
 
-        final User user = new User();
-        user.setUserId(0L);
-        user.setAccount("account");
-        user.setNickName("nickName");
-        String password =SecurityUtils.encodePassword("password");
-        user.setPassword(password);
-        user.setEmail("2436056388@qq.com");
-        user.setPhone("13781342354");
-        when(mockUserMapper.findByEmail("2436056388@qq.com")).thenReturn(user);
+            final User user = new User();
+            user.setUserId(0L);
+            user.setAccount("account");
+            user.setNickName("nickName");
+            String password = SecurityUtils.encodePassword("password");
+            user.setPassword(password);
+            user.setEmail("2436056388@qq.com");
+            user.setPhone("13781342354");
+            when(mockUserMapper.findByEmail("2436056388@qq.com")).thenReturn(user);
+            mockedStatic.when(() -> SecurityUtils.checkPassword("password", password)).thenReturn(true);
 
-        final User user1 = new User();
-        user1.setUserId(0L);
-        user1.setAccount("account");
-        user1.setNickName("nickName");
-        user1.setPassword(password);
-        user1.setEmail("2436056388@qq.com");
-        user1.setPhone("13781342354");
-        when(mockJwtService.generateToken(user1)).thenReturn("value");
+            Map<String, Object> userMap = UserTransUtils.getUserMap(user);
+            when(mockJwtProcessor.generateToken(userMap)).thenReturn("value");
+            when(mockJwtProcessor.generateRefreshToken(userMap)).thenReturn("refreshValue");
 
-        mockUserService.userLogin(loginer);
+            LoginResponse loginResponse = mockUserService.userLogin(loginer);
 
-        verify(mockRedisProcessor).set(eq(RedisTransKey.tokenKey("2436056388@qq.com")), eq("value"), eq(7L), eq(TimeUnit.DAYS));
-        verify(mockRedisProcessor).set(eq(RedisTransKey.loginKey("2436056388@qq.com")), eq("2436056388@qq.com"), eq(7L), eq(TimeUnit.DAYS));
+            assertEquals("value", loginResponse.getAccessToken());
+            assertEquals("refreshValue", loginResponse.getRefreshToken());
+
+            verify(mockRedisProcessor).set(eq(RedisTransKey.refreshTokenKey("2436056388@qq.com")), eq("refreshValue"), eq(7L), eq(TimeUnit.DAYS));
+            verify(mockRedisProcessor).set(eq(RedisTransKey.tokenKey("2436056388@qq.com")), eq("value"), eq(7L), eq(TimeUnit.DAYS));
+            verify(mockRedisProcessor).set(eq(RedisTransKey.loginKey("2436056388@qq.com")), eq("2436056388@qq.com"), eq(7L), eq(TimeUnit.DAYS));
+        }
     }
 
     @Test
     void UserLogin_With_Wrong_Password() {
         final Loginer loginer = new Loginer("2436056388@qq.com", "password1");
-        when(mockRedisProcessor.hasKey(RedisTransKey.getLoginKey("2436056388@qq.com"))).thenReturn(false);
-
         final User user = new User();
         user.setUserId(0L);
         user.setAccount("account");
@@ -100,23 +102,16 @@ class UserServiceTest {
         assertThrows(BusinessException.class, () -> mockUserService.userLogin(loginer));
     }
 
-    @Test
-    void UserLogin__LoginError_AlreadyLoggedIn() {
-
-        final Loginer loginer = new Loginer("2436056388@qq.com", "password");
-        when(mockRedisProcessor.hasKey(RedisTransKey.getLoginKey("2436056388@qq.com"))).thenReturn(true);
-
-        assertThatThrownBy(() -> mockUserService.userLogin(loginer)).isInstanceOf(BusinessException.class);
-    }
 
     @Test
     void UserLogin_Without_User() {
         final Loginer loginer = new Loginer("2436056388@qq.com", "password");
-        when(mockRedisProcessor.hasKey(RedisTransKey.getLoginKey("2436056388@qq.com"))).thenReturn(false);
         when(mockUserMapper.findByEmail("2436056388@qq.com")).thenReturn(null);
 
         assertThatThrownBy(() -> mockUserService.userLogin(loginer)).isInstanceOf(BusinessException.class);
     }
+
+
 
     @Test
     void UserRegister() {
@@ -141,7 +136,7 @@ class UserServiceTest {
         user.setPassword("password");
         user.setEmail("2436056388@qq.com");
         user.setPhone("13781342354");
-        doNothing().when(mockUserMapper).insertUser(any(User.class));
+        when(mockUserMapper.insertUser(any(User.class))).thenReturn(1);
 
         mockUserService.userRegister(register);
 
@@ -235,14 +230,7 @@ class UserServiceTest {
         expectedResult.setEmail("2436056388@qq.com");
         expectedResult.setPhone("13781342354");
 
-        final User user = new User();
-        user.setUserId(0L);
-        user.setAccount("account");
-        user.setNickName("nickName");
-        user.setPassword("password");
-        user.setEmail("2436056388@qq.com");
-        user.setPhone("13781342354");
-        when(mockUserMapper.findByEmail("2436056388@qq.com")).thenReturn(user);
+        when(mockUserMapper.findByEmail("2436056388@qq.com")).thenReturn(expectedResult);
 
         final User result = mockUserService.selectUserByEmail("2436056388@qq.com");
         assertThat(result).isEqualTo(expectedResult);
@@ -253,29 +241,6 @@ class UserServiceTest {
         when(mockUserMapper.findByEmail("2436056388@qq.com")).thenReturn(null);
 
         assertThatThrownBy(() -> mockUserService.selectUserByEmail("2436056388@qq.com")).isInstanceOf(BusinessException.class);
-    }
-
-    @Test
-    void DeleteUserByEmail() {
-        final User user = new User();
-        user.setUserId(0L);
-        user.setAccount("account");
-        user.setNickName("nickName");
-        user.setPassword("password");
-        user.setEmail("2436056388@qq.com");
-        user.setPhone("13781342354");
-        when(mockUserMapper.findByEmail("2436056388@qq.com")).thenReturn(user);
-
-//        mockUserService.deleteUserByEmail("2436056388@qq.com");
-
-        verify(mockUserMapper).deleteByEmail("2436056388@qq.com");
-    }
-
-    @Test
-    void testDeleteUserByEmail_Without_User() {
-        when(mockUserMapper.findByEmail("2436056388@qq.com")).thenReturn(null);
-
-//        assertThatThrownBy(() -> mockUserService.deleteUserByEmail("2436056388@qq.com")).isInstanceOf(BusinessException.class);
     }
 
 
@@ -289,16 +254,15 @@ class UserServiceTest {
         user.setPassword("password");
         user.setEmail("email");
         user.setPhone("phone");
+
+
+        when(currentUserHolder.getUserId()).thenReturn(0L);
+        when(mockUserMapper.updateByPrimaryKeySelective(any(User.class))).thenReturn(1);
+
         mockUserService.updateUser(user);
 
-        final User user1 = new User();
-        user1.setUserId(0L);
-        user1.setAccount("account");
-        user1.setNickName("nickName");
-        user1.setPassword("password");
-        user1.setEmail("email");
-        user1.setPhone("phone");
-//        verify(mockUserMapper).updateUser(user1);
+        verify(currentUserHolder).getUserId();
+        verify(mockUserMapper).updateByPrimaryKeySelective(any(User.class));
+
     }
 }
-*/

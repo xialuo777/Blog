@@ -22,16 +22,6 @@ public class RedisProcessor {
 
 
     /**
-     *  判断key是否存在
-     * @param key 键
-     * @return true 存在 false不存在
-     */
-    public boolean hasKey(String key) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey(key));
-    }
-
-
-    /**
      *  删除缓存
      * @param key 可以传一个值 或多个
      */
