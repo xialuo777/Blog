@@ -101,6 +101,7 @@ public class BlogService {
      *
      * @param blog
      */
+
     private void handleTags(Blog blog) {
         if (StringUtil.isNotEmpty(blog.getBlogTags())) {
             String[] tags = blog.getBlogTags().split(",");
@@ -110,25 +111,22 @@ public class BlogService {
             }
             List<String> distinctTagNames = Arrays.stream(tags).distinct().collect(Collectors.toList());
 
-            /*插入标签*/
-            List<Tag> tagsFromDb = tagMapper.selectListByTagNames(distinctTagNames);
-            if (CollectionUtils.isEmpty(tagsFromDb)) {
-                for (String distinctTagName : distinctTagNames) {
-                    tagMapper.insert(new Tag(distinctTagName));
-                }
-            }else {
-                List<Tag> tagListForInsert = distinctTagNames.stream()
-                        .filter(tagName -> !tagsFromDb.contains(tagName))
-                        .map(tagName -> new Tag(tagName))
-                        .collect(Collectors.toList());
 
-                if (!CollectionUtils.isEmpty(tagListForInsert)) {
-                    tagMapper.insertList(tagListForInsert);
-                }
+            List<Tag> tagsFromDb = tagMapper.selectListByTagNames(distinctTagNames);
+            List<Tag> mutableTagsFromDb = new ArrayList<>(tagsFromDb);
+            //处理数据库中并不存在的标签，即需要新插入的标签
+            List<Tag> tagListForInsert = distinctTagNames.stream()
+                    .filter(tagName -> !mutableTagsFromDb.stream().map(Tag::getTagName).collect(Collectors.toSet()).contains(tagName))
+                    .map(tagName -> new Tag(tagName))
+                    .collect(Collectors.toList());
+
+            if (!CollectionUtils.isEmpty(tagListForInsert)) {
+                tagMapper.insertList(tagListForInsert);
+                mutableTagsFromDb.addAll(tagListForInsert); // 将新插入的标签添加到数据库已有的标签列表中
             }
 
-           /*处理blog -tag 映射关系*/
-            List<Tag> allTagsList = distinctTagNames.stream().map(tagName -> tagMapper.selectByTagName(tagName))
+            /* 处理blog - tag 映射关系 */
+            List<Tag> allTagsList = mutableTagsFromDb.stream()
                     .collect(Collectors.toList());
 
             List<BlogTag> blogTags = createBlogTags(blog, allTagsList);

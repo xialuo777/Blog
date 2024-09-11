@@ -5,12 +5,14 @@ import io.swagger.annotations.ApiModelProperty;
 import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
 @ApiModel(description = "tag")
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class Tag {
     @ApiModelProperty(value = "标签id")
     private Integer tagId;
@@ -27,5 +29,11 @@ public class Tag {
     public Tag(String tagName){
         this.tagName = tagName;
     }
+
+    public Tag(Integer tagId,String tagName){
+        this.tagId = tagId;
+        this.tagName = tagName;
+    }
+
 
 }

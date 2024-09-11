@@ -23,7 +23,7 @@ public class BlogVo {
     /**
      * 用户id
      */
-    @JsonProperty("blogId")
+    @JsonProperty("userId")
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long userId;
     /**

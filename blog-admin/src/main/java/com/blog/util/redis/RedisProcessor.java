@@ -1,5 +1,6 @@
 package com.blog.util.redis;
 
+import cn.hutool.core.util.ArrayUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,7 +28,7 @@ public class RedisProcessor {
      */
     @SuppressWarnings("unchecked")
     public void del(String... key) {
-        if (key != null && key.length > 0) {
+        if (ArrayUtil.isNotEmpty(key)) {
             if (key.length == 1) {
                 redisTemplate.delete(key[0]);
             } else {

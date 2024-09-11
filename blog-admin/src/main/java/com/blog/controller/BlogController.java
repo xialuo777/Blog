@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.blog.authentication.CurrentUserHolder;
 import com.blog.dto.PageResult;
 import com.blog.entity.Blog;
+import com.blog.enums.ErrorCode;
 import com.blog.exception.ResponseResult;
 import com.blog.service.BlogService;
 import com.blog.vo.blog.BlogDesc;
@@ -33,6 +34,9 @@ public class BlogController {
 
     @PutMapping("/update")
     public ResponseResult<String> updateBlog(@RequestBody BlogUpdateVo blogUpdateVo) {
+        if (blogUpdateVo.getBlogId()==null){
+            return ResponseResult.fail(ErrorCode.PARAMS_ERROR.getCode(), "修改文章id不能为空");
+        }
         Blog blog = new Blog();
         BeanUtil.copyProperties(blogUpdateVo, blog);
         blogService.updateBlog(blog);

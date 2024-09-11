@@ -14,7 +14,6 @@ import java.util.Date;
 @Data
 public class Blog {
     @ApiModelProperty(value = "")
-
     private Long blogId;
 
     @ApiModelProperty(value = "")

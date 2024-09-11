@@ -20,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
@@ -59,17 +60,14 @@ class BlogServiceTest {
             blog.setCategoryName("categoryName");
             blog.setBlogTags("blogTags");
 
-            when(mockCategoryMapper.selectByPrimaryKey(1)).thenReturn(new Category(1, "categoryName"));
+            Category categoryExist = new Category(1, "categoryName");
+            when(mockCategoryMapper.selectByPrimaryKey(1)).thenReturn(categoryExist);
             when(mockCurrentUserHolder.getUserId()).thenReturn(2L);
             snowFlakeUtilMocked.when(()->SnowFlakeUtil.nextId()).thenReturn(1L);
 
             final List<Tag> tags = Arrays.asList(
                     new Tag(0, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0));
             when(mockTagMapper.selectListByTagNames(Arrays.asList("blogTags"))).thenReturn(tags);
-
-            final Tag tag = new Tag(0, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0);
-            when(mockTagMapper.selectByTagName("blogTags")).thenReturn(tag);
-
             blogServiceUnderTest.saveBlog(blog);
 
             final Blog record = new Blog();
@@ -101,9 +99,6 @@ class BlogServiceTest {
                     new Tag(0, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0));
             when(mockTagMapper.selectListByTagNames(Arrays.asList("blogTags"))).thenReturn(tags);
 
-            final Tag tag = new Tag(0, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0);
-            when(mockTagMapper.selectByTagName("blogTags")).thenReturn(tag);
-
             blogServiceUnderTest.saveBlog(blog);
 
             final Blog record = new Blog();
@@ -122,37 +117,23 @@ class BlogServiceTest {
 
     @Test
     void testSaveBlog_NewTag() {
-        try(MockedStatic<SnowFlakeUtil> snowFlakeUtilMocked = Mockito.mockStatic(SnowFlakeUtil.class)) {
+        try (MockedStatic<SnowFlakeUtil> snowFlakeUtilMocked = Mockito.mockStatic(SnowFlakeUtil.class)) {
             final Blog blog = new Blog();
             blog.setCategoryId(1);
             blog.setCategoryName("categoryName");
-            blog.setBlogTags("blogTags");
+            blog.setBlogTags("newTag");
 
-            when(mockCategoryMapper.selectByPrimaryKey(1)).thenReturn(new Category(1, "categoryName"));
+            Category categoryExist = new Category(1, "categoryName");
+            when(mockCategoryMapper.selectByPrimaryKey(1)).thenReturn(categoryExist);
             when(mockCurrentUserHolder.getUserId()).thenReturn(2L);
-            snowFlakeUtilMocked.when(()->SnowFlakeUtil.nextId()).thenReturn(1L);
+            snowFlakeUtilMocked.when(() -> SnowFlakeUtil.nextId()).thenReturn(1L);
 
-            final List<Tag> tags = Arrays.asList(
-                    new Tag(0, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0));
-            when(mockTagMapper.selectListByTagNames(Arrays.asList("blogTags"))).thenReturn(null);
-
-            final Tag tag = new Tag(0, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0);
-            when(mockTagMapper.selectByTagName("blogTags")).thenReturn(tag);
+            when(mockTagMapper.selectListByTagNames(Arrays.asList("newTag"))).thenReturn(Collections.emptyList());
 
             blogServiceUnderTest.saveBlog(blog);
 
-            final Blog record = new Blog();
-            record.setBlogId(1L);
-            record.setUserId(2L);
-            record.setCategoryId(1);
-            record.setCategoryName("categoryName");
-            record.setBlogTags("blogTags");
-            String baseHomePageUrl = String.format(Constant.BLOG_BASE_PATH + "%s/%s", blog.getUserId(), blog.getBlogId());
-            record.setSubUrl(baseHomePageUrl);
-            verify(mockBlogMapper).insertSelective(record);
-            verify(mockCategoryMapper).increatCategoryRank(new Category(1, "categoryName"));
-            verify(mockTagMapper).insert(new Tag("blogTags"));
-            verify(mockBlogTagMapper).insertList(Arrays.asList(new BlogTag(1L, 0)));
+            verify(mockTagMapper).insertList(Arrays.asList(new Tag("newTag")) );
+            verify(mockBlogTagMapper).insertList(Arrays.asList(new BlogTag(1L, null)));
         }
     }
     @Test
@@ -197,9 +178,6 @@ class BlogServiceTest {
                 new Tag(0, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0));
         when(mockTagMapper.selectListByTagNames(Arrays.asList("blogTags"))).thenReturn(tags);
 
-        final Tag tag = new Tag(0, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0);
-        when(mockTagMapper.selectByTagName("blogTags")).thenReturn(tag);
-
         blogServiceUnderTest.updateBlog(blog);
 
         final Blog record = new Blog();
@@ -240,9 +218,6 @@ class BlogServiceTest {
                 new Tag(0, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0));
         when(mockTagMapper.selectListByTagNames(Arrays.asList("blogTags"))).thenReturn(tags);
 
-        final Tag tag = new Tag(0, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0);
-        when(mockTagMapper.selectByTagName("blogTags")).thenReturn(tag);
-
         blogServiceUnderTest.updateBlog(blog);
 
         final Blog record = new Blog();
@@ -278,15 +253,12 @@ class BlogServiceTest {
         Category categoryExist = new Category(1, "categoryName");
         when(mockCategoryMapper.selectByPrimaryKey(1)).thenReturn(categoryExist);
 
-        when(mockTagMapper.selectListByTagNames(Arrays.asList("newTag"))).thenReturn(null);
-
-        final Tag tag = new Tag(0, "newTag", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0);
-        when(mockTagMapper.selectByTagName("newTag")).thenReturn(tag);
+        when(mockTagMapper.selectListByTagNames(Arrays.asList("newTag"))).thenReturn(Collections.emptyList());
 
         blogServiceUnderTest.updateBlog(blog);
 
-        verify(mockTagMapper).insert(new Tag("newTag"));
-        verify(mockBlogTagMapper).insertList(Arrays.asList(new BlogTag(1L, 0)));
+        verify(mockTagMapper).insertList(Arrays.asList(new Tag("newTag")));
+        verify(mockBlogTagMapper).insertList(Arrays.asList(new BlogTag(1L, null)));
     }
     @Test
     void testUpdateBlog_TooManyTags() {
