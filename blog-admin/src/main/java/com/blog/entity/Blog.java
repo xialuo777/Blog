@@ -3,7 +3,6 @@ package com.blog.entity;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.ToStringSerializer;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -14,12 +13,16 @@ import java.util.Date;
 @Data
 public class Blog {
     @ApiModelProperty(value = "")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @JSONField(serializeUsing = ToStringSerializer.class)
     private Long blogId;
 
     @ApiModelProperty(value = "")
     private String blogTitle;
 
     @ApiModelProperty(value = "")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @JSONField(serializeUsing = ToStringSerializer.class)
     private Long userId;
 
     @ApiModelProperty(value = "")

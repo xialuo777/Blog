@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.blog.mapper.BlogCommentMapper">
+  <resultMap id="BaseResultMap" type="com.blog.entity.BlogComment">
+    <!--@mbg.generated-->
+    <!--@Table blog_comment-->
+    <id column="comment_id" jdbcType="INTEGER" property="commentId" />
+    <result column="blog_id" jdbcType="BIGINT" property="blogId" />
+    <result column="commentator" jdbcType="VARCHAR" property="commentator" />
+    <result column="commentator_id" jdbcType="VARCHAR" property="commentatorId" />
+    <result column="comment_body" jdbcType="VARCHAR" property="commentBody" />
+    <result column="comment_create_time" jdbcType="TIMESTAMP" property="commentCreateTime" />
+    <result column="reply_body" jdbcType="VARCHAR" property="replyBody" />
+    <result column="reply_create_time" jdbcType="TIMESTAMP" property="replyCreateTime" />
+    <result column="is_deleted" jdbcType="TINYINT" property="isDeleted" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    <!--@mbg.generated-->
+    comment_id, blog_id, commentator, commentator_id, comment_body, comment_create_time, 
+    reply_body, reply_create_time, is_deleted
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    <!--@mbg.generated-->
+    select 
+    <include refid="Base_Column_List" />
+    from blog_comment
+    where comment_id = #{commentId,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    <!--@mbg.generated-->
+    delete from blog_comment
+    where comment_id = #{commentId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" keyColumn="comment_id" keyProperty="commentId" parameterType="com.blog.entity.BlogComment" useGeneratedKeys="true">
+    <!--@mbg.generated-->
+    insert into blog_comment (blog_id, commentator, commentator_id, 
+      comment_body, comment_create_time, reply_body, 
+      reply_create_time, is_deleted)
+    values (#{blogId,jdbcType=BIGINT}, #{commentator,jdbcType=VARCHAR}, #{commentatorId,jdbcType=VARCHAR}, 
+      #{commentBody,jdbcType=VARCHAR}, #{commentCreateTime,jdbcType=TIMESTAMP}, #{replyBody,jdbcType=VARCHAR}, 
+      #{replyCreateTime,jdbcType=TIMESTAMP}, #{isDeleted,jdbcType=TINYINT})
+  </insert>
+  <insert id="insertSelective" keyColumn="comment_id" keyProperty="commentId" parameterType="com.blog.entity.BlogComment" useGeneratedKeys="true">
+    <!--@mbg.generated-->
+    insert into blog_comment
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="blogId != null">
+        blog_id,
+      </if>
+      <if test="commentator != null">
+        commentator,
+      </if>
+      <if test="commentatorId != null">
+        commentator_id,
+      </if>
+      <if test="commentBody != null">
+        comment_body,
+      </if>
+      <if test="commentCreateTime != null">
+        comment_create_time,
+      </if>
+      <if test="replyBody != null">
+        reply_body,
+      </if>
+      <if test="replyCreateTime != null">
+        reply_create_time,
+      </if>
+      <if test="isDeleted != null">
+        is_deleted,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="blogId != null">
+        #{blogId,jdbcType=BIGINT},
+      </if>
+      <if test="commentator != null">
+        #{commentator,jdbcType=VARCHAR},
+      </if>
+      <if test="commentatorId != null">
+        #{commentatorId,jdbcType=VARCHAR},
+      </if>
+      <if test="commentBody != null">
+        #{commentBody,jdbcType=VARCHAR},
+      </if>
+      <if test="commentCreateTime != null">
+        #{commentCreateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="replyBody != null">
+        #{replyBody,jdbcType=VARCHAR},
+      </if>
+      <if test="replyCreateTime != null">
+        #{replyCreateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isDeleted != null">
+        #{isDeleted,jdbcType=TINYINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.blog.entity.BlogComment">
+    <!--@mbg.generated-->
+    update blog_comment
+    <set>
+      <if test="blogId != null">
+        blog_id = #{blogId,jdbcType=BIGINT},
+      </if>
+      <if test="commentator != null">
+        commentator = #{commentator,jdbcType=VARCHAR},
+      </if>
+      <if test="commentatorId != null">
+        commentator_id = #{commentatorId,jdbcType=VARCHAR},
+      </if>
+      <if test="commentBody != null">
+        comment_body = #{commentBody,jdbcType=VARCHAR},
+      </if>
+      <if test="commentCreateTime != null">
+        comment_create_time = #{commentCreateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="replyBody != null">
+        reply_body = #{replyBody,jdbcType=VARCHAR},
+      </if>
+      <if test="replyCreateTime != null">
+        reply_create_time = #{replyCreateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isDeleted != null">
+        is_deleted = #{isDeleted,jdbcType=TINYINT},
+      </if>
+    </set>
+    where comment_id = #{commentId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.blog.entity.BlogComment">
+    <!--@mbg.generated-->
+    update blog_comment
+    set blog_id = #{blogId,jdbcType=BIGINT},
+      commentator = #{commentator,jdbcType=VARCHAR},
+      commentator_id = #{commentatorId,jdbcType=VARCHAR},
+      comment_body = #{commentBody,jdbcType=VARCHAR},
+      comment_create_time = #{commentCreateTime,jdbcType=TIMESTAMP},
+      reply_body = #{replyBody,jdbcType=VARCHAR},
+      reply_create_time = #{replyCreateTime,jdbcType=TIMESTAMP},
+      is_deleted = #{isDeleted,jdbcType=TINYINT}
+    where comment_id = #{commentId,jdbcType=INTEGER}
+  </update>
+</mapper>
