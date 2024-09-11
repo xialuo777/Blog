@@ -112,7 +112,7 @@ public class BlogService {
 
             /*插入标签*/
             List<Tag> tagsFromDb = tagMapper.selectListByTagNames(distinctTagNames);
-            if (tagsFromDb == null) {
+            if (CollectionUtils.isEmpty(tagsFromDb)) {
                 for (String distinctTagName : distinctTagNames) {
                     tagMapper.insert(new Tag(distinctTagName));
                 }
