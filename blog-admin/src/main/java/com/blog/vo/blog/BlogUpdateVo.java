@@ -44,7 +44,7 @@ public class BlogUpdateVo {
     /**
      * 分类名
      */
-    @ApiModelProperty(value = "分类名", required = true)
+    @ApiModelProperty(value = "分类Id", required = true)
     private Integer categoryId;
 
     /**

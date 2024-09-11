@@ -8,6 +8,7 @@ import com.blog.enums.ErrorCode;
 import com.blog.exception.ResponseResult;
 import com.blog.service.BlogService;
 import com.blog.vo.blog.BlogDesc;
+import com.blog.vo.blog.BlogDetail;
 import com.blog.vo.blog.BlogUpdateVo;
 import com.blog.vo.blog.BlogVo;
 import lombok.RequiredArgsConstructor;
@@ -32,12 +33,12 @@ public class BlogController {
         return ResponseResult.success("文章保存成功");
     }
 
-    @PutMapping("/update")
-    public ResponseResult<String> updateBlog(@RequestBody BlogUpdateVo blogUpdateVo) {
-        if (blogUpdateVo.getBlogId()==null){
-            return ResponseResult.fail(ErrorCode.PARAMS_ERROR.getCode(), "修改文章id不能为空");
+    @PutMapping("/update/{blogId}")
+    public ResponseResult<String> updateBlog(@RequestBody BlogUpdateVo blogUpdateVo, @PathVariable Long blogId) {
+        Blog blog = blogService.getBlogById(blogId);
+        if (blog == null) {
+            return ResponseResult.fail(ErrorCode.PARAMS_ERROR.getCode(), "修改文章不能为空");
         }
-        Blog blog = new Blog();
         BeanUtil.copyProperties(blogUpdateVo, blog);
         blogService.updateBlog(blog);
         return ResponseResult.success("文章更新成功");
@@ -60,7 +61,7 @@ public class BlogController {
             return ResponseResult.fail("当前用户博客列表为空");
         }
         List<BlogDesc> blogDescList = blogList.stream()
-                .map(blog ->BeanUtil.copyProperties(blog, BlogDesc.class))
+                .map(blog -> BeanUtil.copyProperties(blog, BlogDesc.class))
                 .collect(Collectors.toList());
         int totalCount = blogList.size();
         PageResult<BlogDesc> pageResult = new PageResult<>(blogDescList, totalCount);
@@ -68,14 +69,14 @@ public class BlogController {
     }
 
     @GetMapping("/{blogId}")
-    public ResponseResult<BlogVo> getBlog(@PathVariable Long blogId) {
+    public ResponseResult<BlogDetail> getBlog(@PathVariable Long blogId) {
         Blog blog = blogService.getBlogById(blogId);
-        if (blog == null){
+        if (blog == null) {
             return ResponseResult.fail("文章不存在");
         }
-        BlogVo blogVo = new BlogVo();
-        BeanUtil.copyProperties(blog, blogVo);
-        return ResponseResult.success(blogVo);
+        BlogDetail blogDetail = new BlogDetail();
+        BeanUtil.copyProperties(blog, blogDetail);
+        return ResponseResult.success(blogDetail);
     }
 
     @GetMapping("/category/{categoryId}")

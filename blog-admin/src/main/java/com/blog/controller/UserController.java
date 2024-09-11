@@ -1,6 +1,7 @@
 package com.blog.controller;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import com.blog.authentication.CurrentUserHolder;
 import com.blog.dto.PageResult;
 import com.blog.entity.User;
@@ -131,17 +132,19 @@ public class UserController {
     /**
      * 用户更新信息前先对当前请求中的token进行验证
      *
-     * @param user
+     * @param userInfoVo
      * @param request
      * @return
      */
     @PutMapping("/update")
-    public ResponseResult<String> updateUser(@RequestBody User user, HttpServletRequest request) {
-        String accessToken = request.getHeader("accessToken");
+    public ResponseResult<String> updateUser(@RequestBody UserInfoVo userInfoVo, HttpServletRequest request) {
+        String accessToken = request.getHeader("Authorization");
         Long userId = currentUserHolder.getUserId();
         if (!jwtProcessor.validateToken(accessToken, userId)) {
             return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
         }
+        User user = userService.selectUserByUserId(userId);
+        BeanUtil.copyProperties(userInfoVo, user, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
         userService.updateUser(user);
         return ResponseResult.success("用户信息更新成功");
     }

@@ -53,7 +53,7 @@ public class Blog {
     private Date updateTime;
 
     @ApiModelProperty(value = "")
-    private Boolean isTop;
+    private Integer isTop;
 
     @ApiModelProperty(value = "")
     private Boolean enableComment;

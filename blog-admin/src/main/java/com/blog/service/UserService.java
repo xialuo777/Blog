@@ -206,13 +206,7 @@ public class UserService {
      * @param user
      */
     public void updateUser(User user) {
-        Long userId = currentUserHolder.getUserId();
-        String password = user.getPassword();
-        String encodePassword = SecurityUtils.encodePassword(password);
-        user.setPassword(encodePassword);
-        user.setUserId(userId);
         userMapper.updateByPrimaryKeySelective(user);
-        log.info("用户{}修改成功", user.getEmail());
     }
 
 

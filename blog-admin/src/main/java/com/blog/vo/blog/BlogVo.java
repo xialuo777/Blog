@@ -19,12 +19,14 @@ public class BlogVo {
      */
     @JsonProperty("blogId")
     @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @JSONField(serializeUsing= ToStringSerializer.class)
     private Long blogId;
     /**
      * 用户id
      */
     @JsonProperty("userId")
     @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @JSONField(serializeUsing= ToStringSerializer.class)
     private Long userId;
     /**
      * 文章路径
