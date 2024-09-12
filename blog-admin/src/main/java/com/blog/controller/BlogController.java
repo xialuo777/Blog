@@ -1,6 +1,7 @@
 package com.blog.controller;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
 import com.blog.authentication.CurrentUserHolder;
 import com.blog.dto.PageResult;
 import com.blog.entity.Blog;
@@ -46,7 +47,7 @@ public class BlogController {
     public ResponseResult<String> updateBlog(@RequestBody BlogUpdateVo blogUpdateVo, @PathVariable Long blogId) {
         Blog blog = blogService.getBlogById(blogId)
                 .orElseThrow(() -> new BusinessException("文章不存在！"));
-        BeanUtil.copyProperties(blogUpdateVo, blog);
+        BeanUtil.copyProperties(blogUpdateVo, blog, CopyOptions.create().setIgnoreNullValue(true).setIgnoreCase(true));
         blogService.updateBlog(blog);
         return ResponseResult.success("文章更新成功");
     }

@@ -4,10 +4,13 @@ import com.blog.dto.PageRequest;
 import com.blog.dto.PageResult;
 import com.blog.entity.BlogComment;
 import com.blog.mapper.BlogCommentMapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -27,10 +30,12 @@ public class CommentService {
         blogCommentMapper.deleteByPrimaryKey(commentId);
     }
 
-    public PageResult getCommentList(PageRequest pageRequest) {
+    public PageResult<BlogComment> getCommentList(PageRequest pageRequest, Long blogId) {
         int pageSize = pageRequest.getPageSize();
         int pageNo = pageRequest.getPageNo();
-
-        return null;
+        PageHelper.startPage(pageNo, pageSize);
+        List<BlogComment> blogCommentList = blogCommentMapper.selectByBlogId(blogId);
+        int totalCount = blogCommentMapper.selectCommentCountByBlogId(blogId);
+        return new PageResult<>(blogCommentList, totalCount);
     }
 }

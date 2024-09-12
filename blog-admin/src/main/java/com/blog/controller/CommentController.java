@@ -12,12 +12,15 @@ import com.blog.exception.ResponseResult;
 import com.blog.service.BlogService;
 import com.blog.service.CommentService;
 import com.blog.service.UserService;
+import com.blog.vo.comment.CommentInfo;
 import com.blog.vo.comment.CommentVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/comments")
@@ -28,7 +31,7 @@ public class CommentController {
     private final BlogService blogService;
     private final CurrentUserHolder currentUserHolder;
 
-    @PostMapping("/blog/comment")
+    @PostMapping("/blog/addComment")
     public ResponseResult<String> addComment(@RequestBody CommentVo commentVo) {
         User user = userService.selectUserByUserId(commentVo.getCommentatorId())
                 .orElseThrow(()->new BusinessException("用户不存在！"));
@@ -58,11 +61,16 @@ public class CommentController {
         return ResponseResult.success("删除成功！");
     }
     @GetMapping("/{blogId}")
-    public ResponseResult<PageResult<CommentVo>> getCommentList(@PathVariable Long blogId, @RequestParam Map<String,Object> params) {
-        if (ObjectUtils.isEmpty(params.get("page")) || ObjectUtils.isEmpty(params.get("limit"))) {
+    public ResponseResult<PageResult<CommentInfo>> getCommentList(@PathVariable Long blogId, @RequestParam Map<String,Object> params) {
+        if (ObjectUtils.isEmpty(params.get("pageNo")) || ObjectUtils.isEmpty(params.get("pageSize"))) {
             return ResponseResult.fail("参数异常！");
         }
         PageRequest pageRequest = new PageRequest(params);
-        return ResponseResult.success(commentService.getCommentList(pageRequest));
+        PageResult<BlogComment> blogCommentPageResult = commentService.getCommentList(pageRequest, blogId);
+        List<CommentInfo> commentInfoList = blogCommentPageResult.getList().stream()
+                .map(blogComment -> BeanUtil.copyProperties(blogComment, CommentInfo.class))
+                .collect(Collectors.toList());
+        PageResult<CommentInfo> commentInfoPageResult = new PageResult<>(commentInfoList, blogCommentPageResult.getTotalCount());
+        return ResponseResult.success(commentInfoPageResult);
     }
 }

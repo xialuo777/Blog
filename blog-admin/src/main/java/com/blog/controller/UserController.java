@@ -3,6 +3,7 @@ package com.blog.controller;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import com.blog.authentication.CurrentUserHolder;
+import com.blog.dto.PageRequest;
 import com.blog.dto.PageResult;
 import com.blog.entity.User;
 
@@ -170,16 +171,17 @@ public class UserController {
         return ResponseResult.success(pageResult);
     }
 
-    @GetMapping("/getUsers")
-    public ResponseResult<PageResult<UserVo>> getUsers(@RequestParam int pageNo, @RequestParam int pageSize) {
-        List<User> users = userService.getUsers(pageNo, pageSize);
-        List<UserVo> result = users.stream()
-                .map(user -> BeanUtil.copyProperties(user, UserVo.class))
-                .collect(Collectors.toList());
-        int totalCount = userService.getTotalCount();
-        PageResult<UserVo> pageResult = new PageResult<>(result, totalCount);
-        return ResponseResult.success(pageResult);
-    }
+@GetMapping("/getUsers")
+public ResponseResult<PageResult<UserVo>> getUsers(@RequestParam Map<String, Object> params) {
+    PageRequest pageRequest = new PageRequest(params);
+    List<User> users = userService.getUsers(pageRequest.getPageNo(), pageRequest.getPageSize());
+    List<UserVo> result = users.stream()
+            .map(user -> BeanUtil.copyProperties(user, UserVo.class))
+            .collect(Collectors.toList());
+    int totalCount = userService.getTotalCount();
+    PageResult<UserVo> pageResult = new PageResult<>(result, totalCount);
+    return ResponseResult.success(pageResult);
+}
 
 
 }

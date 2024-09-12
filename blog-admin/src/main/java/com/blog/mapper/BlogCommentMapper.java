@@ -2,6 +2,8 @@ package com.blog.mapper;
 
 import com.blog.entity.BlogComment;
 
+import java.util.List;
+
 public interface BlogCommentMapper {
     int deleteByPrimaryKey(Integer commentId);
 
@@ -14,4 +16,8 @@ public interface BlogCommentMapper {
     int updateByPrimaryKeySelective(BlogComment record);
 
     int updateByPrimaryKey(BlogComment record);
+
+    List<BlogComment> selectByBlogId(Long blogId);
+
+    int selectCommentCountByBlogId(Long blogId);
 }

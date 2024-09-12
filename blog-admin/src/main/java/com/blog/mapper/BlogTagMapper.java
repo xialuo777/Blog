@@ -19,4 +19,8 @@ public interface BlogTagMapper {
     int updateByPrimaryKey(BlogTag record);
 
     int insertList(@Param("relationList") List<BlogTag> blogTags);
+
+    List<BlogTag> selectListByBlogId(Long blogId);
+
+    void deleteByBlogId(Long blogId);
 }

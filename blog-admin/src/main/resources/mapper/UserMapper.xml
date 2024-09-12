@@ -6,6 +6,7 @@
     <!--@Table `user`-->
     <id column="user_id" jdbcType="BIGINT" property="userId" />
     <result column="account" jdbcType="VARCHAR" property="account" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
     <result column="nick_name" jdbcType="VARCHAR" property="nickName" />
     <result column="password" jdbcType="VARCHAR" property="password" />
     <result column="email" jdbcType="VARCHAR" property="email" />
@@ -15,7 +16,7 @@
   </resultMap>
   <sql id="Base_Column_List">
     <!--@mbg.generated-->
-    user_id, account, nick_name, `password`, email, phone, `status`, website
+    user_id, account, description, nick_name, `password`, email, phone, `status`, website
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     <!--@mbg.generated-->
@@ -31,12 +32,14 @@
   </delete>
   <insert id="insert" parameterType="com.blog.entity.User">
     <!--@mbg.generated-->
-    insert into `user` (user_id, account, nick_name, 
-      `password`, email, phone, 
-      `status`, website)
-    values (#{userId,jdbcType=BIGINT}, #{account,jdbcType=VARCHAR}, #{nickName,jdbcType=VARCHAR}, 
-      #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, 
-      #{status,jdbcType=INTEGER}, #{website,jdbcType=LONGVARCHAR})
+    insert into `user` (user_id, account, description, 
+      nick_name, `password`, email, 
+      phone, `status`, website
+      )
+    values (#{userId,jdbcType=BIGINT}, #{account,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, 
+      #{nickName,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, 
+      #{phone,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, #{website,jdbcType=LONGVARCHAR}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.blog.entity.User">
     <!--@mbg.generated-->
@@ -47,6 +50,9 @@
       </if>
       <if test="account != null">
         account,
+      </if>
+      <if test="description != null">
+        description,
       </if>
       <if test="nickName != null">
         nick_name,
@@ -73,6 +79,9 @@
       </if>
       <if test="account != null">
         #{account,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
       </if>
       <if test="nickName != null">
         #{nickName,jdbcType=VARCHAR},
@@ -101,6 +110,9 @@
       <if test="account != null">
         account = #{account,jdbcType=VARCHAR},
       </if>
+      <if test="description != null">
+        description = #{description,jdbcType=VARCHAR},
+      </if>
       <if test="nickName != null">
         nick_name = #{nickName,jdbcType=VARCHAR},
       </if>
@@ -126,6 +138,7 @@
     <!--@mbg.generated-->
     update `user`
     set account = #{account,jdbcType=VARCHAR},
+      description = #{description,jdbcType=VARCHAR},
       nick_name = #{nickName,jdbcType=VARCHAR},
       `password` = #{password,jdbcType=VARCHAR},
       email = #{email,jdbcType=VARCHAR},

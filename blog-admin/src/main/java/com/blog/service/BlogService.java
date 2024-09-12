@@ -122,15 +122,18 @@ public class BlogService {
 
             if (!CollectionUtils.isEmpty(tagListForInsert)) {
                 tagMapper.insertList(tagListForInsert);
-                mutableTagsFromDb.addAll(tagListForInsert); // 将新插入的标签添加到数据库已有的标签列表中
+                mutableTagsFromDb.addAll(tagListForInsert); // 将新插入的标签添加到数据库中
             }
 
-            /* 处理blog - tag 映射关系 */
             List<Tag> allTagsList = mutableTagsFromDb.stream()
                     .collect(Collectors.toList());
 
             List<BlogTag> blogTags = createBlogTags(blog, allTagsList);
+            //删除当前博客已经关联的标签，再重新关联，适用于修改博客标签信息场景
+            blogTagMapper.deleteByBlogId(blog.getBlogId());
             blogTagMapper.insertList(blogTags);
+
+
         }
     }
 

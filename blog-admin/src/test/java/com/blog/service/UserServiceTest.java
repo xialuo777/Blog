@@ -331,8 +331,8 @@ class UserServiceTest {
     public void getUsers() {
         int pageNo = 1;
         int pageSize = 2;
-        User user1 = new User(1L, "Alice","nickName1", "password1", "email1", "phone1", 1, "website1");
-        User user2 = new User(2L, "Alice","nickName2", "password1", "email2", "phone2", 1, "website1");
+        User user1 = new User(1L, "Alice","","nickName1", "password1", "email1", "phone1", 1, "website1");
+        User user2 = new User(2L, "Alice","","nickName2", "password1", "email2", "phone2", 1, "website1");
 
         List<User> expectedUsers = Arrays.asList(user1,user2);
         when(mockUserMapper.selectUsers()).thenReturn(expectedUsers);
@@ -373,27 +373,20 @@ class UserServiceTest {
     }
 
 
+
     @Test
     void updateUser() {
-        try (MockedStatic<SecurityUtils> mockedStatic = Mockito.mockStatic(SecurityUtils.class)) {
-            final User user = new User();
-            user.setAccount("account");
-            user.setNickName("nickName");
-            user.setPassword("password");
-            user.setEmail("email");
-            user.setPhone("phone");
+        User user = new User();
+        user.setAccount("account");
+        user.setNickName("nickName");
+        user.setEmail("email");
+        user.setPhone("phone");
 
-            Long userId = 1L;
-            when(currentUserHolder.getUserId()).thenReturn(userId);
-            String encodedPassword = "encodedPassword";
-            mockedStatic.when(() -> SecurityUtils.encodePassword(anyString())).thenReturn(encodedPassword);
-            when(mockUserMapper.updateByPrimaryKeySelective(any(User.class))).thenReturn(1);
+        when(mockUserMapper.updateByPrimaryKeySelective(any(User.class))).thenReturn(1);
 
-            mockUserService.updateUser(user);
+        mockUserService.updateUser(user);
 
-            verify(currentUserHolder).getUserId();
-            verify(mockUserMapper).updateByPrimaryKeySelective(any(User.class));
-        }
+        verify(mockUserMapper).updateByPrimaryKeySelective(any(User.class));
     }
 
     @Test

@@ -17,7 +17,6 @@ public class PageRequest extends LinkedHashMap<String, Object> {
         this.putAll(params);
         this.pageNo = Integer.parseInt(params.get("pageNo").toString());
         this.pageSize = Integer.parseInt(params.get("pageSize").toString());
-        this.put("start", (pageNo - 1) * pageSize);
         this.put("pageSize", pageSize);
         this.put("pageNo",pageNo);
     }

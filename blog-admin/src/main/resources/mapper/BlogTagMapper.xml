@@ -77,4 +77,15 @@
       (#{item.blogId,jdbcType=BIGINT},#{item.tagId,jdbcType=INTEGER})
     </foreach>
   </insert>
+
+  <select id="selectListByBlogId" resultMap="BaseResultMap" parameterType="java.lang.Long">
+    select <include refid="Base_Column_List"/>
+    from blog_tag
+    where blog_id = #{blogId,jdbcType=BIGINT}
+    </select>
+
+  <delete id="deleteByBlogId" parameterType="java.lang.Long">
+    delete from blog_tag
+    where blog_id = #{blogId,jdbcType=BIGINT}
+  </delete>
 </mapper>

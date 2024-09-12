@@ -464,15 +464,18 @@ public class BlogService {
 
             if (!CollectionUtils.isEmpty(tagListForInsert)) {
                 tagMapper.insertList(tagListForInsert);
-                mutableTagsFromDb.addAll(tagListForInsert); // 将新插入的标签添加到数据库已有的标签列表中
+                mutableTagsFromDb.addAll(tagListForInsert); // 将新插入的标签添加到数据库中
             }
 
-            /* 处理blog - tag 映射关系 */
             List<Tag> allTagsList = mutableTagsFromDb.stream()
                     .collect(Collectors.toList());
 
             List<BlogTag> blogTags = createBlogTags(blog, allTagsList);
+            //删除当前博客已经关联的标签，再重新关联，适用于修改博客标签信息场景
+            blogTagMapper.deleteByBlogId(blog.getBlogId());
             blogTagMapper.insertList(blogTags);
+
+
         }
     }
 
@@ -496,9 +499,8 @@ public class BlogService {
         return blogs;
     }
 
-    public Blog getBlogById(Long blogId) {
-        Blog blog = blogMapper.selectByPrimaryKey(blogId);
-        return blog;
+    public Optional<Blog> getBlogById(Long blogId) {
+        return Optional.ofNullable(blogMapper.selectByPrimaryKey(blogId));
     }
 
     public List<Blog> getBlogListByCategoryId(Long categoryId, int pageNo, int pageSize) {
@@ -637,3 +639,134 @@ List<User> users = userMapper.selectUsersByNickName(nickName);
     }
 ```
 
+# Comment
+
+CommentService.java
+
+```java
+package com.blog.service;
+
+import com.blog.dto.PageRequest;
+import com.blog.dto.PageResult;
+import com.blog.entity.BlogComment;
+import com.blog.mapper.BlogCommentMapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Slf4j
+@RequiredArgsConstructor
+@Service
+public class CommentService {
+    private final BlogCommentMapper blogCommentMapper;
+    public void addComment(BlogComment blogComment) {
+        blogCommentMapper.insertSelective(blogComment);
+    }
+
+    public Optional<BlogComment> selectCommentById(Integer commentId) {
+        return Optional.ofNullable(blogCommentMapper.selectByPrimaryKey(commentId));
+    }
+
+    public void deleteComment(Integer commentId) {
+        blogCommentMapper.deleteByPrimaryKey(commentId);
+    }
+
+    public PageResult<BlogComment> getCommentList(PageRequest pageRequest, Long blogId) {
+        int pageSize = pageRequest.getPageSize();
+        int pageNo = pageRequest.getPageNo();
+        PageHelper.startPage(pageNo, pageSize);
+        List<BlogComment> blogCommentList = blogCommentMapper.selectByBlogId(blogId);
+        int totalCount = blogCommentMapper.selectCommentCountByBlogId(blogId);
+        return new PageResult<>(blogCommentList, totalCount);
+    }
+}
+```
+
+CommentController.java
+
+```java
+package com.blog.controller;
+
+import cn.hutool.core.bean.BeanUtil;
+import com.blog.authentication.CurrentUserHolder;
+import com.blog.dto.PageRequest;
+import com.blog.dto.PageResult;
+import com.blog.entity.Blog;
+import com.blog.entity.BlogComment;
+import com.blog.entity.User;
+import com.blog.exception.BusinessException;
+import com.blog.exception.ResponseResult;
+import com.blog.service.BlogService;
+import com.blog.service.CommentService;
+import com.blog.service.UserService;
+import com.blog.vo.comment.CommentInfo;
+import com.blog.vo.comment.CommentVo;
+import lombok.RequiredArgsConstructor;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/comments")
+@RequiredArgsConstructor
+public class CommentController {
+    private final CommentService commentService;
+    private final UserService userService;
+    private final BlogService blogService;
+    private final CurrentUserHolder currentUserHolder;
+
+    @PostMapping("/blog/addComment")
+    public ResponseResult<String> addComment(@RequestBody CommentVo commentVo) {
+        User user = userService.selectUserByUserId(commentVo.getCommentatorId())
+                .orElseThrow(()->new BusinessException("用户不存在！"));
+        if (user.getStatus() == 1) {
+            return ResponseResult.fail("该用户已被封禁，无法评论！");
+        }
+        Blog blog = blogService.getBlogById(commentVo.getBlogId())
+                .orElseThrow(()->new BusinessException("该博客不存在！"));
+        if (blog.getEnableComment() == 1) {
+            return ResponseResult.fail("该博客已关闭评论功能！");
+        }
+        BlogComment blogComment = new BlogComment();
+        BeanUtil.copyProperties(commentVo, blogComment);
+        blogComment.setCommentator(user.getNickName());
+        commentService.addComment(blogComment);
+        return ResponseResult.success("评论成功！");
+    }
+    @DeleteMapping("/blog/delete")
+    public ResponseResult<String> deleteComment(Integer commentId) {
+        BlogComment blogComment = commentService.selectCommentById(commentId)
+                .orElseThrow(()->new BusinessException("该评论不存在！"));
+        Long commentatorId = blogComment.getCommentatorId();
+        if (!currentUserHolder.getUserId().equals(commentatorId)) {
+           return ResponseResult.fail("没有权限删除！");
+        }
+        commentService.deleteComment(commentId);
+        return ResponseResult.success("删除成功！");
+    }
+    @GetMapping("/{blogId}")
+    public ResponseResult<PageResult<CommentInfo>> getCommentList(@PathVariable Long blogId, @RequestParam Map<String,Object> params) {
+        if (ObjectUtils.isEmpty(params.get("pageNo")) || ObjectUtils.isEmpty(params.get("pageSize"))) {
+            return ResponseResult.fail("参数异常！");
+        }
+        PageRequest pageRequest = new PageRequest(params);
+        PageResult<BlogComment> blogCommentPageResult = commentService.getCommentList(pageRequest, blogId);
+        List<CommentInfo> commentInfoList = blogCommentPageResult.getList().stream()
+                .map(blogComment -> BeanUtil.copyProperties(blogComment, CommentInfo.class))
+                .collect(Collectors.toList());
+        PageResult<CommentInfo> commentInfoPageResult = new PageResult<>(commentInfoList, blogCommentPageResult.getTotalCount());
+        return ResponseResult.success(commentInfoPageResult);
+    }
+}
+
+```
+
+注意：Optional在这里的使用，以及分页参数的封装！
