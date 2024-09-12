@@ -2,6 +2,8 @@ package com.blog.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.blog.authentication.CurrentUserHolder;
+import com.blog.dto.PageRequest;
+import com.blog.dto.PageResult;
 import com.blog.entity.Blog;
 import com.blog.entity.BlogComment;
 import com.blog.entity.User;
@@ -12,7 +14,10 @@ import com.blog.service.CommentService;
 import com.blog.service.UserService;
 import com.blog.vo.comment.CommentVo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/comments")
@@ -51,5 +56,13 @@ public class CommentController {
         }
         commentService.deleteComment(commentId);
         return ResponseResult.success("删除成功！");
+    }
+    @GetMapping("/{blogId}")
+    public ResponseResult<PageResult<CommentVo>> getCommentList(@PathVariable Long blogId, @RequestParam Map<String,Object> params) {
+        if (ObjectUtils.isEmpty(params.get("page")) || ObjectUtils.isEmpty(params.get("limit"))) {
+            return ResponseResult.fail("参数异常！");
+        }
+        PageRequest pageRequest = new PageRequest(params);
+        return ResponseResult.success(commentService.getCommentList(pageRequest));
     }
 }

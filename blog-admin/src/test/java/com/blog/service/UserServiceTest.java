@@ -357,7 +357,7 @@ class UserServiceTest {
 
         when(mockUserMapper.selectByPrimaryKey(userId)).thenReturn(expectedUser);
 
-        User actualUser = mockUserService.selectUserByUserId(userId);
+        User actualUser = mockUserService.selectUserByUserId(userId).get();
 
         assertEquals(expectedUser, actualUser);
     }

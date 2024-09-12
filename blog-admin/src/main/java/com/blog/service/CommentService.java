@@ -1,5 +1,7 @@
 package com.blog.service;
 
+import com.blog.dto.PageRequest;
+import com.blog.dto.PageResult;
 import com.blog.entity.BlogComment;
 import com.blog.mapper.BlogCommentMapper;
 import lombok.RequiredArgsConstructor;
@@ -23,5 +25,12 @@ public class CommentService {
 
     public void deleteComment(Integer commentId) {
         blogCommentMapper.deleteByPrimaryKey(commentId);
+    }
+
+    public PageResult getCommentList(PageRequest pageRequest) {
+        int pageSize = pageRequest.getPageSize();
+        int pageNo = pageRequest.getPageNo();
+
+        return null;
     }
 }
