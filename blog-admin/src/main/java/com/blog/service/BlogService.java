@@ -154,9 +154,8 @@ public class BlogService {
         return blogs;
     }
 
-    public Blog getBlogById(Long blogId) {
-        Blog blog = blogMapper.selectByPrimaryKey(blogId);
-        return blog;
+    public Optional<Blog> getBlogById(Long blogId) {
+        return Optional.ofNullable(blogMapper.selectByPrimaryKey(blogId));
     }
 
     public List<Blog> getBlogListByCategoryId(Long categoryId, int pageNo, int pageSize) {

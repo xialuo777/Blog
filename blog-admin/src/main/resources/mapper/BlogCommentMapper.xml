@@ -7,7 +7,7 @@
     <id column="comment_id" jdbcType="INTEGER" property="commentId" />
     <result column="blog_id" jdbcType="BIGINT" property="blogId" />
     <result column="commentator" jdbcType="VARCHAR" property="commentator" />
-    <result column="commentator_id" jdbcType="VARCHAR" property="commentatorId" />
+    <result column="commentator_id" jdbcType="BIGINT" property="commentatorId" />
     <result column="comment_body" jdbcType="VARCHAR" property="commentBody" />
     <result column="comment_create_time" jdbcType="TIMESTAMP" property="commentCreateTime" />
     <result column="reply_body" jdbcType="VARCHAR" property="replyBody" />
@@ -36,7 +36,7 @@
     insert into blog_comment (blog_id, commentator, commentator_id, 
       comment_body, comment_create_time, reply_body, 
       reply_create_time, is_deleted)
-    values (#{blogId,jdbcType=BIGINT}, #{commentator,jdbcType=VARCHAR}, #{commentatorId,jdbcType=VARCHAR}, 
+    values (#{blogId,jdbcType=BIGINT}, #{commentator,jdbcType=VARCHAR}, #{commentatorId,jdbcType=BIGINT}, 
       #{commentBody,jdbcType=VARCHAR}, #{commentCreateTime,jdbcType=TIMESTAMP}, #{replyBody,jdbcType=VARCHAR}, 
       #{replyCreateTime,jdbcType=TIMESTAMP}, #{isDeleted,jdbcType=TINYINT})
   </insert>
@@ -77,7 +77,7 @@
         #{commentator,jdbcType=VARCHAR},
       </if>
       <if test="commentatorId != null">
-        #{commentatorId,jdbcType=VARCHAR},
+        #{commentatorId,jdbcType=BIGINT},
       </if>
       <if test="commentBody != null">
         #{commentBody,jdbcType=VARCHAR},
@@ -107,7 +107,7 @@
         commentator = #{commentator,jdbcType=VARCHAR},
       </if>
       <if test="commentatorId != null">
-        commentator_id = #{commentatorId,jdbcType=VARCHAR},
+        commentator_id = #{commentatorId,jdbcType=BIGINT},
       </if>
       <if test="commentBody != null">
         comment_body = #{commentBody,jdbcType=VARCHAR},
@@ -132,7 +132,7 @@
     update blog_comment
     set blog_id = #{blogId,jdbcType=BIGINT},
       commentator = #{commentator,jdbcType=VARCHAR},
-      commentator_id = #{commentatorId,jdbcType=VARCHAR},
+      commentator_id = #{commentatorId,jdbcType=BIGINT},
       comment_body = #{commentBody,jdbcType=VARCHAR},
       comment_create_time = #{commentCreateTime,jdbcType=TIMESTAMP},
       reply_body = #{replyBody,jdbcType=VARCHAR},

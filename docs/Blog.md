@@ -337,7 +337,7 @@ private Boolean isTokenExpired(String token) {
 
 ## BlogService.  saveBlog+updateBlog
 
-博客内容存储后续考虑使用S3对象存储，减小数据库压力。
+多使用功能函数编程。（多用多了解）
 
 ```java
 package com.blog.service;
@@ -358,20 +358,17 @@ import com.blog.mapper.BlogTagMapper;
 import com.blog.mapper.CategoryMapper;
 import com.blog.mapper.TagMapper;
 import com.blog.util.SnowFlakeUtil;
-import com.blog.vo.blog.BlogUpdateVo;
-import com.blog.vo.blog.BlogVo;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.util.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -389,44 +386,38 @@ public class BlogService {
     /**
      * 新增博客，同时对博客的标签以及分类等关系进行处理
      *
-     * @param blogVo
+     * @param blog
      */
     @Transactional
-    public void saveBlog(BlogVo blogVo) {
-        Integer categoryId = blogVo.getCategoryId();
+    public void saveBlog(Blog blog) {
+        Integer categoryId = blog.getCategoryId();
         Category categoryExist = categoryMapper.selectByPrimaryKey(categoryId);
+        Optional<Category> optionalCategory = Optional.ofNullable(categoryExist);
         Long userId = currentUserHolder.getUserId();
-        Long blogId = SnowFlakeUtil.getInstance().nextId();
+        Long blogId = SnowFlakeUtil.nextId();
         String baseHomePageUrl = String.format(Constant.BLOG_BASE_PATH + "%s/%s", userId, blogId);
-        blogVo.setSubUrl(baseHomePageUrl);
-        blogVo.setUserId(userId);
-        blogVo.setBlogId(blogId);
-        Blog blog = new Blog();
-        BeanUtils.copyProperties(blogVo, blog);
+        blog.setSubUrl(baseHomePageUrl);
+        blog.setUserId(userId);
+        blog.setBlogId(blogId);
         blogMapper.insertSelective(blog);
-
-        //处理博客分类信息
-        handleCategoryAndBlog(blog, categoryExist);
-        //处理博客标签信息
+        handleCategoryAndBlog(blog, optionalCategory);
         handleTags(blog);
-        log.info("文章提交成功");
     }
 
     /**
      * 更新博客，同时对博客的标签以及分类等关系进行处理
      *
-     * @param blogUpdateVo
+     * @param blog
      */
     @Transactional
-    public void updateBlog(BlogUpdateVo blogUpdateVo) {
-        Blog blogForUpdate = blogMapper.selectByPrimaryKey(blogUpdateVo.getBlogId());
-        BeanUtil.copyProperties(blogUpdateVo, blogForUpdate, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
+    public void updateBlog(Blog blog) {
+        Blog blogForUpdate = blogMapper.selectByPrimaryKey(blog.getBlogId());
+        BeanUtil.copyProperties(blog, blogForUpdate, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
         Category categoryExist = categoryMapper.selectByPrimaryKey(blogForUpdate.getCategoryId());
+        Optional<Category> optionalCategory = Optional.ofNullable(categoryExist);
         blogMapper.updateByPrimaryKeySelective(blogForUpdate);
-        handleCategoryAndBlog(blogForUpdate, categoryExist);
+        handleCategoryAndBlog(blogForUpdate, optionalCategory);
         handleTags(blogForUpdate);
-        log.info("文章更新成功");
-
     }
 
     /**
@@ -436,17 +427,14 @@ public class BlogService {
      * @param categoryExist
      * @return Blog
      */
-    private void handleCategoryAndBlog(Blog blog, Category categoryExist) {
+    private void handleCategoryAndBlog(Blog blog, Optional<Category> categoryExist) {
         /*如果分类是新增分类，需要输入categoryId和categoryName信息
          * 如果分类信息在分类表中存在，则对分类表rank进行更新*/
-        if (categoryExist == null) {
-            String categoryName = Optional.ofNullable(blog.getCategoryName())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.PARAMS_ERROR, "请输入新增分类名"));
-            Category category = new Category(blog.getCategoryId(), categoryName);
+        if (!categoryExist.isPresent()) {
+            Category category = new Category(blog.getCategoryId(), blog.getCategoryName());
             categoryMapper.insertSelective(category);
         } else {
-            blog.setCategoryName(categoryExist.getCategoryName());
-            categoryMapper.updateByPrimaryKeySelective(categoryExist);
+            categoryMapper.increatCategoryRank(categoryExist.get());
         }
     }
 
@@ -455,36 +443,34 @@ public class BlogService {
      *
      * @param blog
      */
+
     private void handleTags(Blog blog) {
-        if (blog.getBlogTags() != null) {
+        if (StringUtil.isNotEmpty(blog.getBlogTags())) {
             String[] tags = blog.getBlogTags().split(",");
             if (tags.length > MAX_TAG_COUNT) {
                 log.error("输入标签数量限制为{}，请重新输入", MAX_TAG_COUNT);
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "输入标签数量限制为{}，请重新输入", MAX_TAG_COUNT);
             }
+            List<String> distinctTagNames = Arrays.stream(tags).distinct().collect(Collectors.toList());
 
-            // 收集所有标签名
-            List<String> tagNames = new ArrayList<>();
-            for (String tagName : tags) {
-                if (!tagNames.contains(tagName)) {
-                    tagNames.add(tagName);
-                }
-            }
-            List<Tag> tagListForInsert = new ArrayList<>();
-            List<Tag> allTagsList = new ArrayList<>();
-            // 一次性查询所有标签
-            List<Tag> tagsFromDb = tagMapper.selectListByTagNames(tagNames);
-            for (String tagName : tags) {
-                Tag tag = new Tag(tagName);
-                if (!tagsFromDb.contains(tagName)) {
-                    tagListForInsert.add(tag);
-                }
-                allTagsList.add(tag);
-            }
+
+            List<Tag> tagsFromDb = tagMapper.selectListByTagNames(distinctTagNames);
+            List<Tag> mutableTagsFromDb = new ArrayList<>(tagsFromDb);
+            //处理数据库中并不存在的标签，即需要新插入的标签
+            List<Tag> tagListForInsert = distinctTagNames.stream()
+                    .filter(tagName -> !mutableTagsFromDb.stream().map(Tag::getTagName).collect(Collectors.toSet()).contains(tagName))
+                    .map(tagName -> new Tag(tagName))
+                    .collect(Collectors.toList());
 
             if (!CollectionUtils.isEmpty(tagListForInsert)) {
                 tagMapper.insertList(tagListForInsert);
+                mutableTagsFromDb.addAll(tagListForInsert); // 将新插入的标签添加到数据库已有的标签列表中
             }
+
+            /* 处理blog - tag 映射关系 */
+            List<Tag> allTagsList = mutableTagsFromDb.stream()
+                    .collect(Collectors.toList());
+
             List<BlogTag> blogTags = createBlogTags(blog, allTagsList);
             blogTagMapper.insertList(blogTags);
         }
@@ -504,6 +490,26 @@ public class BlogService {
         return blogTags;
     }
 
+    public List<Blog> getBlogList(Long userId, int pageNo, int pageSize) {
+        PageHelper.startPage(pageNo, pageSize);
+        List<Blog> blogs = blogMapper.selectListByUserId(userId);
+        return blogs;
+    }
+
+    public Blog getBlogById(Long blogId) {
+        Blog blog = blogMapper.selectByPrimaryKey(blogId);
+        return blog;
+    }
+
+    public List<Blog> getBlogListByCategoryId(Long categoryId, int pageNo, int pageSize) {
+        PageHelper.startPage(pageNo, pageSize);
+        List<Blog> blogs = blogMapper.selectListByCategoryId(categoryId);
+        return blogs;
+    }
+
+    public void deleteBlog(Long blogId) {
+        blogMapper.deleteByPrimaryKey(blogId);
+    }
 }
 
 ```
@@ -533,6 +539,17 @@ public ResponseEntity<String> updateBlog(@RequestBody Blog blog){
     blogService.updateBlog(blog);
     return ResponseEntity.ok("文章更新成功");
 }
+```
+
+## BlogVo
+
+在前后端交互时注意blogId精度丢失问题。即雪花算法生成的ID在前端会出现精度丢失。可使用JSON序列化转为String解决，方法如下：
+
+```java
+@JsonProperty("blogId")
+@JsonFormat(shape = JsonFormat.Shape.STRING)
+@JSONField(serializeUsing= ToStringSerializer.class)
+private Long blogId;
 ```
 
 # User

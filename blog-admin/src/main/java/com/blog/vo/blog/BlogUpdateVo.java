@@ -1,7 +1,5 @@
 package com.blog.vo.blog;
 
-import com.alibaba.fastjson.annotation.JSONField;
-import com.alibaba.fastjson.serializer.ToStringSerializer;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
@@ -16,6 +14,7 @@ public class BlogUpdateVo {
     @JsonProperty("blogId")
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Long blogId;
+
 
     /**
      * 文章缩略图

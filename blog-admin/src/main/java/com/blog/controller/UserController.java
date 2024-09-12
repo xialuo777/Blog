@@ -143,7 +143,8 @@ public class UserController {
         if (!jwtProcessor.validateToken(accessToken, userId)) {
             return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
         }
-        User user = userService.selectUserByUserId(userId);
+        User user = userService.selectUserByUserId(userId)
+                .orElseThrow(() -> new BusinessException("用户不存在！"));
         BeanUtil.copyProperties(userInfoVo, user, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
         userService.updateUser(user);
         return ResponseResult.success("用户信息更新成功");
@@ -152,7 +153,8 @@ public class UserController {
     @GetMapping("/home")
     public ResponseResult<UserInfoVo> getProfile() {
         Long userId = currentUserHolder.getUserId();
-        User user = userService.selectUserByUserId(userId);
+        User user = userService.selectUserByUserId(userId)
+                .orElseThrow(() -> new BusinessException("用户不存在！"));
         UserInfoVo userInfoVo = new UserInfoVo();
         BeanUtil.copyProperties(user,userInfoVo);
         return ResponseResult.success(userInfoVo);

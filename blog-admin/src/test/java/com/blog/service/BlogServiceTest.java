@@ -341,7 +341,7 @@ class BlogServiceTest {
         blog.setSubUrl("subUrl");
         when(mockBlogMapper.selectByPrimaryKey(0L)).thenReturn(blog);
 
-        final Blog result = blogServiceUnderTest.getBlogById(0L);
+        final Blog result = blogServiceUnderTest.getBlogById(0L).get();
 
 
         assertThat(result).isEqualTo(expectedResult);

@@ -11,28 +11,28 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "用户ID")
     private Long userId;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "用户账号")
     private String account;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "用户昵称")
     private String nickName;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "密码")
     private String password;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "邮箱")
     private String email;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "手机号")
     private String phone;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "用户封禁状态，(0正常  1封禁)")
     private Integer status;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "主页网址")
     private String website;
 
 }

@@ -34,15 +34,14 @@ public class UserService {
 
     private final JwtProcessor jwtProcessor;
 
-    private final CurrentUserHolder currentUserHolder;
 
 
     /**
      * 用户登录，登陆成功后返回accessToke，refreshToken，userId
      *
-     * @param loginer
-     * @return String
-     * @description 用户登录
+     * @Param loginer
+     * @Return String
+     * @Desription 用户登录
      */
     public LoginResponse userLogin(Loginer loginer) {
         String email = loginer.getEmail();
@@ -69,8 +68,8 @@ public class UserService {
     /**
      * 刷新accessToken信息，并生成新的refreshToken
      *
-     * @param refreshToken
-     * @return Map<String, Object>
+     * @Param refreshToken
+     * @Return Map<String, Object>
      */
     public String refreshAccessToken(String refreshToken, Long userId) {
         //对刷新令牌进行验证，以防恶意利用其他用户refreshToken刷新
@@ -132,8 +131,8 @@ public class UserService {
         user.setUserId(userId);
         user.setAccount(account);
         user.setNickName(nickName);
-        String BCPassword = SecurityUtils.encodePassword(password);
-        user.setPassword(BCPassword);
+        String encodePassword = SecurityUtils.encodePassword(password);
+        user.setPassword(encodePassword);
         user.setEmail(email);
         user.setPhone(phone);
         String baseHomePageUrl = Constant.USER_BASE_PATH + userId;
@@ -188,8 +187,8 @@ public class UserService {
      * @Param userId
      * @Return User
      */
-    public User selectUserByUserId(Long userId) {
-        return userMapper.selectByPrimaryKey(userId);
+    public Optional<User> selectUserByUserId(Long userId) {
+        return Optional.ofNullable(userMapper.selectByPrimaryKey(userId));
     }
 
     /**

@@ -1,10 +1,8 @@
 package com.blog.entity;
 
-import com.alibaba.fastjson.annotation.JSONField;
-import com.alibaba.fastjson.serializer.ToStringSerializer;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+
 import lombok.Data;
 
 import java.util.Date;
@@ -12,59 +10,55 @@ import java.util.Date;
 @ApiModel(description = "blog")
 @Data
 public class Blog {
-    @ApiModelProperty(value = "")
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
-    @JSONField(serializeUsing = ToStringSerializer.class)
+    @ApiModelProperty(value = "博客id")
     private Long blogId;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "博客标题")
     private String blogTitle;
 
-    @ApiModelProperty(value = "")
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
-    @JSONField(serializeUsing = ToStringSerializer.class)
+    @ApiModelProperty(value = "用户id")
     private Long userId;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "博客简介")
     private String blogDesc;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "博客内容")
     private String blogContent;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "分类id")
     private Integer categoryId;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "分类名称")
     private String categoryName;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "状态 (1公开 2私密 3草稿)", required = true)
     private Integer blogStatus;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "博客标签")
     private String blogTags;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "缩略图")
     private String thumbnail;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "浏览量")
     private Long viewCount;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "创建时间")
     private Date creatTime;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "更新时间")
     private Date updateTime;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "是否置顶 (0否 1是)", required = true)
     private Integer isTop;
 
-    @ApiModelProperty(value = "")
-    private Boolean enableComment;
+    @ApiModelProperty(value = "是否允许评论 (0是 1否)")
+    private Integer enableComment;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "是否删除 (0否 1是)")
     private Integer isDelete;
 
-    @ApiModelProperty(value = "")
+    @ApiModelProperty(value = "博客网址")
     private String subUrl;
 
 }

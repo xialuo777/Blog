@@ -1,8 +1,5 @@
 package com.blog.entity;
 
-import com.alibaba.fastjson.annotation.JSONField;
-import com.alibaba.fastjson.serializer.ToStringSerializer;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -26,8 +23,6 @@ public class BlogComment {
      * 关联的blog主键
      */
     @ApiModelProperty(value = "关联的blog主键")
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
-    @JSONField(serializeUsing = ToStringSerializer.class)
     private Long blogId;
 
     /**
@@ -40,7 +35,7 @@ public class BlogComment {
      * 评论人的id
      */
     @ApiModelProperty(value = "评论人的id")
-    private String commentatorId;
+    private Long commentatorId;
 
     /**
      * 评论内容
@@ -71,4 +66,5 @@ public class BlogComment {
      */
     @ApiModelProperty(value = "是否删除 0-未删除 1-已删除")
     private Byte isDeleted;
+
 }
