@@ -15,7 +15,7 @@ import org.hibernate.validator.constraints.Length;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommentVo {
+public class CommentVoIn {
     /**
      * 关联的blog主键
      */
@@ -36,5 +36,9 @@ public class CommentVo {
     @ApiModelProperty(value = "评论内容")
     @Length(min = 1, max = 200, message = "评论内容长度在1-200位")
     private String commentBody;
+    /*
+    * 评论的上一级I
+    * */
+    private Integer lastId;
 
 }

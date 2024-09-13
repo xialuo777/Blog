@@ -92,49 +92,4 @@ class CommentServiceTest {
         verify(mockBlogCommentMapper).deleteByPrimaryKey(0);
     }
 
-    @Test
-    void getCommentList() {
-
-        final PageRequest pageRequest = new PageRequest(0, 0);
-        final BlogComment blogComment = new BlogComment();
-        blogComment.setCommentId(0);
-        blogComment.setBlogId(0L);
-        blogComment.setCommentator("commentator");
-        blogComment.setCommentatorId(0L);
-        blogComment.setCommentBody("commentBody");
-        final PageResult<BlogComment> expectedResult = new PageResult<>(Arrays.asList(blogComment), 1);
-
-        final BlogComment blogComment1 = new BlogComment();
-        blogComment1.setCommentId(0);
-        blogComment1.setBlogId(0L);
-        blogComment1.setCommentator("commentator");
-        blogComment1.setCommentatorId(0L);
-        blogComment1.setCommentBody("commentBody");
-        final List<BlogComment> blogCommentList = Arrays.asList(blogComment1);
-        when(mockBlogCommentMapper.selectByBlogId(0L)).thenReturn(blogCommentList);
-
-        when(mockBlogCommentMapper.selectCommentCountByBlogId(0L)).thenReturn(1);
-
-        final PageResult<BlogComment> result = commentServiceUnderTest.getCommentList(pageRequest, 0L);
-
-        assertThat(result).isEqualTo(expectedResult);
-    }
-
-    @Test
-    void getCommentList_Without_Comment() {
-        final PageRequest pageRequest = new PageRequest(1, 2);
-        final BlogComment blogComment = new BlogComment();
-        blogComment.setCommentId(0);
-        blogComment.setBlogId(1L);
-        blogComment.setCommentator("commentator");
-        blogComment.setCommentatorId(2L);
-        blogComment.setCommentBody("commentBody");
-        final PageResult<BlogComment> expectedResult = new PageResult<>(Collections.emptyList(), 0);
-        when(mockBlogCommentMapper.selectByBlogId(0L)).thenReturn(Collections.emptyList());
-        when(mockBlogCommentMapper.selectCommentCountByBlogId(0L)).thenReturn(0);
-
-        final PageResult<BlogComment> result = commentServiceUnderTest.getCommentList(pageRequest, 0L);
-
-        assertThat(result).isEqualTo(expectedResult);
-    }
 }

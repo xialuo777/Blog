@@ -3,8 +3,6 @@ package com.blog.controller;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import com.blog.authentication.CurrentUserHolder;
-import com.blog.dto.PageRequest;
-import com.blog.dto.PageResult;
 import com.blog.entity.User;
 
 import com.blog.enums.ErrorCode;
@@ -14,13 +12,15 @@ import com.blog.mapper.UserMapper;
 import com.blog.service.MailService;
 import com.blog.service.UserService;
 import com.blog.util.JwtProcessor;
+import com.blog.util.SecurityUtils;
+import com.blog.util.UserTransUtils;
 import com.blog.util.bo.LoginResponse;
 import com.blog.util.redis.RedisProcessor;
 import com.blog.util.redis.RedisTransKey;
 import com.blog.vo.user.UserInfoVo;
-import com.blog.vo.user.UserVo;
 import com.blog.vo.user.Loginer;
 import com.blog.vo.user.Register;
+import com.github.pagehelper.util.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,16 +29,15 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Email;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.concurrent.TimeUnit;
 
 
 @RestController
 @RequestMapping("/users")
 @Slf4j
 @RequiredArgsConstructor
-public class UserController {
+public class UserController extends BaseController {
 
     private final UserService userService;
     private final MailService mailService;
@@ -47,13 +46,26 @@ public class UserController {
     private final JwtProcessor jwtProcessor;
     private final CurrentUserHolder currentUserHolder;
 
-
+    /**
+     * 用户注册
+     *
+     * @param register
+     * @return ResponseResult
+     * @author zhang
+     */
     @PostMapping("/register")
     public ResponseResult<String> register(@RequestBody @Validated Register register) {
         userService.userRegister(register);
         return ResponseResult.success("用户注册成功");
     }
 
+    /**
+     * 用户获取邮箱验证码
+     *
+     * @param email
+     * @return ResponseResult
+     * @author zhang
+     */
     @GetMapping("/getCode")
     @ResponseBody
     public ResponseResult<String> getCode(@RequestParam @Email String email) {
@@ -61,6 +73,11 @@ public class UserController {
         return ResponseResult.success("验证码发送成功");
     }
 
+    /**
+     * @param loginer
+     * @return ResponseResult
+     * @author zhang
+     */
     @PostMapping("/login")
     @ResponseBody
     public ResponseResult<LoginResponse> login(@Validated @RequestBody Loginer loginer) {
@@ -72,7 +89,9 @@ public class UserController {
     /**
      * 刷新token
      *
-     * @return accessToken
+     * @param refreshToken
+     * @return ResponseResult
+     * @author zhang
      */
     @PostMapping("/refresh")
     public ResponseResult<String> refreshToken(String refreshToken) {
@@ -92,6 +111,7 @@ public class UserController {
      * 用户退出登陆时，需要删除token信息
      * @param request
      * @return ResponseEntity
+     * @Author zhang
      */
     @GetMapping("/logout")
     public ResponseResult<String> logout(HttpServletRequest request) {
@@ -112,17 +132,15 @@ public class UserController {
      * 用户删除登录会先对当前请求中的token进行验证
      *
      * @param request
-     * @return
+     * @return ResponseResult
+     * @author zhang
      */
     @DeleteMapping("/delete")
     public ResponseResult<String> delete(HttpServletRequest request) {
         String accessToken = request.getHeader("accessToken");
         Long userId = currentUserHolder.getUserId();
-        User user = userMapper.selectByPrimaryKey(userId);
-        if (user == null) {
-            log.error("用户不存在！");
-            return ResponseResult.fail(ErrorCode.USER_NOT_FOUND.getCode(), "用户不存在！");
-        }
+        userService.selectUserByUserId(userId)
+                .orElseThrow(() -> new BusinessException("用户不存在！"));
         if (!jwtProcessor.validateToken(accessToken, userId)) {
             return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
         }
@@ -134,12 +152,12 @@ public class UserController {
      * 用户更新信息前先对当前请求中的token进行验证
      *
      * @param userInfoVo
-     * @param request
-     * @return
+     * @return ResponseResult
+     * @author zhang
      */
     @PutMapping("/update")
-    public ResponseResult<String> updateUser(@RequestBody UserInfoVo userInfoVo, HttpServletRequest request) {
-        String accessToken = request.getHeader("Authorization");
+    public ResponseResult<String> updateUser(@RequestBody UserInfoVo userInfoVo) {
+        String accessToken = (String) redisProcessor.get(RedisTransKey.getTokenKey(userInfoVo.getEmail()));
         Long userId = currentUserHolder.getUserId();
         if (!jwtProcessor.validateToken(accessToken, userId)) {
             return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
@@ -148,40 +166,53 @@ public class UserController {
                 .orElseThrow(() -> new BusinessException("用户不存在！"));
         BeanUtil.copyProperties(userInfoVo, user, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
         userService.updateUser(user);
+        Map<String, Object> userMap = UserTransUtils.getUserMap(user);
+        redisProcessor.set(RedisTransKey.getLoginKey(user.getEmail()), userMap, 7, TimeUnit.DAYS);
+        redisProcessor.set(RedisTransKey.getTokenKey(user.getEmail()),userMap,7,TimeUnit.DAYS);
+        redisProcessor.set(RedisTransKey.getRefreshTokenKey(user.getEmail()),userMap,7,TimeUnit.DAYS);
         return ResponseResult.success("用户信息更新成功");
     }
 
+    /**
+     * 修改用户密码
+     * @param oldPassword
+     * @param newPassword
+     * @return ResponseResult
+     * @time 2024-09-13 16:53
+     */
+
+    @PutMapping("/update/password")
+    public ResponseResult<String> updatePassword(String oldPassword, String newPassword) {
+        if (StringUtil.isEmpty(oldPassword) || StringUtil.isEmpty(newPassword)) {
+            return ResponseResult.fail("输入密码不能为空");
+        }
+        Long userId = currentUserHolder.getUserId();
+        User user = userService.selectUserByUserId(userId)
+                .orElseThrow(() -> new BusinessException("用户不存在！"));
+        if (!SecurityUtils.checkPassword(oldPassword, user.getPassword())){
+            return ResponseResult.fail("密码错误，请重新输入");
+        }
+        user.setPassword(SecurityUtils.encodePassword(newPassword));
+        userService.updateUser(user);
+        return ResponseResult.success("密码修改成功");
+    }
+
+    /**
+     * 获取用户主页信息
+     *
+     * @return ResponseResult
+     * @time 2024-09-13 15:29
+     * @author zhang
+     */
     @GetMapping("/home")
     public ResponseResult<UserInfoVo> getProfile() {
         Long userId = currentUserHolder.getUserId();
         User user = userService.selectUserByUserId(userId)
                 .orElseThrow(() -> new BusinessException("用户不存在！"));
         UserInfoVo userInfoVo = new UserInfoVo();
-        BeanUtil.copyProperties(user,userInfoVo);
+        BeanUtil.copyProperties(user, userInfoVo);
         return ResponseResult.success(userInfoVo);
     }
-
-    @GetMapping("/{nickName}")
-    public ResponseResult<PageResult<UserVo>> getUserWebByNickName(@PathVariable String nickName, @RequestParam int pageNo, @RequestParam int pageSize) {
-        List<User> users = userService.selectUsersByNickName(nickName, pageNo, pageSize);
-        List<UserVo> result = users.stream().map(user -> BeanUtil.copyProperties(user, UserVo.class))
-                .collect(Collectors.toList());
-        int totalCount = result.size();
-        PageResult<UserVo> pageResult = new PageResult<>(result, totalCount);
-        return ResponseResult.success(pageResult);
-    }
-
-@GetMapping("/getUsers")
-public ResponseResult<PageResult<UserVo>> getUsers(@RequestParam Map<String, Object> params) {
-    PageRequest pageRequest = new PageRequest(params);
-    List<User> users = userService.getUsers(pageRequest.getPageNo(), pageRequest.getPageSize());
-    List<UserVo> result = users.stream()
-            .map(user -> BeanUtil.copyProperties(user, UserVo.class))
-            .collect(Collectors.toList());
-    int totalCount = userService.getTotalCount();
-    PageResult<UserVo> pageResult = new PageResult<>(result, totalCount);
-    return ResponseResult.success(pageResult);
-}
 
 
 }

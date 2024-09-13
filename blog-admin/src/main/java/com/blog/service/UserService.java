@@ -1,6 +1,5 @@
 package com.blog.service;
 
-import com.blog.authentication.CurrentUserHolder;
 import com.blog.constant.Constant;
 import com.blog.entity.User;
 import com.blog.enums.ErrorCode;
@@ -60,7 +59,6 @@ public class UserService {
         redisProcessor.set(RedisTransKey.refreshTokenKey(email), refreshToken, 7, TimeUnit.DAYS);
         redisProcessor.set(RedisTransKey.tokenKey(email), accessToken, 7, TimeUnit.DAYS);
         redisProcessor.set(RedisTransKey.loginKey(email), email, 7, TimeUnit.DAYS);
-        log.info("用户{}登陆成功", user.getAccount());
         LoginResponse loginResponse = new LoginResponse(accessToken,refreshToken);
         return loginResponse;
     }
@@ -84,7 +82,6 @@ public class UserService {
         String newRefreshToken = jwtProcessor.generateRefreshToken(userMap);
         redisProcessor.set(RedisTransKey.refreshTokenKey(user.getEmail()), newRefreshToken);
         redisProcessor.set(RedisTransKey.tokenKey(user.getEmail()), accessToken);
-        log.info("token refresh success!");
         return accessToken;
     }
 

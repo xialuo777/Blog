@@ -24,12 +24,18 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/blogs")
 @RequiredArgsConstructor
-public class BlogController {
+public class BlogController extends BaseController{
     private final CurrentUserHolder currentUserHolder;
 
     private final UserService userService;
     private final BlogService blogService;
 
+    /**
+     * 保存文章
+     * @param blogVo
+     * @return ResponseResult
+     * @author zhang
+     */
     @PostMapping("/save")
     public ResponseResult<String> saveBlog(@RequestBody BlogVo blogVo) {
         User user = userService.selectUserByUserId(blogVo.getUserId())
@@ -43,6 +49,13 @@ public class BlogController {
         return ResponseResult.success("文章保存成功");
     }
 
+    /**
+     * 根据博客id更新博客
+     * @param blogUpdateVo
+     * @param blogId
+     * @return ResponseResult
+     * @author zhang
+     */
     @PutMapping("/update/{blogId}")
     public ResponseResult<String> updateBlog(@RequestBody BlogUpdateVo blogUpdateVo, @PathVariable Long blogId) {
         Blog blog = blogService.getBlogById(blogId)
@@ -52,14 +65,13 @@ public class BlogController {
         return ResponseResult.success("文章更新成功");
     }
 
-    @DeleteMapping("/delete/{blogId}")
-    public ResponseResult<String> deleteBlog(@PathVariable Long blogId) {
-        blogService.getBlogById(blogId)
-                .orElseThrow(() -> new BusinessException("文章不存在！"));
-        blogService.deleteBlog(blogId);
-        return ResponseResult.success("删除成功");
-    }
-
+    /**
+     * 获取当前用户的博客列表
+     * @param pageNo
+     * @param pageSize
+     * @return ResponseResult
+     * @author zhang
+     */
     @GetMapping("/list")
     public ResponseResult<PageResult<BlogDesc>> getCurrentUserBlogList(@RequestParam int pageNo, @RequestParam int pageSize) {
         Long userId = currentUserHolder.getUserId();
@@ -75,6 +87,12 @@ public class BlogController {
         return ResponseResult.success(pageResult);
     }
 
+    /**
+     * 获取博客详情
+     * @param blogId
+     * @return ResponseResult
+     * @author zhang
+     */
     @GetMapping("/{blogId}")
     public ResponseResult<BlogDetail> getBlog(@PathVariable Long blogId) {
         Blog blog = blogService.getBlogById(blogId)
@@ -84,6 +102,14 @@ public class BlogController {
         return ResponseResult.success(blogDetail);
     }
 
+    /**
+     * 根据分类id获取博客列表
+     * @param categoryId
+     * @param pageNo
+     * @param pageSize
+     * @return ResponseResult
+     * @author zhang
+     */
     @GetMapping("/category/{categoryId}")
     public ResponseResult<List<BlogVo>> getBlogListByCategoryId(@PathVariable Long categoryId, @RequestParam int pageNo, @RequestParam int pageSize) {
         List<Blog> blogList = blogService.getBlogListByCategoryId(categoryId, pageNo, pageSize);
@@ -94,5 +120,19 @@ public class BlogController {
                 .map(blog -> BeanUtil.copyProperties(blog, BlogVo.class))
                 .collect(Collectors.toList());
         return ResponseResult.success(blogVoList);
+    }
+
+    /**
+     * 根据博客id删除博客
+     * @param blogId
+     * @return ResponseResult
+     * @author zhang
+     */
+    @DeleteMapping("/delete/{blogId}")
+    public ResponseResult<String> deleteBlog(@PathVariable Long blogId) {
+        blogService.getBlogById(blogId)
+                .orElseThrow(() -> new BusinessException("文章不存在！"));
+        blogService.deleteBlog(blogId);
+        return ResponseResult.success("删除成功");
     }
 }

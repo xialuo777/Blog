@@ -1,5 +1,6 @@
 package com.blog.mapper;
 
+import com.blog.bo.BlogCommentBo;
 import com.blog.entity.BlogComment;
 
 import java.util.List;
@@ -20,4 +21,8 @@ public interface BlogCommentMapper {
     List<BlogComment> selectByBlogId(Long blogId);
 
     int selectCommentCountByBlogId(Long blogId);
+
+
+    List<BlogCommentBo> queryFirstCommentList(Long blogId);
+    List<BlogCommentBo> querySecondCommentList(Long blogId);
 }

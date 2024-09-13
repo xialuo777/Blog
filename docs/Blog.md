@@ -221,70 +221,134 @@ public class JwtProcessor {
     }
 ```
 
-`UserController.refreshToken`方法中新增了对当前用户状态是否异常的判断，若为异常用户，则无法刷新token
+`UserController.refreshToken`方法中新增了对当前用户状态是否异常的判断，若为异常用户，则无法刷新`token`。`userId`应当从`redis`中获取
 
 ```java
+
     /**
      * 刷新token
      *
-     * @return accessToken
+     * @param refreshToken
+     * @return ResponseResult
+     * @author zhang
      */
     @PostMapping("/refresh")
-    public ResponseEntity<String> refreshToken() {
-        Long userId = currentUserHolder.getUserId();
+    public ResponseResult<String> refreshToken(String refreshToken) {
+        Map<String, Object> userMap = jwtProcessor.extractUserMap(refreshToken);
+        Long userId = (Long) userMap.get("userId");
         User user = userMapper.selectByPrimaryKey(userId);
-        if (user.getStatus() == 0){
+        if (user.getStatus() == 0) {
             log.error("该用户处于异常状态，无法执行下一步操作");
             throw new BusinessException("该用户处于异常状态，无法执行下一步操作");
         }
-        String refreshToken = (String) redisProcessor.get(RedisTransKey.getRefreshTokenKey(user.getEmail()));
-        String accessToken = userService.refreshAccessToken(refreshToken);
         //返回给前端刷新后的accessToken,同时也会产生新的refreshToken,以防refreshToken过期
-        return ResponseEntity.ok(accessToken);
+        String accessToken = userService.refreshAccessToken(refreshToken, userId);
+        return ResponseResult.success(accessToken);
     }
-
 ```
 
 
 
-## TokenProcessor内部异常处理
+## JwtProcessor内部异常处理
 
-对公用方法`validateToken`和`extractUserId`进行了`token`异常处理，在`isTokenExpired`方法中新增了invalidToken异常处理。
+注意`extractAllClaims`方法中的验证异常处理
 
 ```java
-public Boolean validateToken(String token, Long userId) {
-    if (token==null){
-        log.error("token为空");
-        throw new BusinessException(ErrorCode.PARAMS_ERROR,"token为空");
+package com.blog.util;
+
+import com.blog.enums.ErrorCode;
+import com.blog.exception.BusinessException;
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.SignatureException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.time.DateUtils;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+@Component
+@Slf4j
+public class JwtProcessor {
+    @Value("${security.jwt.secret}")
+    private String secretKey;
+
+    @Value("${security.jwt.expiration}")
+    private int jwtExpiration;
+
+    /**
+     * Token令牌验证
+     *
+     * @param token
+     * @param userId
+     * @return Boolean
+     */
+    public Boolean validateToken(String token, Long userId) {
+        final Map<String, Object> userMap = extractUserMap(token);
+        return userMap.get("id").equals(userId);
     }
-    if (isTokenExpired(token)){
-        log.error("token已失效");
-        throw new BusinessException(ErrorCode.TOKEN_EXPIRED,"token已失效");
+
+
+    /**
+     * 生成Token令牌
+     *
+     * @param userMap
+     * @return String
+     */
+    public String generateToken(Map<String, Object> userMap) {
+        return createToken(userMap, jwtExpiration);
     }
-    final Long userIdFromToken = extractUserId(token);
-    return (userIdFromToken.equals(userId) && !isTokenExpired(token));
+
+    public Map<String, Object> extractUserMap(String token) {
+        Map<String, Object> map = extractAllClaims(token);
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("userId", map.get("userId"));
+        userMap.put("nickName", map.get("nickName"));
+        userMap.put("account", map.get("account"));
+        return userMap;
+    }
+
+    /**
+     * 刷新令牌
+     *
+     * @param userMap
+     * @return String
+     */
+
+    public String generateRefreshToken(Map<String, Object> userMap) {
+        return createToken(userMap, jwtExpiration * 4 * 24 * 7);
+    }
+
+    private Claims extractAllClaims(String token) {
+        Claims claims;
+        try {
+            claims =  Jwts.parser()
+                    .setSigningKey(secretKey)
+                    .parseClaimsJws(token)
+                    .getBody();
+        }catch (MalformedJwtException | UnsupportedJwtException | IllegalArgumentException | SignatureException e){
+            log.error("非法的令牌格式");
+            throw new BusinessException(ErrorCode.TOKEN_ERROR,"非法的令牌格式");
+        }catch (ExpiredJwtException e){
+            log.error("令牌已过期");
+            throw new BusinessException(ErrorCode.TOKEN_EXPIRED,"令牌已过期");
+        }
+        return claims;
+    }
+
+    private String createToken(Map<String, Object> claims, int expiration) {
+        final Date date = DateUtils.addMinutes(new Date(),expiration);
+        return Jwts.builder().setClaims(claims)
+                .setIssuedAt(new Date())
+                .setExpiration(date)
+                .signWith(SignatureAlgorithm.HS512, secretKey)
+                .compact();
+    }
+
 }
-public Long extractUserId(String token) {
-    if (token==null){
-        log.error("token为空");
-        throw new BusinessException(ErrorCode.PARAMS_ERROR,"token为空");
-    }
-    if (isTokenExpired(token)){
-        log.error("token已失效");
-        throw new BusinessException(ErrorCode.TOKEN_EXPIRED,"token失效");
-    }
-    return Long.valueOf(extractClaim(token, Claims::getSubject));
-}
-private Boolean isTokenExpired(String token) {
-    boolean ret;
-    try {
-        ret = extractExpiration(token).before(new Date());
-    }catch (Exception e){
-        log.error("token解析失败,invalid token");
-        throw new BusinessException(ErrorCode.TOKEN_ERROR,"token解析失败,invalid token");
-    }
-    return ret;
-}
+
 ```
 
 总结：目前token校验使用没发现问题，再了解下是否还有其他需要注意的地方。
@@ -328,11 +392,11 @@ private Boolean isTokenExpired(String token) {
 
 ## bean转换工具
 
-可以转换`VO`对象和`entity`对象，很方便。但是也可以直接使用`BeanUtils.copyProperties`方法。
+可以转换`VO`对象和`entity`对象，很方便。可以使用`hutool`包中的`BeanUtils.copyProperties`方法。比如，在更新博客时只copy `bean`中的非null属性，这种情况可使用`hutool`中的`BeanUtil`工具，如下：
 
 ```java
-
-
+BeanUtil.copyProperties(oldDetail, userDetail, 
+    CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
 ```
 
 ## BlogService.  saveBlog+updateBlog
@@ -516,34 +580,155 @@ public class BlogService {
 
 ```
 
-更新博客时只copy `bean`中的非null属性，这种情况可使用`hutool`中的`BeanUtil`工具，如下：
+
+
+## BlogController 
 
 ```java
-BeanUtil.copyProperties(oldDetail, userDetail, 
-    CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
-```
+package com.blog.controller;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
+import com.blog.authentication.CurrentUserHolder;
+import com.blog.dto.PageResult;
+import com.blog.entity.Blog;
+import com.blog.entity.User;
 
+import com.blog.exception.BusinessException;
+import com.blog.exception.ResponseResult;
+import com.blog.service.BlogService;
+import com.blog.service.UserService;
+import com.blog.vo.blog.BlogDesc;
+import com.blog.vo.blog.BlogDetail;
+import com.blog.vo.blog.BlogUpdateVo;
+import com.blog.vo.blog.BlogVo;
+import lombok.RequiredArgsConstructor;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
-## BlogController  saveBlog+updateBlog
+@RestController
+@RequestMapping("/blogs")
+@RequiredArgsConstructor
+public class BlogController extends BaseController{
+    private final CurrentUserHolder currentUserHolder;
 
-```java
-@PostMapping("/save")
-public ResponseEntity<String> saveBlog(@RequestBody Blog blog){
-    blogService.saveBlog(blog);
-    return ResponseEntity.ok("文章保存成功");
+    private final UserService userService;
+    private final BlogService blogService;
+
+    /**
+     * 保存文章
+     * @param blogVo
+     * @return ResponseResult
+     * @author zhang
+     */
+    @PostMapping("/save")
+    public ResponseResult<String> saveBlog(@RequestBody BlogVo blogVo) {
+        User user = userService.selectUserByUserId(blogVo.getUserId())
+                .orElseThrow(() -> new BusinessException("用户不存在！"));
+        if (user.getStatus()==1){
+            return ResponseResult.fail("该用户已被封禁，无法发布文章！");
+        }
+        Blog blog = new Blog();
+        BeanUtil.copyProperties(blogVo, blog);
+        blogService.saveBlog(blog);
+        return ResponseResult.success("文章保存成功");
+    }
+
+    /**
+     * 根据博客id更新博客
+     * @param blogUpdateVo
+     * @param blogId
+     * @return ResponseResult
+     * @author zhang
+     */
+    @PutMapping("/update/{blogId}")
+    public ResponseResult<String> updateBlog(@RequestBody BlogUpdateVo blogUpdateVo, @PathVariable Long blogId) {
+        Blog blog = blogService.getBlogById(blogId)
+                .orElseThrow(() -> new BusinessException("文章不存在！"));
+        BeanUtil.copyProperties(blogUpdateVo, blog, CopyOptions.create().setIgnoreNullValue(true).setIgnoreCase(true));
+        blogService.updateBlog(blog);
+        return ResponseResult.success("文章更新成功");
+    }
+
+    /**
+     * 获取当前用户的博客列表
+     * @param pageNo
+     * @param pageSize
+     * @return ResponseResult
+     * @author zhang
+     */
+    @GetMapping("/list")
+    public ResponseResult<PageResult<BlogDesc>> getCurrentUserBlogList(@RequestParam int pageNo, @RequestParam int pageSize) {
+        Long userId = currentUserHolder.getUserId();
+        List<Blog> blogList = blogService.getBlogList(userId, pageNo, pageSize);
+        if (CollectionUtils.isEmpty(blogList)) {
+            return ResponseResult.fail("当前用户博客列表为空");
+        }
+        List<BlogDesc> blogDescList = blogList.stream()
+                .map(blog -> BeanUtil.copyProperties(blog, BlogDesc.class))
+                .collect(Collectors.toList());
+        int totalCount = blogList.size();
+        PageResult<BlogDesc> pageResult = new PageResult<>(blogDescList, totalCount);
+        return ResponseResult.success(pageResult);
+    }
+
+    /**
+     * 获取博客详情
+     * @param blogId
+     * @return ResponseResult
+     * @author zhang
+     */
+    @GetMapping("/{blogId}")
+    public ResponseResult<BlogDetail> getBlog(@PathVariable Long blogId) {
+        Blog blog = blogService.getBlogById(blogId)
+                .orElseThrow(() -> new BusinessException("文章不存在！"));
+        BlogDetail blogDetail = new BlogDetail();
+        BeanUtil.copyProperties(blog, blogDetail);
+        return ResponseResult.success(blogDetail);
+    }
+
+    /**
+     * 根据分类id获取博客列表
+     * @param categoryId
+     * @param pageNo
+     * @param pageSize
+     * @return ResponseResult
+     * @author zhang
+     */
+    @GetMapping("/category/{categoryId}")
+    public ResponseResult<List<BlogVo>> getBlogListByCategoryId(@PathVariable Long categoryId, @RequestParam int pageNo, @RequestParam int pageSize) {
+        List<Blog> blogList = blogService.getBlogListByCategoryId(categoryId, pageNo, pageSize);
+        if (CollectionUtils.isEmpty(blogList)) {
+            return ResponseResult.fail("该分类下暂无文章");
+        }
+        List<BlogVo> blogVoList = blogList.stream()
+                .map(blog -> BeanUtil.copyProperties(blog, BlogVo.class))
+                .collect(Collectors.toList());
+        return ResponseResult.success(blogVoList);
+    }
+
+    /**
+     * 根据博客id删除博客
+     * @param blogId
+     * @return ResponseResult
+     * @author zhang
+     */
+    @DeleteMapping("/delete/{blogId}")
+    public ResponseResult<String> deleteBlog(@PathVariable Long blogId) {
+        blogService.getBlogById(blogId)
+                .orElseThrow(() -> new BusinessException("文章不存在！"));
+        blogService.deleteBlog(blogId);
+        return ResponseResult.success("删除成功");
+    }
 }
+
 ```
 
-```java
-@PutMapping("/update")
-public ResponseEntity<String> updateBlog(@RequestBody Blog blog){
-    blogService.updateBlog(blog);
-    return ResponseEntity.ok("文章更新成功");
-}
-```
 
-## BlogVo
+
+## BlogVo（雪花算法精度丢失）
 
 在前后端交互时注意blogId精度丢失问题。即雪花算法生成的ID在前端会出现精度丢失。可使用JSON序列化转为String解决，方法如下：
 
@@ -559,29 +744,225 @@ private Long blogId;
 ## UserController
 
 ```java
-@GetMapping("/profile")
-public ResponseEntity<User> getProfile() {
-    Long userId = currentUserHolder.getUserId();
-    User user = userService.selectUserByUserId(userId);
-    return ResponseEntity.ok(user);
-}
+package com.blog.controller;
 
-@GetMapping("/{email}")
-public ResponseEntity<String> getUserWebByEmail(@PathVariable String email) {
-    User user = userService.selectUserByEmail(email);
-    String website = user.getWebsite();
-    return ResponseEntity.ok(website);
-}
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
+import com.blog.authentication.CurrentUserHolder;
+import com.blog.entity.User;
 
-@GetMapping("/{nickName}")
-public ResponseEntity<List<String>> getUserWebByNickName(@PathVariable String nickName, @RequestParam int pageNo, @RequestParam int pageSize) {
-    List<User> users = userService.selectUsersByNickName(nickName,pageNo,pageSize);
-    List<String> result = new ArrayList<>();
-    for (User user : users) {
-        result.add(user.getWebsite());
+import com.blog.enums.ErrorCode;
+import com.blog.exception.BusinessException;
+import com.blog.exception.ResponseResult;
+import com.blog.mapper.UserMapper;
+import com.blog.service.MailService;
+import com.blog.service.UserService;
+import com.blog.util.JwtProcessor;
+import com.blog.util.SecurityUtils;
+import com.blog.util.UserTransUtils;
+import com.blog.util.bo.LoginResponse;
+import com.blog.util.redis.RedisProcessor;
+import com.blog.util.redis.RedisTransKey;
+import com.blog.vo.user.UserInfoVo;
+import com.blog.vo.user.Loginer;
+import com.blog.vo.user.Register;
+import com.github.pagehelper.util.StringUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.Email;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+
+@RestController
+@RequestMapping("/users")
+@Slf4j
+@RequiredArgsConstructor
+public class UserController extends BaseController {
+
+    private final UserService userService;
+    private final MailService mailService;
+    private final RedisProcessor redisProcessor;
+    private final UserMapper userMapper;
+    private final JwtProcessor jwtProcessor;
+    private final CurrentUserHolder currentUserHolder;
+
+    /**
+     * 用户注册
+     *
+     * @param register
+     * @return ResponseResult
+     * @author zhang
+     */
+    @PostMapping("/register")
+    public ResponseResult<String> register(@RequestBody @Validated Register register) {
+        userService.userRegister(register);
+        return ResponseResult.success("用户注册成功");
     }
-    return ResponseEntity.ok(result);
+
+    /**
+     * 用户获取邮箱验证码
+     *
+     * @param email
+     * @return ResponseResult
+     * @author zhang
+     */
+    @GetMapping("/getCode")
+    @ResponseBody
+    public ResponseResult<String> getCode(@RequestParam @Email String email) {
+        mailService.getEmailCode(email);
+        return ResponseResult.success("验证码发送成功");
+    }
+
+    /**
+     * @param loginer
+     * @return ResponseResult
+     * @author zhang
+     */
+    @PostMapping("/login")
+    @ResponseBody
+    public ResponseResult<LoginResponse> login(@Validated @RequestBody Loginer loginer) {
+        //用户登陆后返回给前端accessToken和refreshToken
+        LoginResponse loginResponse = userService.userLogin(loginer);
+        return ResponseResult.success(loginResponse);
+    }
+
+    /**
+     * 刷新token
+     *
+     * @param refreshToken
+     * @return ResponseResult
+     * @author zhang
+     */
+    @PostMapping("/refresh")
+    public ResponseResult<String> refreshToken(String refreshToken) {
+        Map<String, Object> userMap = jwtProcessor.extractUserMap(refreshToken);
+        Long userId = (Long) userMap.get("userId");
+        User user = userMapper.selectByPrimaryKey(userId);
+        if (user.getStatus() == 0) {
+            log.error("该用户处于异常状态，无法执行下一步操作");
+            throw new BusinessException("该用户处于异常状态，无法执行下一步操作");
+        }
+        //返回给前端刷新后的accessToken,同时也会产生新的refreshToken,以防refreshToken过期
+        String accessToken = userService.refreshAccessToken(refreshToken, userId);
+        return ResponseResult.success(accessToken);
+    }
+
+    /***
+     * 用户退出登陆时，需要删除token信息
+     * @param request
+     * @return ResponseEntity
+     * @Author zhang
+     */
+    @GetMapping("/logout")
+    public ResponseResult<String> logout(HttpServletRequest request) {
+        String accessToken = request.getHeader("accessToken");
+        Long userId = currentUserHolder.getUserId();
+        if (!jwtProcessor.validateToken(accessToken, userId)) {
+            return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
+        }
+        User user = userMapper.selectByPrimaryKey(userId);
+        redisProcessor.del(RedisTransKey.getRefreshTokenKey(user.getEmail()));
+        redisProcessor.del(RedisTransKey.getLoginKey(user.getEmail()));
+        redisProcessor.del(RedisTransKey.getTokenKey(user.getEmail()));
+        log.info("用户退出登陆成功");
+        return ResponseResult.success("用户退出登陆成功");
+    }
+
+    /**
+     * 用户删除登录会先对当前请求中的token进行验证
+     *
+     * @param request
+     * @return ResponseResult
+     * @author zhang
+     */
+    @DeleteMapping("/delete")
+    public ResponseResult<String> delete(HttpServletRequest request) {
+        String accessToken = request.getHeader("accessToken");
+        Long userId = currentUserHolder.getUserId();
+        userService.selectUserByUserId(userId)
+                .orElseThrow(() -> new BusinessException("用户不存在！"));
+        if (!jwtProcessor.validateToken(accessToken, userId)) {
+            return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
+        }
+        userService.deleteUserById(userId);
+        return ResponseResult.success("用户删除成功");
+    }
+
+    /**
+     * 用户更新信息前先对当前请求中的token进行验证
+     *
+     * @param userInfoVo
+     * @return ResponseResult
+     * @author zhang
+     */
+    @PutMapping("/update")
+    public ResponseResult<String> updateUser(@RequestBody UserInfoVo userInfoVo) {
+        String accessToken = (String) redisProcessor.get(RedisTransKey.getTokenKey(userInfoVo.getEmail()));
+        Long userId = currentUserHolder.getUserId();
+        if (!jwtProcessor.validateToken(accessToken, userId)) {
+            return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
+        }
+        User user = userService.selectUserByUserId(userId)
+                .orElseThrow(() -> new BusinessException("用户不存在！"));
+        BeanUtil.copyProperties(userInfoVo, user, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
+        userService.updateUser(user);
+        Map<String, Object> userMap = UserTransUtils.getUserMap(user);
+        redisProcessor.set(RedisTransKey.getLoginKey(user.getEmail()), userMap, 7, TimeUnit.DAYS);
+        redisProcessor.set(RedisTransKey.getTokenKey(user.getEmail()),userMap,7,TimeUnit.DAYS);
+        redisProcessor.set(RedisTransKey.getRefreshTokenKey(user.getEmail()),userMap,7,TimeUnit.DAYS);
+        return ResponseResult.success("用户信息更新成功");
+    }
+
+    /**
+     * 修改用户密码
+     * @param oldPassword
+     * @param newPassword
+     * @return
+     * @time 2024-09-13 16:53
+     */
+
+    @PutMapping("/update/password")
+    public ResponseResult<String> updatePassword(String oldPassword, String newPassword) {
+        if (StringUtil.isEmpty(oldPassword) || StringUtil.isEmpty(newPassword)) {
+            return ResponseResult.fail("输入密码不能为空");
+        }
+        Long userId = currentUserHolder.getUserId();
+        User user = userService.selectUserByUserId(userId)
+                .orElseThrow(() -> new BusinessException("用户不存在！"));
+        if (!SecurityUtils.checkPassword(oldPassword, user.getPassword())){
+            return ResponseResult.fail("密码错误，请重新输入");
+        }
+        user.setPassword(SecurityUtils.encodePassword(newPassword));
+        userService.updateUser(user);
+        return ResponseResult.success("密码修改成功");
+    }
+
+    /**
+     * 获取用户主页信息
+     *
+     * @return ResponseResult
+     * @Time 2024-09-13 15:29
+     * @author zhang
+     */
+    @GetMapping("/home")
+    public ResponseResult<UserInfoVo> getProfile() {
+        Long userId = currentUserHolder.getUserId();
+        User user = userService.selectUserByUserId(userId)
+                .orElseThrow(() -> new BusinessException("用户不存在！"));
+        UserInfoVo userInfoVo = new UserInfoVo();
+        BeanUtil.copyProperties(user, userInfoVo);
+        return ResponseResult.success(userInfoVo);
+    }
+
+
 }
+
 ```
 
 注意`PageHelper`分页时内部使用`ThreadLocal`会出现的问题：因为`PageHelper`将分页信息存储在`ThreadLocal`中，并且在调用后就会清理，因此在使用时要将分页查询的语句紧跟着分页设置语句，中间不要穿插其他查询语句。不然会导致其他查询语句将ThreadLocal中的分页信息用掉。正确示例如下：
@@ -596,6 +977,147 @@ List<User> users = userMapper.selectUsersByNickName(nickName);
 ## UserService
 
 ```java
+package com.blog.service;
+
+import com.blog.constant.Constant;
+import com.blog.entity.User;
+import com.blog.enums.ErrorCode;
+import com.blog.exception.BusinessException;
+import com.blog.mapper.UserMapper;
+import com.blog.util.*;
+import com.blog.util.bo.EmailCodeBo;
+import com.blog.util.bo.LoginResponse;
+import com.blog.util.redis.RedisTransKey;
+import com.blog.util.redis.RedisProcessor;
+import com.blog.vo.user.Loginer;
+import com.blog.vo.user.Register;
+import com.github.pagehelper.PageHelper;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
+@Slf4j
+@Service
+@AllArgsConstructor
+public class UserService {
+    private final UserMapper userMapper;
+
+    private final RedisProcessor redisProcessor;
+
+    private final JwtProcessor jwtProcessor;
+
+
+
+    /**
+     * 用户登录，登陆成功后返回accessToke，refreshToken，userId
+     *
+     * @Param loginer
+     * @Return String
+     * @Desription 用户登录
+     */
+    public LoginResponse userLogin(Loginer loginer) {
+        String email = loginer.getEmail();
+        String password = loginer.getPassword();
+        //用户此时不为null，是否为null已经在selectUserByEmail判断
+        User user = selectUserByEmail(email);
+        boolean loginFlag = SecurityUtils.checkPassword(password, user.getPassword());
+        if (!loginFlag) {
+            log.error("密码错误，登陆失败，请重新输入");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误，登陆失败，请重新输入");
+        }
+        /*将用户信息存放在token中，时效为7天*/
+        Map<String, Object> userMap = UserTransUtils.getUserMap(user);
+        String accessToken = jwtProcessor.generateToken(userMap);
+        String refreshToken = jwtProcessor.generateRefreshToken(userMap);
+        redisProcessor.set(RedisTransKey.refreshTokenKey(email), refreshToken, 7, TimeUnit.DAYS);
+        redisProcessor.set(RedisTransKey.tokenKey(email), accessToken, 7, TimeUnit.DAYS);
+        redisProcessor.set(RedisTransKey.loginKey(email), email, 7, TimeUnit.DAYS);
+        LoginResponse loginResponse = new LoginResponse(accessToken,refreshToken);
+        return loginResponse;
+    }
+
+    /**
+     * 刷新accessToken信息，并生成新的refreshToken
+     *
+     * @Param refreshToken
+     * @Return Map<String, Object>
+     */
+    public String refreshAccessToken(String refreshToken, Long userId) {
+        //对刷新令牌进行验证，以防恶意利用其他用户refreshToken刷新
+        if (!jwtProcessor.validateToken(refreshToken, userId)) {
+            log.error("refreshToken验证失败,当前用户id：" + userId);
+            throw new BusinessException(ErrorCode.TOKEN_ERROR, "refreshToken验证失败,当前用户id：" + userId);
+        }
+        User user = userMapper.selectByPrimaryKey(userId);
+        //没过期生成一个新的token
+        Map<String, Object> userMap = UserTransUtils.getUserMap(user);
+        String accessToken = jwtProcessor.generateToken(userMap);
+        String newRefreshToken = jwtProcessor.generateRefreshToken(userMap);
+        redisProcessor.set(RedisTransKey.refreshTokenKey(user.getEmail()), newRefreshToken);
+        redisProcessor.set(RedisTransKey.tokenKey(user.getEmail()), accessToken);
+        return accessToken;
+    }
+
+
+    /**
+     * 注册新用户，并最后清理redis中的验证码信息
+     *
+     * @Description 注册新用户
+     * @Param register
+     * @Return User
+     */
+    public void userRegister(@Validated Register register) {
+        String account = register.getAccount();
+        log.info("开始注册新用户：" + account);
+        String nickName = register.getNickName();
+        String password = register.getPassword();
+        String checkPassword = register.getCheckPassword();
+        String email = register.getEmail();
+        String phone = register.getPhone();
+        String emailCode = register.getEmailCode().trim();
+        if (userMapper.findByEmail(email) != null) {
+            log.error("邮箱已注册，请重新输入：{}", email);
+            throw new BusinessException(ErrorCode.USER_ALREADY_EXISTS, "邮箱已注册，请重新输入");
+        }
+        //验证两次输入密码是否一致
+        if (!checkPassword.equals(password)) {
+            log.error("两次输入密码不一致，注册失败：{}", account);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入密码不一致，请重新输入");
+        }
+        /*验证邮箱验证码*/
+        EmailCodeBo emailCodeBo = Optional.ofNullable((EmailCodeBo) redisProcessor.get(RedisTransKey.getEmailKey(email))).orElseThrow(() -> new BusinessException(ErrorCode.PARAMS_ERROR, "请先获取验证码"));
+        if (!emailCodeBo.getCode().equals(emailCode)) {
+            log.error("邮箱验证码输入错误，注册失败：{}", account);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请确认邮箱验证码是否正确");
+        }
+        if (!emailCodeBo.getEmail().equals(email)) {
+            log.error("邮箱输入错误，注册失败：{}", account);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请确认邮箱验证码是否正确");
+        }
+
+        /*封装用户*/
+        User user = new User();
+        Long userId = SnowFlakeUtil.nextId();
+        user.setUserId(userId);
+        user.setAccount(account);
+        user.setNickName(nickName);
+        String encodePassword = SecurityUtils.encodePassword(password);
+        user.setPassword(encodePassword);
+        user.setEmail(email);
+        user.setPhone(phone);
+        String baseHomePageUrl = Constant.USER_BASE_PATH + userId;
+        user.setWebsite(baseHomePageUrl);
+        /*添加用户到数据库,并清理redis中存放的验证码*/
+        userMapper.insertUser(user);
+        redisProcessor.del(RedisTransKey.getEmailKey(email));
+    }
+
     /**
      * @Description 根据用户邮箱查找用户
      * @Param email
@@ -607,55 +1129,91 @@ List<User> users = userMapper.selectUsersByNickName(nickName);
             log.error("邮箱{}未注册，请注册", email);
             throw new BusinessException(ErrorCode.USER_NOT_FOUND, "邮箱{}未注册，请注册", email);
         }
-        log.info("查找用户成功");
         return user;
     }
 
     /**
      * 根据用户昵称去查找用户信息
+     *
      * @param nickName
      * @return
      */
-    public List<User> selectUsersByNickName(String nickName, int pageNo, int pageSize){
-        PageHelper.startPage(pageNo,pageSize);
+    public List<User> selectUsersByNickName(String nickName, int pageNo, int pageSize) {
+        PageHelper.startPage(pageNo, pageSize);
         List<User> users = userMapper.selectUsersByNickName(nickName);
-        if (users.isEmpty()){
+        if (users.isEmpty()) {
             log.error("未找到用户");
             throw new BusinessException(ErrorCode.USER_NOT_FOUND, "未找到用户");
         }
-        log.info("查找用户成功")
         return users;
     }
+
+    /**
+     * 查询所有用户
+     * @return List<User>
+     */
+    public List<User> getUsers(int pageNo, int pageSize) {
+        PageHelper.startPage(pageNo, pageSize);
+        return userMapper.selectUsers();
+    }
+
 
     /**
      * @Description 根据用户id查找用户
      * @Param userId
      * @Return User
      */
-    public User selectUserByUserId(Long userId) {
-        User user = userMapper.selectByPrimaryKey(userId);
-        log.info("查找用户成功");
-        return user;
+    public Optional<User> selectUserByUserId(Long userId) {
+        return Optional.ofNullable(userMapper.selectByPrimaryKey(userId));
     }
+
+    /**
+     * @param userId
+     * @description 根据用户id删除用户
+     */
+    public void deleteUserById(Long userId) {
+        userMapper.deleteByPrimaryKey(userId);
+    }
+
+    /**
+     * 更新用户信息
+     *
+     * @param user
+     */
+    public void updateUser(User user) {
+        userMapper.updateByPrimaryKeySelective(user);
+    }
+
+
+    public int getTotalCount() {
+        return userMapper.selectTotalCount();
+    }
+}
+
 ```
 
-# Comment
+# Comment  
 
-CommentService.java
+## CommentService
+
+链表+递归获取当前博客下的所有评论。
 
 ```java
 package com.blog.service;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.blog.bo.BlogCommentBo;
 import com.blog.dto.PageRequest;
-import com.blog.dto.PageResult;
 import com.blog.entity.BlogComment;
 import com.blog.mapper.BlogCommentMapper;
-import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -676,24 +1234,61 @@ public class CommentService {
         blogCommentMapper.deleteByPrimaryKey(commentId);
     }
 
-    public PageResult<BlogComment> getCommentList(PageRequest pageRequest, Long blogId) {
+    public List<BlogCommentBo> queryCommentList(PageRequest pageRequest, Long blogId) {
         int pageSize = pageRequest.getPageSize();
         int pageNo = pageRequest.getPageNo();
         PageHelper.startPage(pageNo, pageSize);
-        List<BlogComment> blogCommentList = blogCommentMapper.selectByBlogId(blogId);
-        int totalCount = blogCommentMapper.selectCommentCountByBlogId(blogId);
-        return new PageResult<>(blogCommentList, totalCount);
+        //所有一级评论集合
+        List<BlogCommentBo> firstCommentList = blogCommentMapper.queryFirstCommentList(blogId);
+        //其他所有评论集合
+        List<BlogCommentBo> secondCommentList = blogCommentMapper.querySecondCommentList(blogId);
+        //将所有的其他评论以链表的方式添加到一级评论
+        List<BlogCommentBo> list = addAllNodes(firstCommentList, secondCommentList);
+        return list;
+    }
+
+
+    private List<BlogCommentBo> addAllNodes(List<BlogCommentBo> firstCommentList, List<BlogCommentBo> secondCommentList) {
+        List<BlogCommentBo> tempSecondList = new ArrayList<>(secondCommentList);
+
+        for (BlogCommentBo comment : tempSecondList) {
+            if (addNode(firstCommentList, comment)) {
+                secondCommentList.remove(comment);
+            }
+        }
+
+        return firstCommentList;
+    }
+
+    private boolean addNode(List<BlogCommentBo> firstCommentList, BlogCommentBo blogCommentBo) {
+        for (BlogCommentBo commentBo : firstCommentList) {
+            //判断该回复是否是当前评论的回复，是当前评论的回复，则在其下一节点添加
+            if (commentBo.getCommentId().equals(blogCommentBo.getLastId())){
+                commentBo.getNextNodes().add(blogCommentBo);
+                return true;
+            }else {
+                //若不是当前评论的回复，则判断其下一节点是否为空，若不为空，则递归判断
+                if (CollectionUtil.isNotEmpty(commentBo.getNextNodes())){
+                    if (addNode(commentBo.getNextNodes(), blogCommentBo)){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }
+
 ```
 
-CommentController.java
+## CommentController
 
 ```java
 package com.blog.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.blog.authentication.CurrentUserHolder;
+import com.blog.bo.BlogCommentBo;
 import com.blog.dto.PageRequest;
 import com.blog.dto.PageResult;
 import com.blog.entity.Blog;
@@ -705,7 +1300,7 @@ import com.blog.service.BlogService;
 import com.blog.service.CommentService;
 import com.blog.service.UserService;
 import com.blog.vo.comment.CommentInfo;
-import com.blog.vo.comment.CommentVo;
+import com.blog.vo.comment.CommentVoIn;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -723,8 +1318,8 @@ public class CommentController {
     private final BlogService blogService;
     private final CurrentUserHolder currentUserHolder;
 
-    @PostMapping("/blog/addComment")
-    public ResponseResult<String> addComment(@RequestBody CommentVo commentVo) {
+    @PostMapping("/blog/comment")
+    public ResponseResult<String> addComment(@RequestBody CommentVoIn commentVo) {
         User user = userService.selectUserByUserId(commentVo.getCommentatorId())
                 .orElseThrow(()->new BusinessException("用户不存在！"));
         if (user.getStatus() == 1) {
@@ -738,6 +1333,7 @@ public class CommentController {
         BlogComment blogComment = new BlogComment();
         BeanUtil.copyProperties(commentVo, blogComment);
         blogComment.setCommentator(user.getNickName());
+        blogComment.setCommentatorId(user.getUserId());
         commentService.addComment(blogComment);
         return ResponseResult.success("评论成功！");
     }
@@ -752,21 +1348,291 @@ public class CommentController {
         commentService.deleteComment(commentId);
         return ResponseResult.success("删除成功！");
     }
+
     @GetMapping("/{blogId}")
-    public ResponseResult<PageResult<CommentInfo>> getCommentList(@PathVariable Long blogId, @RequestParam Map<String,Object> params) {
+    public ResponseResult<List<BlogCommentBo>> getCommentListAll(@PathVariable Long blogId, @RequestParam Map<String,Object> params) {
         if (ObjectUtils.isEmpty(params.get("pageNo")) || ObjectUtils.isEmpty(params.get("pageSize"))) {
             return ResponseResult.fail("参数异常！");
         }
+        blogService.getBlogById(blogId).orElseThrow(() -> new BusinessException("该博客不存在！"));
         PageRequest pageRequest = new PageRequest(params);
-        PageResult<BlogComment> blogCommentPageResult = commentService.getCommentList(pageRequest, blogId);
-        List<CommentInfo> commentInfoList = blogCommentPageResult.getList().stream()
-                .map(blogComment -> BeanUtil.copyProperties(blogComment, CommentInfo.class))
-                .collect(Collectors.toList());
-        PageResult<CommentInfo> commentInfoPageResult = new PageResult<>(commentInfoList, blogCommentPageResult.getTotalCount());
-        return ResponseResult.success(commentInfoPageResult);
+        return ResponseResult.success(commentService.queryCommentList(pageRequest,blogId));
     }
+
 }
 
 ```
 
 注意：Optional在这里的使用，以及分页参数的封装！
+
+# Admin
+
+由于在`AdminController`中要实现的接口功能中，与`UserController`和`BlogController`几个接口功能相同。因此，将这几个接口的功能抽取到`BaseController`中，如下：
+
+## BaseController
+
+```java
+package com.blog.controller;
+
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
+import com.blog.dto.PageRequest;
+import com.blog.dto.PageResult;
+import com.blog.entity.User;
+import com.blog.exception.BusinessException;
+import com.blog.exception.ResponseResult;
+import com.blog.service.BlogService;
+import com.blog.service.UserService;
+import com.blog.vo.user.UserVo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@RestController
+public class BaseController {
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private BlogService blogService;
+
+    /**
+     * 根据昵称查询用户
+     * @param nickName
+     * @param params
+     * @return ResponseResult
+     * @author zhang
+     */
+    @GetMapping("/{nickName}")
+    public ResponseResult<PageResult<UserVo>> getUsersByNickName(@PathVariable String nickName, @RequestParam Map<String, Object> params) {
+        if (CollectionUtil.isEmpty(params)){
+            return ResponseResult.fail("分页参数为空");
+        }
+        PageRequest pageRequest = new PageRequest(params);
+        List<User> users = userService.selectUsersByNickName(nickName, pageRequest.getPageNo(), pageRequest.getPageSize());
+        List<UserVo> result = users.stream().map(user -> BeanUtil.copyProperties(user, UserVo.class))
+                .collect(Collectors.toList());
+        int totalCount = result.size();
+        PageResult<UserVo> pageResult = new PageResult<>(result, totalCount);
+        return ResponseResult.success(pageResult);
+    }
+
+    /**
+     * 获取所有用户列表
+     * @param params
+     * @return ResponseResult
+     * @author zhang
+     */
+    @GetMapping("/getUsers")
+    public ResponseResult<Object> getUsers(@RequestParam Map<String, Object> params) {
+        if (CollectionUtil.isEmpty(params)){
+            return ResponseResult.fail("分页参数为空");
+        }
+        PageRequest pageRequest = new PageRequest(params);
+        List<User> users = userService.getUsers(pageRequest.getPageNo(), pageRequest.getPageSize());
+        List<UserVo> result = users.stream()
+                .map(user -> BeanUtil.copyProperties(user, UserVo.class))
+                .collect(Collectors.toList());
+        int totalCount = userService.getTotalCount();
+        PageResult<UserVo> pageResult = new PageResult<>(result, totalCount);
+        return ResponseResult.success(pageResult);
+    }
+
+}
+```
+
+## AdminService
+
+```java
+package com.blog.service;
+
+import com.blog.entity.Admin;
+import com.blog.exception.BusinessException;
+import com.blog.mapper.AdminMapper;
+import com.blog.util.JwtProcessor;
+import com.blog.util.bo.LoginResponse;
+import com.blog.util.redis.RedisProcessor;
+import com.blog.util.redis.RedisTransKey;
+import com.blog.vo.admin.AdminVoIn;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * 管理员模块业务层
+ *
+ * @author : [24360]
+ * @version : [v1.0]
+ * @createTime : [2024/9/13 15:41]
+ */
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class AdminService {
+    private final AdminMapper adminMapper;
+    private final JwtProcessor jwtProcessor;
+    private final RedisProcessor redisProcessor;
+
+    public LoginResponse adminLogin(AdminVoIn adminVoIn) {
+        Admin admin = Optional.ofNullable(adminMapper.selectByAccount(adminVoIn.getAccount()))
+                .orElseThrow(() -> new BusinessException("该管理员账号不存在"));
+        if (!admin.getPassword().equals(adminVoIn.getPassword())) {
+            throw new BusinessException("密码错误");
+        }
+        Map<String, Object> adminMap = new HashMap<>();
+        adminMap.put("account",admin.getAccount());
+        adminMap.put("id",admin.getAdminId());
+        String accessToken = jwtProcessor.generateToken(adminMap);
+        String refreshToken = jwtProcessor.generateRefreshToken(adminMap);
+
+        redisProcessor.set(RedisTransKey.tokenKey(admin.getAccount()),accessToken,7, TimeUnit.DAYS);
+        redisProcessor.set(RedisTransKey.refreshTokenKey(admin.getAccount()),refreshToken,7, TimeUnit.DAYS);
+
+        return new LoginResponse(accessToken, refreshToken);
+    }
+    public Optional<Admin> getAdminById(Long adminId) {
+        return Optional.ofNullable(adminMapper.selectByPrimaryKey(adminId));
+    }
+
+    public void updateAdmin(Admin admin) {
+        adminMapper.updateByPrimaryKeySelective(admin);
+    }
+}
+```
+
+## AdminController
+
+```java
+package com.blog.controller;
+
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.bean.copier.CopyOptions;
+import com.blog.authentication.CurrentUserHolder;
+import com.blog.entity.Admin;
+import com.blog.entity.User;
+import com.blog.enums.ErrorCode;
+import com.blog.exception.BusinessException;
+import com.blog.exception.ResponseResult;
+import com.blog.service.AdminService;
+import com.blog.service.BlogService;
+import com.blog.service.UserService;
+import com.blog.util.JwtProcessor;
+import com.blog.util.bo.LoginResponse;
+import com.blog.util.redis.RedisProcessor;
+import com.blog.util.redis.RedisTransKey;
+import com.blog.vo.admin.AdminVoIn;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+
+
+@RequestMapping("/admin")
+@RestController
+@RequiredArgsConstructor
+public class AdminController extends BaseController{
+    private final UserService userService;
+    private final AdminService adminService;
+    private final BlogService blogService;
+    private final CurrentUserHolder currentUserHolder;
+    private final JwtProcessor jwtProcessor;
+    private final RedisProcessor redisProcessor;
+
+
+    /**
+     * 管理员账号登录
+     * @param adminVoIn
+     * @return ResponseResult
+     * @author zhang
+     */
+    @PostMapping("/login")
+    public ResponseResult<LoginResponse> login(@RequestBody AdminVoIn adminVoIn) {
+        LoginResponse loginResponse = adminService.adminLogin(adminVoIn);
+        return ResponseResult.success(loginResponse);
+    }
+
+    /**
+     * 更新管理员账号信息
+     * @param adminVoIn
+     * @return ResponseResult
+     * @author zhang
+     */
+    @PutMapping("/update")
+    public ResponseResult<String> updateAdmin(@RequestBody AdminVoIn adminVoIn) {
+        String accessToken = (String) redisProcessor.get(RedisTransKey.getTokenKey(adminVoIn.getAccount()));
+        Long adminId = currentUserHolder.getUserId();
+        if (!jwtProcessor.validateToken(accessToken, adminId)) {
+            return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
+        }
+        Admin admin = adminService.getAdminById(adminId).orElseThrow(() -> new BusinessException("该管理员账户不存在"));
+
+        BeanUtil.copyProperties(adminVoIn, admin, CopyOptions.create().setIgnoreNullValue(true).setIgnoreCase(true));
+        adminService.updateAdmin(admin);
+        return ResponseResult.success("管理员信息更新成功");
+    }
+
+
+    /**
+     * 根据用户id查找用户
+     * @param userId
+     * @return ResponseResult
+     * @author zhang
+     */
+    @GetMapping("/user/{userId}")
+    public ResponseResult<User> getUser(@PathVariable Long userId) {
+        return ResponseResult.success(userService.selectUserByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND, "用户不存在")));
+    }
+
+    /**
+     * 删除用户信息
+     * @param userId
+     * @return ResponseResult
+     * @author zhang
+     */
+    @DeleteMapping("/user/delete/{userId}")
+    public ResponseResult<String> delete(@PathVariable Long userId) {
+        userService.selectUserByUserId(userId)
+                .orElseThrow(() -> new BusinessException("用户不存在"));
+        userService.deleteUserById(userId);
+        return ResponseResult.success("用户删除成功");
+    }
+
+    /**
+     * 修改用户状态，0为正常 1为封禁
+     * @param userId
+     * @param status
+     * @return
+     */
+    @PutMapping("/user/status")
+    public ResponseResult<String> updateUserStatus(@RequestParam Long userId, @RequestParam Integer status) {
+        User user = userService.selectUserByUserId(userId)
+                .orElseThrow(() -> new BusinessException("用户不存在"));
+        user.setStatus(status);
+        userService.updateUser(user);
+        return ResponseResult.success("用户状态更新成功");
+    }
+
+    /**
+     * 根据博客id删除博客
+     * @param blogId
+     * @return ResponseResult
+     * @author zhang
+     */
+    @DeleteMapping("/delete/{blogId}")
+    public ResponseResult<String> deleteBlog(@PathVariable Long blogId) {
+        blogService.getBlogById(blogId)
+                .orElseThrow(() -> new BusinessException("文章不存在！"));
+        blogService.deleteBlog(blogId);
+        return ResponseResult.success("删除成功");
+    }
+
+
+}
+```

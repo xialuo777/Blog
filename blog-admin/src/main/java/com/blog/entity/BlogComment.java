@@ -2,9 +2,16 @@ package com.blog.entity;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.Date;
 
 @ApiModel(description = "blog_comment")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class BlogComment {
     /**
      * 主键id
@@ -53,68 +60,4 @@ public class BlogComment {
      */
     @ApiModelProperty(value = "是否删除 0-未删除 1-已删除")
     private Byte isDeleted;
-
-    public Integer getCommentId() {
-        return commentId;
-    }
-
-    public void setCommentId(Integer commentId) {
-        this.commentId = commentId;
-    }
-
-    public Long getBlogId() {
-        return blogId;
-    }
-
-    public void setBlogId(Long blogId) {
-        this.blogId = blogId;
-    }
-
-    public String getCommentator() {
-        return commentator;
-    }
-
-    public void setCommentator(String commentator) {
-        this.commentator = commentator;
-    }
-
-    public Long getCommentatorId() {
-        return commentatorId;
-    }
-
-    public void setCommentatorId(Long commentatorId) {
-        this.commentatorId = commentatorId;
-    }
-
-    public String getCommentBody() {
-        return commentBody;
-    }
-
-    public void setCommentBody(String commentBody) {
-        this.commentBody = commentBody;
-    }
-
-    public Date getCommentCreateTime() {
-        return commentCreateTime;
-    }
-
-    public void setCommentCreateTime(Date commentCreateTime) {
-        this.commentCreateTime = commentCreateTime;
-    }
-
-    public Integer getLastId() {
-        return lastId;
-    }
-
-    public void setLastId(Integer lastId) {
-        this.lastId = lastId;
-    }
-
-    public Byte getIsDeleted() {
-        return isDeleted;
-    }
-
-    public void setIsDeleted(Byte isDeleted) {
-        this.isDeleted = isDeleted;
-    }
 }

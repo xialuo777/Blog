@@ -27,7 +27,8 @@ public class AuthenticationFilter implements Filter {
             "/users/refresh",
             "/users/getCode",
             "/users/register",
-            "/users/logout"
+            "/users/logout",
+            "/admin/login"
     ));
 
     @Override
@@ -49,7 +50,7 @@ public class AuthenticationFilter implements Filter {
             }
             //extractUserId内部进行token验证时会对invalidToken的异常进行处理
             Map<String, Object> userMap = jwtProcessor.extractUserMap(accessToken);
-            Long userId = (Long) userMap.get("userId");
+            Long userId = (Long) userMap.get("id");
             currentUserHolder.setUserId(userId);
             filterChain.doFilter(request, response);
         } finally {

@@ -28,4 +28,6 @@ public interface UserMapper {
     List<User> selectUsers();
 
     int selectTotalCount();
+
+    User selectUserByComment(Long userId);
 }

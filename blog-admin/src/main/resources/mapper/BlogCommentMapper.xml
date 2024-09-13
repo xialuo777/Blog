@@ -140,4 +140,22 @@
   <select id="selectCommentCountByBlogId" resultType="int">
     select count(1) from blog_comment where blog_id = #{blogId,jdbcType=BIGINT}
   </select>
+
+  <select id="queryFirstCommentList" resultType="com.blog.bo.BlogCommentBo">
+    select
+      <include refid="Base_Column_List"/>,
+        u.user_id as user_id, u.nick_name as nick_name, u.email as user_email
+        from blog_comment b
+        left join user u on b.commentator_id = u.user_id
+    where b.blog_id = #{blogId,jdbcType=BIGINT} and b.last_id is null
+  </select>
+
+  <select id="querySecondCommentList" resultType="com.blog.bo.BlogCommentBo">
+    select
+    <include refid="Base_Column_List"/>,
+    u.user_id as user_id, u.nick_name as nick_name, u.email as user_email
+    from blog_comment b
+    left join user u on b.commentator_id = u.user_id
+    where b.blog_id = #{blogId,jdbcType=BIGINT} and b.last_id is not null
+  </select>
 </mapper>
