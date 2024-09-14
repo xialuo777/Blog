@@ -6,6 +6,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * @author: zhang
+ * @time: 2024-09-14 10:48
+ */
 @ApiModel(description = "`user`")
 @Data
 @AllArgsConstructor

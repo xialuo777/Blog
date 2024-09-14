@@ -26,13 +26,14 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.Email;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-
+/**
+ * @author: zhang
+ * @time: 2024-09-14 10:38
+ */
 @RestController
 @RequestMapping("/users")
 @Slf4j
@@ -48,8 +49,7 @@ public class UserController extends BaseController {
 
     /**
      * 用户注册
-     *
-     * @param register
+     * @param register 用户注册信息
      * @return ResponseResult
      * @author zhang
      */
@@ -62,7 +62,7 @@ public class UserController extends BaseController {
     /**
      * 用户获取邮箱验证码
      *
-     * @param email
+     * @param email 用户邮箱
      * @return ResponseResult
      * @author zhang
      */
@@ -74,7 +74,7 @@ public class UserController extends BaseController {
     }
 
     /**
-     * @param loginer
+     * @param loginer 登录用户信息
      * @return ResponseResult
      * @author zhang
      */
@@ -89,14 +89,14 @@ public class UserController extends BaseController {
     /**
      * 刷新token
      *
-     * @param refreshToken
+     * @param refreshToken 刷新令牌
      * @return ResponseResult
      * @author zhang
      */
     @PostMapping("/refresh")
     public ResponseResult<String> refreshToken(String refreshToken) {
         Map<String, Object> userMap = jwtProcessor.extractUserMap(refreshToken);
-        Long userId = (Long) userMap.get("userId");
+        Long userId = (Long) userMap.get("id");
         User user = userMapper.selectByPrimaryKey(userId);
         if (user.getStatus() == 0) {
             log.error("该用户处于异常状态，无法执行下一步操作");
@@ -109,18 +109,19 @@ public class UserController extends BaseController {
 
     /***
      * 用户退出登陆时，需要删除token信息
-     * @param request
      * @return ResponseEntity
-     * @Author zhang
+     * @author zhang
      */
     @GetMapping("/logout")
-    public ResponseResult<String> logout(HttpServletRequest request) {
-        String accessToken = request.getHeader("accessToken");
+    public ResponseResult<String> logout() {
         Long userId = currentUserHolder.getUserId();
+        User user = userService.selectUserByUserId(userId)
+                .orElseThrow(()->new BusinessException("用户不存在"));
+        String accessToken = (String) redisProcessor.get(RedisTransKey.getTokenKey(user.getEmail()));
         if (!jwtProcessor.validateToken(accessToken, userId)) {
             return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
         }
-        User user = userMapper.selectByPrimaryKey(userId);
+
         redisProcessor.del(RedisTransKey.getRefreshTokenKey(user.getEmail()));
         redisProcessor.del(RedisTransKey.getLoginKey(user.getEmail()));
         redisProcessor.del(RedisTransKey.getTokenKey(user.getEmail()));
@@ -130,17 +131,15 @@ public class UserController extends BaseController {
 
     /**
      * 用户删除登录会先对当前请求中的token进行验证
-     *
-     * @param request
      * @return ResponseResult
      * @author zhang
      */
     @DeleteMapping("/delete")
-    public ResponseResult<String> delete(HttpServletRequest request) {
-        String accessToken = request.getHeader("accessToken");
+    public ResponseResult<String> delete() {
         Long userId = currentUserHolder.getUserId();
-        userService.selectUserByUserId(userId)
+        User user = userService.selectUserByUserId(userId)
                 .orElseThrow(() -> new BusinessException("用户不存在！"));
+        String accessToken = (String) redisProcessor.get(RedisTransKey.getTokenKey(user.getEmail()));
         if (!jwtProcessor.validateToken(accessToken, userId)) {
             return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
         }
@@ -150,8 +149,7 @@ public class UserController extends BaseController {
 
     /**
      * 用户更新信息前先对当前请求中的token进行验证
-     *
-     * @param userInfoVo
+     * @param userInfoVo 更新用户信息
      * @return ResponseResult
      * @author zhang
      */
@@ -159,11 +157,11 @@ public class UserController extends BaseController {
     public ResponseResult<String> updateUser(@RequestBody UserInfoVo userInfoVo) {
         String accessToken = (String) redisProcessor.get(RedisTransKey.getTokenKey(userInfoVo.getEmail()));
         Long userId = currentUserHolder.getUserId();
+        User user = userService.selectUserByUserId(userId)
+                .orElseThrow(() -> new BusinessException("用户不存在！"));
         if (!jwtProcessor.validateToken(accessToken, userId)) {
             return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
         }
-        User user = userService.selectUserByUserId(userId)
-                .orElseThrow(() -> new BusinessException("用户不存在！"));
         BeanUtil.copyProperties(userInfoVo, user, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
         userService.updateUser(user);
         Map<String, Object> userMap = UserTransUtils.getUserMap(user);
@@ -175,8 +173,8 @@ public class UserController extends BaseController {
 
     /**
      * 修改用户密码
-     * @param oldPassword
-     * @param newPassword
+     * @param oldPassword 旧密码
+     * @param newPassword 新密码
      * @return ResponseResult
      * @time 2024-09-13 16:53
      */

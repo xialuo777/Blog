@@ -2,6 +2,14 @@
 
 基础上手学习(https://ssegsa.github.io/practice/vue/vue-login-demo.html)
 
+安装适合版本依赖
+
+```vue
+npm install vuelidate --legacy-peer-deps
+```
+
+
+
 ## 登录
 
 Token 参考1  

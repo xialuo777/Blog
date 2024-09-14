@@ -1,4 +1,4 @@
-package com.blog.bo;
+package com.blog.util.bo;
 
 import com.blog.entity.BlogComment;
 import com.blog.entity.User;
@@ -9,6 +9,11 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+
+/**
+ * @author: zhang
+ * @time: 2024-09-14 11:32
+ */
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)

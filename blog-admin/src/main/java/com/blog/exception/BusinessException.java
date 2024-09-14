@@ -5,32 +5,32 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
- * @Author z
- * @ClassName BusinessException
- * @Description 业务异常类
- * 例如：登录功能,账号不存在或密码错误时,可抛出一个业务异常,自定义异常信息
- * @Time 2024-08-23 16:13
+ * 业务异常类
+ * @author zhang
+ * @time 2024-08-23 16:13
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class BusinessException extends RuntimeException{
 
-    private static final long serialVersionUID = 1L;
+    private final long serialVersionUID = 1L;
 
-    private final static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     /**
      * 异常对应的返回码
      */
-    private static Integer code;
+    private Integer code;
 
     /**
      * 异常对应的描述信息
      */
-    private static String message;
+    private String message;
 
-    private static Throwable throwable;
+    private Throwable throwable;
 
     public BusinessException() {
         super();
@@ -84,17 +84,12 @@ public class BusinessException extends RuntimeException{
         return code;
     }
 
-    public void setCode(Integer code) {
-        this.code = code;
-    }
 
-    @Override public String getMessage() {
+    @Override
+    public String getMessage() {
         return message;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
 
 
 

@@ -2,8 +2,8 @@ package com.blog.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.blog.authentication.CurrentUserHolder;
-import com.blog.bo.BlogCommentBo;
-import com.blog.dto.PageRequest;
+import com.blog.util.bo.BlogCommentBo;
+import com.blog.util.dto.PageRequest;
 import com.blog.entity.Blog;
 import com.blog.entity.BlogComment;
 import com.blog.entity.User;
@@ -12,7 +12,7 @@ import com.blog.exception.ResponseResult;
 import com.blog.service.BlogService;
 import com.blog.service.CommentService;
 import com.blog.service.UserService;
-import com.blog.vo.comment.CommentVoIn;
+import com.blog.vo.comment.CommentInVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +20,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author: zhang
+ * @time: 2024-09-14 10:37
+ */
 @RestController
 @RequestMapping("/comments")
 @RequiredArgsConstructor
@@ -29,14 +33,17 @@ public class CommentController {
     private final BlogService blogService;
     private final CurrentUserHolder currentUserHolder;
 
+    public static final String PAGE_NO = "pageNo";
+    public static final String PAGE_SIZE = "pageSize";
+
     /**
      * 添加评论
-     * @param commentVo
+     * @param commentVo 接收添加的评论信息
      * @return ResponseResult
      * @author zhang
      */
     @PostMapping("/blog/comment")
-    public ResponseResult<String> addComment(@RequestBody CommentVoIn commentVo) {
+    public ResponseResult<String> addComment(@RequestBody CommentInVo commentVo) {
         User user = userService.selectUserByUserId(commentVo.getCommentatorId())
                 .orElseThrow(()->new BusinessException("用户不存在！"));
         if (user.getStatus() == 1) {
@@ -57,7 +64,7 @@ public class CommentController {
 
     /**
      * 删除评论
-     * @param commentId
+     * @param commentId 评论id
      * @return ResponseResult
      * @author zhang
 
@@ -76,15 +83,15 @@ public class CommentController {
 
     /**
      * 查看当前博客下的所有评论
-     * @param blogId
-     * @param params
+     * @param blogId 当前博客id
+     * @param params 分页信息
      * @return ResponseResult
      * @author zhang
      */
 
     @GetMapping("/{blogId}")
     public ResponseResult<List<BlogCommentBo>> getCommentListAll(@PathVariable Long blogId, @RequestParam Map<String,Object> params) {
-        if (ObjectUtils.isEmpty(params.get("pageNo")) || ObjectUtils.isEmpty(params.get("pageSize"))) {
+        if (ObjectUtils.isEmpty(params.get(PAGE_NO)) || ObjectUtils.isEmpty(params.get(PAGE_SIZE))) {
             return ResponseResult.fail("参数异常！");
         }
         blogService.getBlogById(blogId).orElseThrow(() -> new BusinessException("该博客不存在！"));

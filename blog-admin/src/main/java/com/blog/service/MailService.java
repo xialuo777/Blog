@@ -17,7 +17,10 @@ import org.springframework.validation.annotation.Validated;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
-
+/**
+ * @author: zhang
+ * @time: 2024-09-14 12:48
+ */
 @Service
 @Validated
 @Slf4j
@@ -31,7 +34,7 @@ public class MailService {
     /**
      * 发送邮箱验证码，并将验证码信息保存在redis中
      *
-     * @param toEmail
+     * @param toEmail 邮箱
      */
     public void getEmailCode(String toEmail) {
         String code = CodeUtils.getCode();
@@ -43,10 +46,10 @@ public class MailService {
     }
 
     /**
-     * @param toEmail
-     * @param code
-     * @Descriptionn 发送邮件验证码
-     * @Time 2024-08-22 17:03
+     * 发送邮件验证码
+     * @param toEmail 邮箱
+     * @param code    验证码
+     * @time 2024-08-22 17:03
      */
     private void sendCodeMailMessage(String toEmail, String code) {
         String subject = "【博客】验证码";
@@ -56,10 +59,10 @@ public class MailService {
     }
 
     /**
-     * @param to
-     * @param subject
-     * @param text
-     * @Descriptionn 发送文本邮件
+     * 发送文本信息
+     * @param to 发送目的邮箱
+     * @param subject 发送邮件主题
+     * @param text 发送邮件内容
      */
     private void sendTextMailMessage(String to, String subject, String text) {
         try {

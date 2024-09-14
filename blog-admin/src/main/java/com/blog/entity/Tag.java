@@ -2,13 +2,16 @@ package com.blog.entity;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
+/**
+ * @author: zhang
+ * @time: 2024-09-14 10:48
+ */
 @ApiModel(description = "tag")
 @Data
 @AllArgsConstructor
@@ -30,10 +33,6 @@ public class Tag {
         this.tagName = tagName;
     }
 
-    public Tag(Integer tagId,String tagName){
-        this.tagId = tagId;
-        this.tagName = tagName;
-    }
 
 
 }

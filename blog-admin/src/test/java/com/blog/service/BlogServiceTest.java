@@ -307,7 +307,7 @@ class BlogServiceTest {
         final List<Blog> blogs = Arrays.asList(blog1);
         when(mockBlogMapper.selectListByUserId(0L)).thenReturn(blogs);
 
-        final List<Blog> result = blogServiceUnderTest.getBlogList(0L, 0, 0);
+        final List<Blog> result = blogServiceUnderTest.getBlogListByUserId(0L, 0, 0);
 
         assertThat(result).isEqualTo(expectedResult);
     }
@@ -316,7 +316,7 @@ class BlogServiceTest {
     void testGetBlogList_BlogMapperReturnsNoItems() {
         when(mockBlogMapper.selectListByUserId(0L)).thenReturn(Collections.emptyList());
 
-        final List<Blog> result = blogServiceUnderTest.getBlogList(0L, 0, 0);
+        final List<Blog> result = blogServiceUnderTest.getBlogListByUserId(0L, 0, 0);
 
         assertThat(result).isEqualTo(Collections.emptyList());
     }

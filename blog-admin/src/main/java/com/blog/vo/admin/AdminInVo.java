@@ -16,7 +16,7 @@ import javax.validation.constraints.NotBlank;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AdminVoIn {
+public class AdminInVo {
     @NotBlank
     private String account;
     @NotBlank

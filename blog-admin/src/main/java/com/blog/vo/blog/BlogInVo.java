@@ -10,9 +10,13 @@ import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 
+/**
+ * @author: zhang
+ * @time: 2024-09-14 14:12
+ */
 @Data
 @ApiModel(description = "文章VO")
-public class BlogVo {
+public class BlogInVo {
 
     /**
      * 文章id
@@ -87,9 +91,9 @@ public class BlogVo {
 
 
     /**
-     * 状态 (1公开 2私密 3草稿)
+     * 状态 (1公开 2私密 0草稿)
      */
-    @ApiModelProperty(value = "状态 (1公开 2私密 3草稿)", required = true)
+    @ApiModelProperty(value = "状态 (1公开 2私密 0草稿)", required = true)
     private Integer blogStatus;
 
 }

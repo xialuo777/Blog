@@ -1,7 +1,7 @@
 package com.blog.service;
 
-import com.blog.dto.PageRequest;
-import com.blog.dto.PageResult;
+import com.blog.util.bo.BlogCommentBo;
+import com.blog.util.dto.PageRequest;
 import com.blog.entity.BlogComment;
 import com.blog.mapper.BlogCommentMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,14 +10,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CommentServiceTest {
@@ -90,6 +87,93 @@ class CommentServiceTest {
         commentServiceUnderTest.deleteComment(0);
 
         verify(mockBlogCommentMapper).deleteByPrimaryKey(0);
+    }
+
+
+
+    @Test
+    void queryCommentList_ReturnsList() {
+        PageRequest pageRequest = new PageRequest(1, 10);
+        Long blogId = 1L;
+
+        List<BlogCommentBo> firstCommentList = new ArrayList<>();
+        BlogCommentBo firstComment = new BlogCommentBo();
+        firstComment.setCommentId(1);
+        firstComment.setLastId(0);
+        firstCommentList.add(firstComment);
+
+        List<BlogCommentBo> secondCommentList = new ArrayList<>();
+        BlogCommentBo secondComment = new BlogCommentBo();
+        secondComment.setCommentId(2);
+        secondComment.setLastId(1);
+        secondCommentList.add(secondComment);
+
+        when(mockBlogCommentMapper.queryFirstCommentList(blogId)).thenReturn(firstCommentList);
+        when(mockBlogCommentMapper.querySecondCommentList(blogId)).thenReturn(secondCommentList);
+
+        List<BlogCommentBo> result = commentServiceUnderTest.queryCommentList(pageRequest, blogId);
+
+        assertEquals(1, result.size());
+        assertEquals(1, result.get(0).getCommentId());
+        assertEquals(1, result.get(0).getNextNodes().size());
+        assertEquals(2, result.get(0).getNextNodes().get(0).getCommentId());
+
+        verify(mockBlogCommentMapper, times(1)).queryFirstCommentList(blogId);
+        verify(mockBlogCommentMapper, times(1)).querySecondCommentList(blogId);
+    }
+
+    @Test
+    void queryCommentList_ReturnsEmptyList() {
+        PageRequest pageRequest = new PageRequest(1, 10);
+        Long blogId = 1L;
+
+        when(mockBlogCommentMapper.queryFirstCommentList(blogId)).thenReturn(new ArrayList<>());
+        when(mockBlogCommentMapper.querySecondCommentList(blogId)).thenReturn(new ArrayList<>());
+
+        List<BlogCommentBo> result = commentServiceUnderTest.queryCommentList(pageRequest, blogId);
+
+        assertEquals(0, result.size());
+
+        verify(mockBlogCommentMapper, times(1)).queryFirstCommentList(blogId);
+        verify(mockBlogCommentMapper, times(1)).querySecondCommentList(blogId);
+    }
+
+    @Test
+    void queryCommentList_ReturnsListWithUnlinkedComments() {
+
+        PageRequest pageRequest = new PageRequest(1, 10);
+        Long blogId = 1L;
+
+        List<BlogCommentBo> firstCommentList = new ArrayList<>();
+        BlogCommentBo firstComment = new BlogCommentBo();
+        firstComment.setCommentId(1);
+        firstComment.setLastId(0);
+        firstCommentList.add(firstComment);
+
+        List<BlogCommentBo> secondCommentList = new ArrayList<>();
+        BlogCommentBo secondComment = new BlogCommentBo();
+        secondComment.setCommentId(2);
+        secondComment.setLastId(1);
+        secondCommentList.add(secondComment);
+        BlogCommentBo unlinkedComment = new BlogCommentBo();
+        unlinkedComment.setCommentId(3);
+        unlinkedComment.setLastId(2);
+        secondCommentList.add(unlinkedComment);
+
+        when(mockBlogCommentMapper.queryFirstCommentList(blogId)).thenReturn(firstCommentList);
+        when(mockBlogCommentMapper.querySecondCommentList(blogId)).thenReturn(secondCommentList);
+
+        List<BlogCommentBo> result = commentServiceUnderTest.queryCommentList(pageRequest, blogId);
+
+        assertEquals(1, result.size());
+        assertEquals(1, result.get(0).getCommentId());
+        assertEquals(1, result.get(0).getNextNodes().size());
+        assertEquals(2, result.get(0).getNextNodes().get(0).getCommentId());
+        assertEquals(1, result.get(0).getNextNodes().get(0).getNextNodes().size());
+        assertEquals(3, result.get(0).getNextNodes().get(0).getNextNodes().get(0).getCommentId());
+
+        verify(mockBlogCommentMapper, times(1)).queryFirstCommentList(blogId);
+        verify(mockBlogCommentMapper, times(1)).querySecondCommentList(blogId);
     }
 
 }

@@ -14,8 +14,6 @@ import com.blog.util.redis.RedisTransKey;
 import com.blog.util.redis.RedisProcessor;
 import com.blog.vo.user.Loginer;
 import com.blog.vo.user.Register;
-import com.github.pagehelper.PageHelper;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,7 +21,6 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -39,8 +36,6 @@ class UserServiceTest {
 
     @Mock
     private UserMapper mockUserMapper;
-    @Mock
-    private CurrentUserHolder currentUserHolder;
 
     @Mock
     private RedisProcessor mockRedisProcessor;
@@ -337,7 +332,7 @@ class UserServiceTest {
         List<User> expectedUsers = Arrays.asList(user1,user2);
         when(mockUserMapper.selectUsers()).thenReturn(expectedUsers);
 
-        List<User> actualUsers = mockUserService.getUsers(pageNo, pageSize);
+        List<User> actualUsers = mockUserService.getUsers(pageNo, pageSize).orElseThrow(()->new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         assertNotNull(actualUsers);
         assertEquals(expectedUsers, actualUsers);
@@ -357,7 +352,7 @@ class UserServiceTest {
 
         when(mockUserMapper.selectByPrimaryKey(userId)).thenReturn(expectedUser);
 
-        User actualUser = mockUserService.selectUserByUserId(userId).get();
+        User actualUser = mockUserService.selectUserByUserId(userId).orElseThrow(()->new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         assertEquals(expectedUser, actualUser);
     }

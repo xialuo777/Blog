@@ -1,5 +1,9 @@
 package com.blog.util.redis;
 
+/**
+ * @author: zhang
+ * @time: 2024-09-14 13:01
+ */
 public class RedisTransKey {
 
     private static final String REDIS_NAME_SPACE="user";
@@ -10,9 +14,6 @@ public class RedisTransKey {
 
     public static String emailKey(String key){
         return REDIS_NAME_SPACE+":"+REDIS_EMAIL_CODE_NAME+":"+key;
-    }
-    public static String rootKey(String key){
-        return REDIS_NAME_SPACE+":"+key+"";
     }
     public static String tokenKey(String key){
         return REDIS_NAME_SPACE+':'+REDIS_TOKEN_NAME+":"+key;
@@ -25,7 +26,6 @@ public class RedisTransKey {
     }
 
     public static String getEmailKey(String key){return emailKey(key);}
-    public static String getRootKey(String key){return rootKey(key);}
     public static String getTokenKey(String key){return tokenKey(key);}
     public static String getRefreshTokenKey(String key){return refreshTokenKey(key);}
     public static String getLoginKey(String key){return loginKey(key);}

@@ -16,6 +16,7 @@ import com.blog.mapper.BlogTagMapper;
 import com.blog.mapper.CategoryMapper;
 import com.blog.mapper.TagMapper;
 import com.blog.util.SnowFlakeUtil;
+import com.blog.vo.blog.BlogDesc;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.util.StringUtil;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,10 @@ import org.springframework.util.CollectionUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
+/**
+ * @author: zhang
+ * @time: 2024-09-14 11:30
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -44,7 +48,7 @@ public class BlogService {
     /**
      * 新增博客，同时对博客的标签以及分类等关系进行处理
      *
-     * @param blog
+     * @param blog 博客信息
      */
     @Transactional
     public void saveBlog(Blog blog) {
@@ -65,7 +69,7 @@ public class BlogService {
     /**
      * 更新博客，同时对博客的标签以及分类等关系进行处理
      *
-     * @param blog
+     * @param blog 博客信息
      */
     @Transactional
     public void updateBlog(Blog blog) {
@@ -81,9 +85,8 @@ public class BlogService {
     /**
      * 处理博客分类信息
      *
-     * @param blog
-     * @param categoryExist
-     * @return Blog
+     * @param blog 博客信息
+     * @param categoryExist 分类信息
      */
     private void handleCategoryAndBlog(Blog blog, Optional<Category> categoryExist) {
         /*如果分类是新增分类，需要输入categoryId和categoryName信息
@@ -99,7 +102,7 @@ public class BlogService {
     /**
      * 处理博客标签信息
      *
-     * @param blog
+     * @param blog 博客信息
      */
 
     private void handleTags(Blog blog) {
@@ -117,16 +120,15 @@ public class BlogService {
             //处理数据库中并不存在的标签，即需要新插入的标签
             List<Tag> tagListForInsert = distinctTagNames.stream()
                     .filter(tagName -> !mutableTagsFromDb.stream().map(Tag::getTagName).collect(Collectors.toSet()).contains(tagName))
-                    .map(tagName -> new Tag(tagName))
+                    .map(Tag::new)
                     .collect(Collectors.toList());
 
             if (!CollectionUtils.isEmpty(tagListForInsert)) {
                 tagMapper.insertList(tagListForInsert);
-                mutableTagsFromDb.addAll(tagListForInsert); // 将新插入的标签添加到数据库中
+                mutableTagsFromDb.addAll(tagListForInsert);
             }
 
-            List<Tag> allTagsList = mutableTagsFromDb.stream()
-                    .collect(Collectors.toList());
+            List<Tag> allTagsList = new ArrayList<>(mutableTagsFromDb);
 
             List<BlogTag> blogTags = createBlogTags(blog, allTagsList);
             //删除当前博客已经关联的标签，再重新关联，适用于修改博客标签信息场景
@@ -140,21 +142,20 @@ public class BlogService {
     /**
      * 处理博客标签关系，即博客与标签的关联表
      *
-     * @param blog
-     * @param tags
+     * @param blog 博客信息
+     * @param tags 标签信息
      * @return List<BlogTag>
      */
     private List<BlogTag> createBlogTags(Blog blog, List<Tag> tags) {
-        List<BlogTag> blogTags = tags.stream()
+        return tags.stream()
                 .map(tag -> new BlogTag(blog.getBlogId(), tag.getTagId()))
                 .collect(Collectors.toList());
-        return blogTags;
+
     }
 
-    public List<Blog> getBlogList(Long userId, int pageNo, int pageSize) {
+    public List<Blog> getBlogListByUserId(Long userId, int pageNo, int pageSize) {
         PageHelper.startPage(pageNo, pageSize);
-        List<Blog> blogs = blogMapper.selectListByUserId(userId);
-        return blogs;
+        return blogMapper.selectListByUserId(userId);
     }
 
     public Optional<Blog> getBlogById(Long blogId) {
@@ -163,11 +164,16 @@ public class BlogService {
 
     public List<Blog> getBlogListByCategoryId(Long categoryId, int pageNo, int pageSize) {
         PageHelper.startPage(pageNo, pageSize);
-        List<Blog> blogs = blogMapper.selectListByCategoryId(categoryId);
-        return blogs;
+        return blogMapper.selectListByCategoryId(categoryId);
     }
 
     public void deleteBlog(Long blogId) {
         blogMapper.deleteByPrimaryKey(blogId);
+    }
+
+    public Optional<List<BlogDesc>> getBlogList(int pageNo, int pageSize) {
+        PageHelper.startPage(pageNo, pageSize);
+        List<BlogDesc> blogDescList = blogMapper.selectList();
+        return Optional.ofNullable(blogDescList);
     }
 }

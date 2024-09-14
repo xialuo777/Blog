@@ -1,6 +1,5 @@
 package com.blog.entity;
 
-import cn.hutool.core.date.DateTime;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -8,6 +7,10 @@ import lombok.Data;
 
 import java.util.Date;
 
+/**
+ * @author: zhang
+ * @time: 2024-09-14 10:48
+ */
 @ApiModel(description = "category")
 @Data
 public class Category {

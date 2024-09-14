@@ -23,6 +23,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author: zhang
+ * @time: 2024-09-14 12:50
+ */
 @Slf4j
 @Service
 @AllArgsConstructor
@@ -36,11 +40,9 @@ public class UserService {
 
 
     /**
-     * 用户登录，登陆成功后返回accessToke，refreshToken，userId
-     *
-     * @Param loginer
-     * @Return String
-     * @Desription 用户登录
+     * 用户登录，登陆成功后返回accessToke，refreshToken
+     * @param loginer 登录人的信息
+     * @return LoginResponse
      */
     public LoginResponse userLogin(Loginer loginer) {
         String email = loginer.getEmail();
@@ -59,15 +61,13 @@ public class UserService {
         redisProcessor.set(RedisTransKey.refreshTokenKey(email), refreshToken, 7, TimeUnit.DAYS);
         redisProcessor.set(RedisTransKey.tokenKey(email), accessToken, 7, TimeUnit.DAYS);
         redisProcessor.set(RedisTransKey.loginKey(email), email, 7, TimeUnit.DAYS);
-        LoginResponse loginResponse = new LoginResponse(accessToken,refreshToken);
-        return loginResponse;
+        return  new LoginResponse(accessToken,refreshToken);
     }
 
     /**
      * 刷新accessToken信息，并生成新的refreshToken
-     *
-     * @Param refreshToken
-     * @Return Map<String, Object>
+     * @param refreshToken 刷新token
+     * @return String
      */
     public String refreshAccessToken(String refreshToken, Long userId) {
         //对刷新令牌进行验证，以防恶意利用其他用户refreshToken刷新
@@ -88,10 +88,7 @@ public class UserService {
 
     /**
      * 注册新用户，并最后清理redis中的验证码信息
-     *
-     * @Description 注册新用户
-     * @Param register
-     * @Return User
+     * @param register 注册信息
      */
     public void userRegister(@Validated Register register) {
         String account = register.getAccount();
@@ -140,9 +137,9 @@ public class UserService {
     }
 
     /**
-     * @Description 根据用户邮箱查找用户
-     * @Param email
-     * @Return User
+     * 根据用户邮箱查找用户
+     * @param email 用户邮箱
+     * @return User 用户信息
      */
     public User selectUserByEmail(String email) {
         User user = userMapper.findByEmail(email);
@@ -155,9 +152,8 @@ public class UserService {
 
     /**
      * 根据用户昵称去查找用户信息
-     *
-     * @param nickName
-     * @return
+     * @param nickName 用户昵称
+     * @return List<User>
      */
     public List<User> selectUsersByNickName(String nickName, int pageNo, int pageSize) {
         PageHelper.startPage(pageNo, pageSize);
@@ -173,24 +169,24 @@ public class UserService {
      * 查询所有用户
      * @return List<User>
      */
-    public List<User> getUsers(int pageNo, int pageSize) {
+    public Optional<List<User>> getUsers(int pageNo, int pageSize) {
         PageHelper.startPage(pageNo, pageSize);
-        return userMapper.selectUsers();
+        return Optional.ofNullable(userMapper.selectUsers());
     }
 
 
     /**
-     * @Description 根据用户id查找用户
-     * @Param userId
-     * @Return User
+     * 根据用户id查找用户
+     * @param userId 用户id
+     * @return User 用户信息
      */
     public Optional<User> selectUserByUserId(Long userId) {
         return Optional.ofNullable(userMapper.selectByPrimaryKey(userId));
     }
 
     /**
-     * @param userId
-     * @description 根据用户id删除用户
+     * 根据用户id删除用户
+     * @param userId 用户id
      */
     public void deleteUserById(Long userId) {
         userMapper.deleteByPrimaryKey(userId);
@@ -198,8 +194,7 @@ public class UserService {
 
     /**
      * 更新用户信息
-     *
-     * @param user
+     * @param user 用户信息
      */
     public void updateUser(User user) {
         userMapper.updateByPrimaryKeySelective(user);

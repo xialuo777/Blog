@@ -1,14 +1,16 @@
 package com.blog.exception;
 
 import com.blog.enums.ErrorCode;
-import com.blog.vo.user.UserVo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
-import java.util.List;
 
-
+/**
+ * @author: zhang
+ * @time: 2024-09-14 10:56
+ * @param <T>
+ */
 @Data
 @ApiModel(description = "结果返回类")
 public class ResponseResult<T> {
@@ -32,10 +34,6 @@ public class ResponseResult<T> {
     @ApiModelProperty(value = "返回数据")
     private T data;
 
-
-    public static <T> ResponseResult<T> success(List<UserVo> result, int totalCount) {
-        return buildResult(null, ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMessage());
-    }
 
 
     public static <T> ResponseResult<T> success(T data) {

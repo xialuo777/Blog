@@ -7,7 +7,7 @@ import com.blog.util.JwtProcessor;
 import com.blog.util.bo.LoginResponse;
 import com.blog.util.redis.RedisProcessor;
 import com.blog.util.redis.RedisTransKey;
-import com.blog.vo.admin.AdminVoIn;
+import com.blog.vo.admin.AdminInVo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  *
  * @author : [24360]
  * @version : [v1.0]
- * @createTime : [2024/9/13 15:41]
+ * @time : [2024/9/13 15:41]
  */
 @Service
 @RequiredArgsConstructor
@@ -32,13 +32,13 @@ public class AdminService {
     private final JwtProcessor jwtProcessor;
     private final RedisProcessor redisProcessor;
 
-    public LoginResponse adminLogin(AdminVoIn adminVoIn) {
-        Admin admin = Optional.ofNullable(adminMapper.selectByAccount(adminVoIn.getAccount()))
+    public LoginResponse adminLogin(AdminInVo adminInVo) {
+        Admin admin = Optional.ofNullable(adminMapper.selectByAccount(adminInVo.getAccount()))
                 .orElseThrow(() -> new BusinessException("该管理员账号不存在"));
-        if (!admin.getPassword().equals(adminVoIn.getPassword())) {
+        if (!admin.getPassword().equals(adminInVo.getPassword())) {
             throw new BusinessException("密码错误");
         }
-        Map<String, Object> adminMap = new HashMap<>();
+        Map<String, Object> adminMap = new HashMap<>(2);
         adminMap.put("account",admin.getAccount());
         adminMap.put("id",admin.getAdminId());
         String accessToken = jwtProcessor.generateToken(adminMap);

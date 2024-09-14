@@ -255,4 +255,11 @@
     from blog b
     where b.category_id = #{categoryId,jdbcType=INTEGER}
   </select>
+
+  <select id="selectList" resultType="com.blog.vo.blog.BlogDesc">
+    select
+      <include refid="Base_Column_List">
+      </include>
+    from blog
+  </select>
 </mapper>

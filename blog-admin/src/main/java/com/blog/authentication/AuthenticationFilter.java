@@ -15,6 +15,11 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * JWT过滤器
+ * @author: zhang
+ * @time: 2024-09-14 10:19
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -40,11 +45,11 @@ public class AuthenticationFilter implements Filter {
         String accessToken = request.getHeader("Authorization");
 
 
-        String requestURI = request.getRequestURI();
+        String requestUri = request.getRequestURI();
         /*登录、注册、令牌刷新等操作不验证身份，对其他的业务操作进行验证*/
 
         try {
-            if (ALLOWED_PATHS.contains(requestURI)) {
+            if (ALLOWED_PATHS.contains(requestUri)) {
                 filterChain.doFilter(request, response);
                 return;
             }

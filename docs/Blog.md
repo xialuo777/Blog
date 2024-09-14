@@ -601,7 +601,7 @@ import com.blog.service.UserService;
 import com.blog.vo.blog.BlogDesc;
 import com.blog.vo.blog.BlogDetail;
 import com.blog.vo.blog.BlogUpdateVo;
-import com.blog.vo.blog.BlogVo;
+import com.blog.vo.blog.BlogInVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
@@ -619,19 +619,19 @@ public class BlogController extends BaseController{
 
     /**
      * 保存文章
-     * @param blogVo
+     * @param blogInVo
      * @return ResponseResult
      * @author zhang
      */
     @PostMapping("/save")
-    public ResponseResult<String> saveBlog(@RequestBody BlogVo blogVo) {
-        User user = userService.selectUserByUserId(blogVo.getUserId())
+    public ResponseResult<String> saveBlog(@RequestBody BlogVo blogInVo) {
+        User user = userService.selectUserByUserId(blogInVo.getUserId())
                 .orElseThrow(() -> new BusinessException("用户不存在！"));
         if (user.getStatus()==1){
             return ResponseResult.fail("该用户已被封禁，无法发布文章！");
         }
         Blog blog = new Blog();
-        BeanUtil.copyProperties(blogVo, blog);
+        BeanUtil.copyProperties(blogInVo, blog);
         blogService.saveBlog(blog);
         return ResponseResult.success("文章保存成功");
     }
@@ -703,10 +703,10 @@ public class BlogController extends BaseController{
         if (CollectionUtils.isEmpty(blogList)) {
             return ResponseResult.fail("该分类下暂无文章");
         }
-        List<BlogVo> blogVoList = blogList.stream()
+        List<BlogVo> blogInVoList = blogList.stream()
                 .map(blog -> BeanUtil.copyProperties(blog, BlogVo.class))
                 .collect(Collectors.toList());
-        return ResponseResult.success(blogVoList);
+        return ResponseResult.success(blogInVoList);
     }
 
     /**
@@ -1202,7 +1202,7 @@ public class UserService {
 package com.blog.service;
 
 import cn.hutool.core.collection.CollectionUtil;
-import com.blog.bo.BlogCommentBo;
+import com.blog.util.bo.BlogCommentBo;
 import com.blog.dto.PageRequest;
 import com.blog.entity.BlogComment;
 import com.blog.mapper.BlogCommentMapper;
@@ -1288,7 +1288,7 @@ package com.blog.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.blog.authentication.CurrentUserHolder;
-import com.blog.bo.BlogCommentBo;
+import com.blog.util.bo.BlogCommentBo;
 import com.blog.dto.PageRequest;
 import com.blog.dto.PageResult;
 import com.blog.entity.Blog;
@@ -1299,8 +1299,8 @@ import com.blog.exception.ResponseResult;
 import com.blog.service.BlogService;
 import com.blog.service.CommentService;
 import com.blog.service.UserService;
-import com.blog.vo.comment.CommentInfo;
-import com.blog.vo.comment.CommentVoIn;
+import com.blog.vo.comment.CommentOutVo;
+import com.blog.vo.comment.CommentInVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -1455,7 +1455,7 @@ import com.blog.util.JwtProcessor;
 import com.blog.util.bo.LoginResponse;
 import com.blog.util.redis.RedisProcessor;
 import com.blog.util.redis.RedisTransKey;
-import com.blog.vo.admin.AdminVoIn;
+import com.blog.vo.admin.AdminInVo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -1480,10 +1480,10 @@ public class AdminService {
     private final JwtProcessor jwtProcessor;
     private final RedisProcessor redisProcessor;
 
-    public LoginResponse adminLogin(AdminVoIn adminVoIn) {
-        Admin admin = Optional.ofNullable(adminMapper.selectByAccount(adminVoIn.getAccount()))
+    public LoginResponse adminLogin(AdminVoIn adminInVo) {
+        Admin admin = Optional.ofNullable(adminMapper.selectByAccount(adminInVo.getAccount()))
                 .orElseThrow(() -> new BusinessException("该管理员账号不存在"));
-        if (!admin.getPassword().equals(adminVoIn.getPassword())) {
+        if (!admin.getPassword().equals(adminInVo.getPassword())) {
             throw new BusinessException("密码错误");
         }
         Map<String, Object> adminMap = new HashMap<>();
@@ -1527,7 +1527,7 @@ import com.blog.util.JwtProcessor;
 import com.blog.util.bo.LoginResponse;
 import com.blog.util.redis.RedisProcessor;
 import com.blog.util.redis.RedisTransKey;
-import com.blog.vo.admin.AdminVoIn;
+import com.blog.vo.admin.AdminInVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -1547,32 +1547,32 @@ public class AdminController extends BaseController{
 
     /**
      * 管理员账号登录
-     * @param adminVoIn
+     * @param adminInVo
      * @return ResponseResult
      * @author zhang
      */
     @PostMapping("/login")
-    public ResponseResult<LoginResponse> login(@RequestBody AdminVoIn adminVoIn) {
-        LoginResponse loginResponse = adminService.adminLogin(adminVoIn);
+    public ResponseResult<LoginResponse> login(@RequestBody AdminVoIn adminInVo) {
+        LoginResponse loginResponse = adminService.adminLogin(adminInVo);
         return ResponseResult.success(loginResponse);
     }
 
     /**
      * 更新管理员账号信息
-     * @param adminVoIn
+     * @param adminInVo
      * @return ResponseResult
      * @author zhang
      */
     @PutMapping("/update")
-    public ResponseResult<String> updateAdmin(@RequestBody AdminVoIn adminVoIn) {
-        String accessToken = (String) redisProcessor.get(RedisTransKey.getTokenKey(adminVoIn.getAccount()));
+    public ResponseResult<String> updateAdmin(@RequestBody AdminVoIn adminInVo) {
+        String accessToken = (String) redisProcessor.get(RedisTransKey.getTokenKey(adminInVo.getAccount()));
         Long adminId = currentUserHolder.getUserId();
         if (!jwtProcessor.validateToken(accessToken, adminId)) {
             return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
         }
         Admin admin = adminService.getAdminById(adminId).orElseThrow(() -> new BusinessException("该管理员账户不存在"));
 
-        BeanUtil.copyProperties(adminVoIn, admin, CopyOptions.create().setIgnoreNullValue(true).setIgnoreCase(true));
+        BeanUtil.copyProperties(adminInVo, admin, CopyOptions.create().setIgnoreNullValue(true).setIgnoreCase(true));
         adminService.updateAdmin(admin);
         return ResponseResult.success("管理员信息更新成功");
     }

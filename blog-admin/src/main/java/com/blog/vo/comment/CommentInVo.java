@@ -15,7 +15,7 @@ import org.hibernate.validator.constraints.Length;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommentVoIn {
+public class CommentInVo {
     /**
      * 关联的blog主键
      */

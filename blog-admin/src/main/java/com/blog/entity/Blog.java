@@ -7,6 +7,10 @@ import lombok.Data;
 
 import java.util.Date;
 
+/**
+ * @author: zhang
+ * @time: 2024-09-14 10:46
+ */
 @ApiModel(description = "blog")
 @Data
 public class Blog {
