@@ -1,5 +1,6 @@
 package com.blog.authentication;
 
+import com.blog.constant.Constant;
 import com.blog.util.JwtProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,7 @@ public class AuthenticationFilter implements Filter {
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         //从"Authorization"请求头中获取accessToken
-        String accessToken = request.getHeader("Authorization");
+        String accessToken = request.getHeader(Constant.AUTHORIZATION);
 
 
         String requestUri = request.getRequestURI();
@@ -55,7 +56,7 @@ public class AuthenticationFilter implements Filter {
             }
             //extractUserId内部进行token验证时会对invalidToken的异常进行处理
             Map<String, Object> userMap = jwtProcessor.extractUserMap(accessToken);
-            Long userId = (Long) userMap.get("id");
+            Long userId = (Long) userMap.get(Constant.ID);
             currentUserHolder.setUserId(userId);
             filterChain.doFilter(request, response);
         } finally {

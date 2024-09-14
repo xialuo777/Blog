@@ -4,30 +4,30 @@
   <resultMap id="BaseResultMap" type="com.blog.entity.BlogTag">
     <!--@mbg.generated-->
     <!--@Table blog_tag-->
-    <id column="id" jdbcType="INTEGER" property="id" />
+    <id column="id" jdbcType="BIGINT" property="id" />
     <result column="blog_id" jdbcType="BIGINT" property="blogId" />
-    <result column="tag_id" jdbcType="INTEGER" property="tagId" />
+    <result column="tag_id" jdbcType="BIGINT" property="tagId" />
   </resultMap>
   <sql id="Base_Column_List">
     <!--@mbg.generated-->
     id, blog_id, tag_id
   </sql>
-  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     <!--@mbg.generated-->
     select 
     <include refid="Base_Column_List" />
     from blog_tag
-    where id = #{id,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
     <!--@mbg.generated-->
     delete from blog_tag
-    where id = #{id,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
   </delete>
   <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.blog.entity.BlogTag" useGeneratedKeys="true">
     <!--@mbg.generated-->
     insert into blog_tag (blog_id, tag_id)
-    values (#{blogId,jdbcType=BIGINT}, #{tagId,jdbcType=INTEGER})
+    values (#{blogId,jdbcType=BIGINT}, #{tagId,jdbcType=BIGINT})
   </insert>
   <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.blog.entity.BlogTag" useGeneratedKeys="true">
     <!--@mbg.generated-->
@@ -45,7 +45,7 @@
         #{blogId,jdbcType=BIGINT},
       </if>
       <if test="tagId != null">
-        #{tagId,jdbcType=INTEGER},
+        #{tagId,jdbcType=BIGINT},
       </if>
     </trim>
   </insert>
@@ -57,29 +57,29 @@
         blog_id = #{blogId,jdbcType=BIGINT},
       </if>
       <if test="tagId != null">
-        tag_id = #{tagId,jdbcType=INTEGER},
+        tag_id = #{tagId,jdbcType=BIGINT},
       </if>
     </set>
-    where id = #{id,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.blog.entity.BlogTag">
     <!--@mbg.generated-->
     update blog_tag
     set blog_id = #{blogId,jdbcType=BIGINT},
-      tag_id = #{tagId,jdbcType=INTEGER}
-    where id = #{id,jdbcType=INTEGER}
+      tag_id = #{tagId,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
   </update>
 
   <insert id="insertList" parameterType="java.util.List">
-    insert into blog_tag(blog_id,tag_id)
+    insert into blog_tag(id,blog_id,tag_id)
     values
     <foreach collection="relationList" item="item" separator=",">
-      (#{item.blogId,jdbcType=BIGINT},#{item.tagId,jdbcType=INTEGER})
+      (#{item.id,jdbcType=BIGINT},#{item.blogId,jdbcType=BIGINT},#{item.tagId,jdbcType=INTEGER})
     </foreach>
   </insert>
 
-  <select id="selectListByBlogId" resultMap="BaseResultMap" parameterType="java.lang.Long">
-    select <include refid="Base_Column_List"/>
+  <select id="selectListByBlogId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select <include refid="Base_Column_List" />
     from blog_tag
     where blog_id = #{blogId,jdbcType=BIGINT}
     </select>

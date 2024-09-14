@@ -4,34 +4,34 @@
   <resultMap id="BaseResultMap" type="com.blog.entity.Category">
     <!--@mbg.generated-->
     <!--@Table category-->
-    <id column="category_id" jdbcType="INTEGER" property="categoryId" />
+    <id column="category_id" jdbcType="BIGINT" property="categoryId" />
     <result column="category_name" jdbcType="VARCHAR" property="categoryName" />
     <result column="category_rank" jdbcType="INTEGER" property="categoryRank" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
-    <result column="delete_flag" jdbcType="INTEGER" property="deleteFlag" />
+    <result column="delete_flag" jdbcType="BOOLEAN" property="deleteFlag" />
   </resultMap>
   <sql id="Base_Column_List">
     <!--@mbg.generated-->
     category_id, category_name, category_rank, create_time, delete_flag
   </sql>
-  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     <!--@mbg.generated-->
     select 
     <include refid="Base_Column_List" />
     from category
-    where category_id = #{categoryId,jdbcType=INTEGER}
+    where category_id = #{categoryId,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
     <!--@mbg.generated-->
     delete from category
-    where category_id = #{categoryId,jdbcType=INTEGER}
+    where category_id = #{categoryId,jdbcType=BIGINT}
   </delete>
   <insert id="insert" keyColumn="category_id" keyProperty="categoryId" parameterType="com.blog.entity.Category" useGeneratedKeys="true">
     <!--@mbg.generated-->
-    insert into category (category_id, category_name, category_rank, create_time,
+    insert into category (category_name, category_rank, create_time, 
       delete_flag)
-    values (#{categoryId,javaType=_int}#{categoryName,jdbcType=VARCHAR}, #{categoryRank,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
-      #{deleteFlag,jdbcType=INTEGER})
+    values (#{categoryName,jdbcType=VARCHAR}, #{categoryRank,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{deleteFlag,jdbcType=BOOLEAN})
   </insert>
   <insert id="insertSelective" keyColumn="category_id" keyProperty="categoryId" parameterType="com.blog.entity.Category" useGeneratedKeys="true">
     <!--@mbg.generated-->
@@ -55,7 +55,7 @@
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="categoryId != null">
-        #{categoryId,javaType=_int},
+        #{categoryId,jdbcType=BIGINT},
       </if>
       <if test="categoryName != null">
         #{categoryName,jdbcType=VARCHAR},
@@ -67,36 +67,55 @@
         #{createTime,jdbcType=TIMESTAMP},
       </if>
       <if test="deleteFlag != null">
-        #{deleteFlag,jdbcType=INTEGER},
+        #{deleteFlag,jdbcType=BOOLEAN},
       </if>
     </trim>
   </insert>
-  <update id="increatCategoryRank" parameterType="com.blog.entity.Category">
-      <!--@mbg.generated-->
-      update category
-      <set>
-          <if test="categoryName != null">
-              category_name = #{categoryName,jdbcType=VARCHAR},
-          </if>
-          <if test="categoryRank != null">
-              category_rank = #{categoryRank,jdbcType=INTEGER} + 1,
-          </if>
-          <if test="createTime != null">
-              create_time = #{createTime,jdbcType=TIMESTAMP},
-          </if>
-          <if test="deleteFlag != null">
-              delete_flag = #{deleteFlag,jdbcType=INTEGER},
-          </if>
-      </set>
-      where category_id = #{categoryId,jdbcType=INTEGER}
+  <update id="updateByPrimaryKeySelective" parameterType="com.blog.entity.Category">
+    <!--@mbg.generated-->
+    update category
+    <set>
+      <if test="categoryName != null">
+        category_name = #{categoryName,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryRank != null">
+        category_rank = #{categoryRank,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deleteFlag != null">
+        delete_flag = #{deleteFlag,jdbcType=BOOLEAN},
+      </if>
+    </set>
+    where category_id = #{categoryId,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.blog.entity.Category">
-      <!--@mbg.generated-->
-      update category
-      set category_name = #{categoryName,jdbcType=VARCHAR},
-          category_rank = #{categoryRank,jdbcType=INTEGER} + 1,
-          create_time   = #{createTime,jdbcType=TIMESTAMP},
-          delete_flag   = #{deleteFlag,jdbcType=INTEGER}
-      where category_id = #{categoryId,jdbcType=INTEGER}
+    <!--@mbg.generated-->
+    update category
+    set category_name = #{categoryName,jdbcType=VARCHAR},
+      category_rank = #{categoryRank,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      delete_flag = #{deleteFlag,jdbcType=BOOLEAN}
+    where category_id = #{categoryId,jdbcType=BIGINT}
+  </update>
+  <update id="increatCategoryRank" parameterType="com.blog.entity.Category">
+    <!--@mbg.generated-->
+    update category
+    <set>
+      <if test="categoryName != null">
+        category_name = #{categoryName,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryRank != null">
+        category_rank = #{categoryRank,jdbcType=INTEGER} + 1,
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="deleteFlag != null">
+        delete_flag = #{deleteFlag,jdbcType=INTEGER},
+      </if>
+    </set>
+    where category_id = #{categoryId,jdbcType=INTEGER}
   </update>
 </mapper>

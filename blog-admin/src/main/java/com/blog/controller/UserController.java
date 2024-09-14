@@ -2,7 +2,9 @@ package com.blog.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
+import cn.hutool.core.collection.CollectionUtil;
 import com.blog.authentication.CurrentUserHolder;
+import com.blog.constant.Constant;
 import com.blog.entity.User;
 
 import com.blog.enums.ErrorCode;
@@ -15,11 +17,14 @@ import com.blog.util.JwtProcessor;
 import com.blog.util.SecurityUtils;
 import com.blog.util.UserTransUtils;
 import com.blog.util.bo.LoginResponse;
+import com.blog.util.dto.PageRequest;
+import com.blog.util.dto.PageResult;
 import com.blog.util.redis.RedisProcessor;
 import com.blog.util.redis.RedisTransKey;
 import com.blog.vo.user.UserInfoVo;
 import com.blog.vo.user.Loginer;
 import com.blog.vo.user.Register;
+import com.blog.vo.user.UserVo;
 import com.github.pagehelper.util.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +32,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import javax.validation.constraints.Email;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author: zhang
@@ -96,9 +103,9 @@ public class UserController extends BaseController {
     @PostMapping("/refresh")
     public ResponseResult<String> refreshToken(String refreshToken) {
         Map<String, Object> userMap = jwtProcessor.extractUserMap(refreshToken);
-        Long userId = (Long) userMap.get("id");
+        Long userId = (Long) userMap.get(Constant.ID);
         User user = userMapper.selectByPrimaryKey(userId);
-        if (user.getStatus() == 0) {
+        if (!validUserStatus(user)) {
             log.error("该用户处于异常状态，无法执行下一步操作");
             throw new BusinessException("该用户处于异常状态，无法执行下一步操作");
         }
@@ -212,5 +219,47 @@ public class UserController extends BaseController {
         return ResponseResult.success(userInfoVo);
     }
 
+    /**
+     * 根据昵称查询用户
+     * @param nickName 接收查询用户的昵称信息
+     * @param params 接受列表查询的分页信息
+     * @return ResponseResult
+     * @author zhang
+     */
+    @GetMapping("/{nickName}")
+    public ResponseResult<PageResult<UserVo>> getUsersByNickName(@PathVariable String nickName, @RequestParam Map<String, Object> params) {
+        if (CollectionUtil.isEmpty(params)){
+            return ResponseResult.fail("分页参数为空");
+        }
+        PageRequest pageRequest = new PageRequest(params);
+        List<User> users = userService.selectUsersByNickName(nickName, pageRequest.getPageNo(), pageRequest.getPageSize());
+        List<UserVo> result = users.stream().map(user -> BeanUtil.copyProperties(user, UserVo.class))
+                .collect(Collectors.toList());
+        int totalCount = result.size();
+        PageResult<UserVo> pageResult = new PageResult<>(result, totalCount);
+        return ResponseResult.success(pageResult);
+    }
+
+    /**
+     * 获取所有用户列表
+     * @param params 接受列表查询的分页信息
+     * @return ResponseResult
+     * @author zhang
+     */
+    @GetMapping("/getUsers")
+    public ResponseResult<Object> getUsers(@RequestParam Map<String, Object> params) {
+        if (!validPageParams(params)){
+            return ResponseResult.fail("分页参数为空");
+        }
+        PageRequest pageRequest = new PageRequest(params);
+        List<User> users = userService.getUsers(pageRequest.getPageNo(), pageRequest.getPageSize())
+                .orElseThrow(() -> new BusinessException("用户列表为空"));
+        List<UserVo> result = users.stream()
+                .map(user -> BeanUtil.copyProperties(user, UserVo.class))
+                .collect(Collectors.toList());
+        int totalCount = userService.getTotalCount();
+        PageResult<UserVo> pageResult = new PageResult<>(result, totalCount);
+        return ResponseResult.success(pageResult);
+    }
 
 }

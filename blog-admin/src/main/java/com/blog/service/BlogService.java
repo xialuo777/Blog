@@ -52,7 +52,7 @@ public class BlogService {
      */
     @Transactional
     public void saveBlog(Blog blog) {
-        Integer categoryId = blog.getCategoryId();
+        Long categoryId = blog.getCategoryId();
         Category categoryExist = categoryMapper.selectByPrimaryKey(categoryId);
         Optional<Category> optionalCategory = Optional.ofNullable(categoryExist);
         Long userId = currentUserHolder.getUserId();
@@ -61,9 +61,9 @@ public class BlogService {
         blog.setSubUrl(baseHomePageUrl);
         blog.setUserId(userId);
         blog.setBlogId(blogId);
-        blogMapper.insertSelective(blog);
-        handleCategoryAndBlog(blog, optionalCategory);
-        handleTags(blog);
+        Blog categoryAndBlog = handleCategoryAndBlog(blog, optionalCategory);
+        handleTags(categoryAndBlog);
+        blogMapper.insertSelective(categoryAndBlog);
     }
 
     /**
@@ -78,8 +78,8 @@ public class BlogService {
         Category categoryExist = categoryMapper.selectByPrimaryKey(blogForUpdate.getCategoryId());
         Optional<Category> optionalCategory = Optional.ofNullable(categoryExist);
         blogMapper.updateByPrimaryKeySelective(blogForUpdate);
-        handleCategoryAndBlog(blogForUpdate, optionalCategory);
-        handleTags(blogForUpdate);
+        Blog categoryAndBlog = handleCategoryAndBlog(blogForUpdate, optionalCategory);
+        handleTags(categoryAndBlog);
     }
 
     /**
@@ -88,15 +88,19 @@ public class BlogService {
      * @param blog 博客信息
      * @param categoryExist 分类信息
      */
-    private void handleCategoryAndBlog(Blog blog, Optional<Category> categoryExist) {
+    private Blog handleCategoryAndBlog(Blog blog, Optional<Category> categoryExist) {
         /*如果分类是新增分类，需要输入categoryId和categoryName信息
          * 如果分类信息在分类表中存在，则对分类表rank进行更新*/
         if (!categoryExist.isPresent()) {
-            Category category = new Category(blog.getCategoryId(), blog.getCategoryName());
+            long categoryId = SnowFlakeUtil.nextId();
+            Category category = new Category(categoryId, blog.getCategoryName());
             categoryMapper.insertSelective(category);
+            blog.setCategoryId(categoryId);
         } else {
             categoryMapper.increatCategoryRank(categoryExist.get());
+            blog.setCategoryId(categoryExist.get().getCategoryId());
         }
+        return blog;
     }
 
     /**
@@ -120,7 +124,7 @@ public class BlogService {
             //处理数据库中并不存在的标签，即需要新插入的标签
             List<Tag> tagListForInsert = distinctTagNames.stream()
                     .filter(tagName -> !mutableTagsFromDb.stream().map(Tag::getTagName).collect(Collectors.toSet()).contains(tagName))
-                    .map(Tag::new)
+                    .map(tagName -> new Tag(SnowFlakeUtil.nextId(), tagName))
                     .collect(Collectors.toList());
 
             if (!CollectionUtils.isEmpty(tagListForInsert)) {
@@ -148,7 +152,7 @@ public class BlogService {
      */
     private List<BlogTag> createBlogTags(Blog blog, List<Tag> tags) {
         return tags.stream()
-                .map(tag -> new BlogTag(blog.getBlogId(), tag.getTagId()))
+                .map(tag -> new BlogTag(SnowFlakeUtil.nextId(), blog.getBlogId(), tag.getTagId()))
                 .collect(Collectors.toList());
 
     }

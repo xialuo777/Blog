@@ -1,5 +1,6 @@
 package com.blog.util;
 
+import com.blog.constant.Constant;
 import com.blog.enums.ErrorCode;
 import com.blog.exception.BusinessException;
 import io.jsonwebtoken.*;
@@ -31,13 +32,12 @@ public class JwtProcessor {
      */
     public Boolean validateToken(String token, Long userId) {
         final Map<String, Object> userMap = extractUserMap(token);
-        return userMap.get("id").equals(userId);
+        return userMap.get(Constant.ID).equals(userId);
     }
 
 
     /**
      * 生成Token令牌
-     *
      * @param userMap
      * @return String
      */

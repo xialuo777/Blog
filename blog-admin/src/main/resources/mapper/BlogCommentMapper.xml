@@ -4,7 +4,7 @@
   <resultMap id="BaseResultMap" type="com.blog.entity.BlogComment">
     <!--@mbg.generated-->
     <!--@Table blog_comment-->
-    <id column="comment_id" jdbcType="INTEGER" property="commentId" />
+    <id column="comment_id" jdbcType="BIGINT" property="commentId" />
     <result column="blog_id" jdbcType="BIGINT" property="blogId" />
     <result column="commentator" jdbcType="VARCHAR" property="commentator" />
     <result column="commentator_id" jdbcType="BIGINT" property="commentatorId" />
@@ -18,17 +18,17 @@
     comment_id, blog_id, commentator, commentator_id, comment_body, comment_create_time, 
     last_id, is_deleted
   </sql>
-  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     <!--@mbg.generated-->
     select 
     <include refid="Base_Column_List" />
     from blog_comment
-    where comment_id = #{commentId,jdbcType=INTEGER}
+    where comment_id = #{commentId,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
     <!--@mbg.generated-->
     delete from blog_comment
-    where comment_id = #{commentId,jdbcType=INTEGER}
+    where comment_id = #{commentId,jdbcType=BIGINT}
   </delete>
   <insert id="insert" keyColumn="comment_id" keyProperty="commentId" parameterType="com.blog.entity.BlogComment" useGeneratedKeys="true">
     <!--@mbg.generated-->
@@ -115,7 +115,7 @@
         is_deleted = #{isDeleted,jdbcType=TINYINT},
       </if>
     </set>
-    where comment_id = #{commentId,jdbcType=INTEGER}
+    where comment_id = #{commentId,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.blog.entity.BlogComment">
     <!--@mbg.generated-->
@@ -127,7 +127,7 @@
       comment_create_time = #{commentCreateTime,jdbcType=TIMESTAMP},
       last_id = #{lastId,jdbcType=INTEGER},
       is_deleted = #{isDeleted,jdbcType=TINYINT}
-    where comment_id = #{commentId,jdbcType=INTEGER}
+    where comment_id = #{commentId,jdbcType=BIGINT}
   </update>
 
   <select id="selectByBlogId" resultMap="BaseResultMap">
@@ -143,7 +143,7 @@
 
   <select id="queryFirstCommentList" resultType="com.blog.util.bo.BlogCommentBo">
     select
-      <include refid="Base_Column_List"/>,
+      <include refid="Base_Column_List" />,
         u.user_id as user_id, u.nick_name as nick_name, u.email as user_email
         from blog_comment b
         left join user u on b.commentator_id = u.user_id
@@ -152,7 +152,7 @@
 
   <select id="querySecondCommentList" resultType="com.blog.util.bo.BlogCommentBo">
     select
-    <include refid="Base_Column_List"/>,
+    <include refid="Base_Column_List" />,
     u.user_id as user_id, u.nick_name as nick_name, u.email as user_email
     from blog_comment b
     left join user u on b.commentator_id = u.user_id

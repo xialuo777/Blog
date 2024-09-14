@@ -27,11 +27,11 @@ public class CommentService {
         blogCommentMapper.insertSelective(blogComment);
     }
 
-    public Optional<BlogComment> selectCommentById(Integer commentId) {
+    public Optional<BlogComment> selectCommentById(Long commentId) {
         return Optional.ofNullable(blogCommentMapper.selectByPrimaryKey(commentId));
     }
 
-    public void deleteComment(Integer commentId) {
+    public void deleteComment(Long commentId) {
         blogCommentMapper.deleteByPrimaryKey(commentId);
     }
 

@@ -9,7 +9,7 @@
     <result column="user_id" jdbcType="BIGINT" property="userId" />
     <result column="blog_desc" jdbcType="VARCHAR" property="blogDesc" />
     <result column="blog_content" jdbcType="LONGVARCHAR" property="blogContent" />
-    <result column="category_id" jdbcType="INTEGER" property="categoryId" />
+    <result column="category_id" jdbcType="BIGINT" property="categoryId" />
     <result column="category_name" jdbcType="VARCHAR" property="categoryName" />
     <result column="blog_status" jdbcType="INTEGER" property="blogStatus" />
     <result column="blog_tags" jdbcType="VARCHAR" property="blogTags" />
@@ -17,8 +17,8 @@
     <result column="view_count" jdbcType="BIGINT" property="viewCount" />
     <result column="creat_time" jdbcType="TIMESTAMP" property="creatTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
-    <result column="is_top" jdbcType="BOOLEAN" property="isTop" />
-    <result column="enable_comment" jdbcType="BOOLEAN" property="enableComment" />
+    <result column="is_top" jdbcType="INTEGER" property="isTop" />
+    <result column="enable_comment" jdbcType="INTEGER" property="enableComment" />
     <result column="is_delete" jdbcType="INTEGER" property="isDelete" />
     <result column="sub_url" jdbcType="VARCHAR" property="subUrl" />
   </resultMap>
@@ -49,10 +49,10 @@
       update_time, is_top, enable_comment, 
       is_delete, sub_url)
     values (#{blogId,jdbcType=BIGINT}, #{blogTitle,jdbcType=VARCHAR}, #{userId,jdbcType=BIGINT}, 
-      #{blogDesc,jdbcType=VARCHAR}, #{blogContent,jdbcType=LONGVARCHAR}, #{categoryId,jdbcType=INTEGER}, 
+      #{blogDesc,jdbcType=VARCHAR}, #{blogContent,jdbcType=LONGVARCHAR}, #{categoryId,jdbcType=BIGINT}, 
       #{categoryName,jdbcType=VARCHAR}, #{blogStatus,jdbcType=INTEGER}, #{blogTags,jdbcType=VARCHAR}, 
       #{thumbnail,jdbcType=VARCHAR}, #{viewCount,jdbcType=BIGINT}, #{creatTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{isTop,jdbcType=BOOLEAN}, #{enableComment,jdbcType=BOOLEAN}, 
+      #{updateTime,jdbcType=TIMESTAMP}, #{isTop,jdbcType=INTEGER}, #{enableComment,jdbcType=INTEGER}, 
       #{isDelete,jdbcType=INTEGER}, #{subUrl,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.blog.entity.Blog">
@@ -128,7 +128,7 @@
         #{blogContent,jdbcType=LONGVARCHAR},
       </if>
       <if test="categoryId != null">
-        #{categoryId,jdbcType=INTEGER},
+        #{categoryId,jdbcType=BIGINT},
       </if>
       <if test="categoryName != null">
         #{categoryName,jdbcType=VARCHAR},
@@ -152,10 +152,10 @@
         #{updateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="isTop != null">
-        #{isTop,jdbcType=BOOLEAN},
+        #{isTop,jdbcType=INTEGER},
       </if>
       <if test="enableComment != null">
-        #{enableComment,jdbcType=BOOLEAN},
+        #{enableComment,jdbcType=INTEGER},
       </if>
       <if test="isDelete != null">
         #{isDelete,jdbcType=INTEGER},
@@ -182,7 +182,7 @@
         blog_content = #{blogContent,jdbcType=LONGVARCHAR},
       </if>
       <if test="categoryId != null">
-        category_id = #{categoryId,jdbcType=INTEGER},
+        category_id = #{categoryId,jdbcType=BIGINT},
       </if>
       <if test="categoryName != null">
         category_name = #{categoryName,jdbcType=VARCHAR},
@@ -206,10 +206,10 @@
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="isTop != null">
-        is_top = #{isTop,jdbcType=BOOLEAN},
+        is_top = #{isTop,jdbcType=INTEGER},
       </if>
       <if test="enableComment != null">
-        enable_comment = #{enableComment,jdbcType=BOOLEAN},
+        enable_comment = #{enableComment,jdbcType=INTEGER},
       </if>
       <if test="isDelete != null">
         is_delete = #{isDelete,jdbcType=INTEGER},
@@ -227,7 +227,7 @@
       user_id = #{userId,jdbcType=BIGINT},
       blog_desc = #{blogDesc,jdbcType=VARCHAR},
       blog_content = #{blogContent,jdbcType=LONGVARCHAR},
-      category_id = #{categoryId,jdbcType=INTEGER},
+      category_id = #{categoryId,jdbcType=BIGINT},
       category_name = #{categoryName,jdbcType=VARCHAR},
       blog_status = #{blogStatus,jdbcType=INTEGER},
       blog_tags = #{blogTags,jdbcType=VARCHAR},
@@ -235,8 +235,8 @@
       view_count = #{viewCount,jdbcType=BIGINT},
       creat_time = #{creatTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      is_top = #{isTop,jdbcType=BOOLEAN},
-      enable_comment = #{enableComment,jdbcType=BOOLEAN},
+      is_top = #{isTop,jdbcType=INTEGER},
+      enable_comment = #{enableComment,jdbcType=INTEGER},
       is_delete = #{isDelete,jdbcType=INTEGER},
       sub_url = #{subUrl,jdbcType=VARCHAR}
     where blog_id = #{blogId,jdbcType=BIGINT}
@@ -253,7 +253,7 @@
     select
     <include refid="Base_Column_List" />
     from blog b
-    where b.category_id = #{categoryId,jdbcType=INTEGER}
+    where b.category_id = #{categoryId,jdbcType=INTEGER} and b.blog_status = 1
   </select>
 
   <select id="selectList" resultType="com.blog.vo.blog.BlogDesc">
@@ -261,5 +261,6 @@
       <include refid="Base_Column_List">
       </include>
     from blog
+    where blog_status = 1
   </select>
 </mapper>

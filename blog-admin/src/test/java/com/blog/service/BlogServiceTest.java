@@ -27,6 +27,7 @@ import java.util.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -56,47 +57,47 @@ class BlogServiceTest {
     void testSaveBlog() {
         try(MockedStatic<SnowFlakeUtil> snowFlakeUtilMocked = Mockito.mockStatic(SnowFlakeUtil.class)) {
             final Blog blog = new Blog();
-            blog.setCategoryId(1);
+            blog.setCategoryId(1L);
             blog.setCategoryName("categoryName");
             blog.setBlogTags("blogTags");
 
-            Category categoryExist = new Category(1, "categoryName");
-            when(mockCategoryMapper.selectByPrimaryKey(1)).thenReturn(categoryExist);
+            Category categoryExist = new Category(1L, "categoryName");
+            when(mockCategoryMapper.selectByPrimaryKey(1L)).thenReturn(categoryExist);
             when(mockCurrentUserHolder.getUserId()).thenReturn(2L);
             snowFlakeUtilMocked.when(()->SnowFlakeUtil.nextId()).thenReturn(1L);
 
             final List<Tag> tags = Arrays.asList(
-                    new Tag(0, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0));
+                    new Tag(0L, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0));
             when(mockTagMapper.selectListByTagNames(Arrays.asList("blogTags"))).thenReturn(tags);
             blogServiceUnderTest.saveBlog(blog);
 
             final Blog record = new Blog();
             record.setBlogId(1L);
             record.setUserId(2L);
-            record.setCategoryId(1);
+            record.setCategoryId(1L);
             record.setCategoryName("categoryName");
             record.setBlogTags("blogTags");
             String baseHomePageUrl = String.format(Constant.BLOG_BASE_PATH + "%s/%s", blog.getUserId(), blog.getBlogId());
             record.setSubUrl(baseHomePageUrl);
             verify(mockBlogMapper).insertSelective(record);
-            verify(mockCategoryMapper).increatCategoryRank(new Category(1, "categoryName"));
-            verify(mockBlogTagMapper).insertList(Arrays.asList(new BlogTag(1L, 0)));
+            verify(mockCategoryMapper).increatCategoryRank(new Category(1L, "categoryName"));
+            verify(mockBlogTagMapper).insertList(Arrays.asList(new BlogTag(1L, 0L)));
         }
     }
     @Test
     void testSaveBlog_NewCategory() {
         try(MockedStatic<SnowFlakeUtil> snowFlakeUtilMocked = Mockito.mockStatic(SnowFlakeUtil.class)) {
             final Blog blog = new Blog();
-            blog.setCategoryId(1);
+            blog.setCategoryId(1L);
             blog.setCategoryName("categoryName");
             blog.setBlogTags("blogTags");
 
-            when(mockCategoryMapper.selectByPrimaryKey(1)).thenReturn(null);
+            when(mockCategoryMapper.selectByPrimaryKey(1L)).thenReturn(null);
             when(mockCurrentUserHolder.getUserId()).thenReturn(2L);
             snowFlakeUtilMocked.when(()->SnowFlakeUtil.nextId()).thenReturn(1L);
 
             final List<Tag> tags = Arrays.asList(
-                    new Tag(0, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0));
+                    new Tag(0L, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0));
             when(mockTagMapper.selectListByTagNames(Arrays.asList("blogTags"))).thenReturn(tags);
 
             blogServiceUnderTest.saveBlog(blog);
@@ -110,8 +111,8 @@ class BlogServiceTest {
             String baseHomePageUrl = String.format(Constant.BLOG_BASE_PATH + "%s/%s", blog.getUserId(), blog.getBlogId());
             record.setSubUrl(baseHomePageUrl);
             verify(mockBlogMapper).insertSelective(record);
-            verify(mockCategoryMapper).insertSelective(new Category(1, "categoryName"));
-            verify(mockBlogTagMapper).insertList(Arrays.asList(new BlogTag(1L, 0)));
+            verify(mockCategoryMapper).insertSelective(new Category(1L, "categoryName"));
+            verify(mockBlogTagMapper).insertList(Arrays.asList(new BlogTag(1L, 0L)));
         }
     }
 
@@ -119,12 +120,12 @@ class BlogServiceTest {
     void testSaveBlog_NewTag() {
         try (MockedStatic<SnowFlakeUtil> snowFlakeUtilMocked = Mockito.mockStatic(SnowFlakeUtil.class)) {
             final Blog blog = new Blog();
-            blog.setCategoryId(1);
+            blog.setCategoryId(1L);
             blog.setCategoryName("categoryName");
             blog.setBlogTags("newTag");
 
-            Category categoryExist = new Category(1, "categoryName");
-            when(mockCategoryMapper.selectByPrimaryKey(1)).thenReturn(categoryExist);
+            Category categoryExist = new Category(1L, "categoryName");
+            when(mockCategoryMapper.selectByPrimaryKey(1L)).thenReturn(categoryExist);
             when(mockCurrentUserHolder.getUserId()).thenReturn(2L);
             snowFlakeUtilMocked.when(() -> SnowFlakeUtil.nextId()).thenReturn(1L);
 
@@ -140,11 +141,11 @@ class BlogServiceTest {
     void testSaveBlog_TooManyTags() {
        try(MockedStatic<SnowFlakeUtil> snowFlakeUtilMocked = Mockito.mockStatic(SnowFlakeUtil.class)) {
            final Blog blog = new Blog();
-           blog.setCategoryId(1);
+           blog.setCategoryId(1L);
            blog.setCategoryName("categoryName");
            blog.setBlogTags("tag1,tag2,tag3,tag4,tag5,tag6,tag7");
 
-           when(mockCategoryMapper.selectByPrimaryKey(1)).thenReturn(new Category(1, "categoryName"));
+           when(mockCategoryMapper.selectByPrimaryKey(1L)).thenReturn(new Category(1, "categoryName"));
            when(mockCurrentUserHolder.getUserId()).thenReturn(2L);
            snowFlakeUtilMocked.when(()->SnowFlakeUtil.nextId()).thenReturn(1L);
 
@@ -157,7 +158,7 @@ class BlogServiceTest {
         final Blog blog = new Blog();
         blog.setBlogId(0L);
         blog.setUserId(0L);
-        blog.setCategoryId(1);
+        blog.setCategoryId(1L);
         blog.setCategoryName("newCategoryName");
         blog.setBlogTags("blogTags");
         blog.setSubUrl("subUrl");
@@ -165,17 +166,17 @@ class BlogServiceTest {
         final Blog blogDb = new Blog();
         blogDb.setBlogId(0L);
         blogDb.setUserId(0L);
-        blogDb.setCategoryId(0);
+        blogDb.setCategoryId(0L);
         blogDb.setCategoryName("categoryName");
         blogDb.setBlogTags("blogTags");
         blogDb.setSubUrl("subUrl");
         when(mockBlogMapper.selectByPrimaryKey(0L)).thenReturn(blogDb);
 
         Category oldCategory  = null;
-        when(mockCategoryMapper.selectByPrimaryKey(anyInt())).thenReturn(oldCategory);
+        when(mockCategoryMapper.selectByPrimaryKey(anyLong())).thenReturn(oldCategory);
 
         final List<Tag> tags = Arrays.asList(
-                new Tag(0, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0));
+                new Tag(0L, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0));
         when(mockTagMapper.selectListByTagNames(Arrays.asList("blogTags"))).thenReturn(tags);
 
         blogServiceUnderTest.updateBlog(blog);
@@ -183,13 +184,13 @@ class BlogServiceTest {
         final Blog record = new Blog();
         record.setBlogId(0L);
         record.setUserId(0L);
-        record.setCategoryId(1);
+        record.setCategoryId(1L);
         record.setCategoryName("newCategoryName");
         record.setBlogTags("blogTags");
         record.setSubUrl("subUrl");
         verify(mockBlogMapper).updateByPrimaryKeySelective(record);
-        verify(mockCategoryMapper).insertSelective(new Category(1,"newCategoryName"));
-        verify(mockBlogTagMapper).insertList(Arrays.asList(new BlogTag(0L, 0)));
+        verify(mockCategoryMapper).insertSelective(new Category(1L,"newCategoryName"));
+        verify(mockBlogTagMapper).insertList(Arrays.asList(new BlogTag(0L, 0L)));
     }
 
     @Test
@@ -197,7 +198,7 @@ class BlogServiceTest {
         final Blog blog = new Blog();
         blog.setBlogId(1L);
         blog.setUserId(2L);
-        blog.setCategoryId(1);
+        blog.setCategoryId(1L);
         blog.setCategoryName("newCategoryName");
         blog.setBlogTags("blogTags");
         blog.setSubUrl("subUrl");
@@ -205,17 +206,17 @@ class BlogServiceTest {
         final Blog blogDb = new Blog();
         blogDb.setBlogId(1L);
         blogDb.setUserId(2L);
-        blogDb.setCategoryId(1);
+        blogDb.setCategoryId(1L);
         blogDb.setCategoryName("categoryName");
         blogDb.setBlogTags("blogTags");
         blogDb.setSubUrl("subUrl");
         when(mockBlogMapper.selectByPrimaryKey(1L)).thenReturn(blogDb);
 
-        Category categoryExist = new Category(1, "categoryName");
-        when(mockCategoryMapper.selectByPrimaryKey(1)).thenReturn(categoryExist);
+        Category categoryExist = new Category(1L, "categoryName");
+        when(mockCategoryMapper.selectByPrimaryKey(1L)).thenReturn(categoryExist);
 
         final List<Tag> tags = Arrays.asList(
-                new Tag(0, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0));
+                new Tag(0L, "blogTags", new GregorianCalendar(2020, Calendar.JANUARY, 1).getTime(), 0));
         when(mockTagMapper.selectListByTagNames(Arrays.asList("blogTags"))).thenReturn(tags);
 
         blogServiceUnderTest.updateBlog(blog);
@@ -223,20 +224,20 @@ class BlogServiceTest {
         final Blog record = new Blog();
         record.setBlogId(1L);
         record.setUserId(2L);
-        record.setCategoryId(1);
+        record.setCategoryId(1L);
         record.setCategoryName("newCategoryName");
         record.setBlogTags("blogTags");
         record.setSubUrl("subUrl");
         verify(mockBlogMapper).updateByPrimaryKeySelective(record);
         verify(mockCategoryMapper).increatCategoryRank(categoryExist);
-        verify(mockBlogTagMapper).insertList(Arrays.asList(new BlogTag(1L, 0)));
+        verify(mockBlogTagMapper).insertList(Arrays.asList(new BlogTag(1L, 0L)));
     }
     @Test
     void testUpdateBlog_NewTag() {
         final Blog blog = new Blog();
         blog.setBlogId(1L);
         blog.setUserId(2L);
-        blog.setCategoryId(1);
+        blog.setCategoryId(1L);
         blog.setCategoryName("categoryName");
         blog.setBlogTags("newTag");
         blog.setSubUrl("subUrl");
@@ -244,14 +245,14 @@ class BlogServiceTest {
         final Blog blogDb = new Blog();
         blogDb.setBlogId(1L);
         blogDb.setUserId(2L);
-        blogDb.setCategoryId(1);
+        blogDb.setCategoryId(1L);
         blogDb.setCategoryName("categoryName");
         blogDb.setBlogTags("blogTags");
         blogDb.setSubUrl("subUrl");
         when(mockBlogMapper.selectByPrimaryKey(1L)).thenReturn(blogDb);
 
-        Category categoryExist = new Category(1, "categoryName");
-        when(mockCategoryMapper.selectByPrimaryKey(1)).thenReturn(categoryExist);
+        Category categoryExist = new Category(1L, "categoryName");
+        when(mockCategoryMapper.selectByPrimaryKey(1L)).thenReturn(categoryExist);
 
         when(mockTagMapper.selectListByTagNames(Arrays.asList("newTag"))).thenReturn(Collections.emptyList());
 
@@ -265,7 +266,7 @@ class BlogServiceTest {
         final Blog blog = new Blog();
         blog.setBlogId(1L);
         blog.setUserId(2L);
-        blog.setCategoryId(1);
+        blog.setCategoryId(1L);
         blog.setCategoryName("categoryName");
         blog.setBlogTags("tag1,tag2,tag3,tag4,tag5,tag6,tag7");
         blog.setSubUrl("subUrl");
@@ -273,14 +274,14 @@ class BlogServiceTest {
         final Blog blogDb = new Blog();
         blogDb.setBlogId(1L);
         blogDb.setUserId(2L);
-        blogDb.setCategoryId(1);
+        blogDb.setCategoryId(1L);
         blogDb.setCategoryName("categoryName");
         blogDb.setBlogTags("blogTags");
         blogDb.setSubUrl("subUrl");
         when(mockBlogMapper.selectByPrimaryKey(1L)).thenReturn(blogDb);
 
-        Category categoryExist = new Category(1, "categoryName");
-        when(mockCategoryMapper.selectByPrimaryKey(1)).thenReturn(categoryExist);
+        Category categoryExist = new Category(1L, "categoryName");
+        when(mockCategoryMapper.selectByPrimaryKey(1L)).thenReturn(categoryExist);
 
         assertThatThrownBy(() -> blogServiceUnderTest.updateBlog(blog))
                 .isInstanceOf(BusinessException.class);
@@ -291,7 +292,7 @@ class BlogServiceTest {
         final Blog blog = new Blog();
         blog.setBlogId(0L);
         blog.setUserId(0L);
-        blog.setCategoryId(0);
+        blog.setCategoryId(0L);
         blog.setCategoryName("categoryName");
         blog.setBlogTags("blogTags");
         blog.setSubUrl("subUrl");
@@ -300,7 +301,7 @@ class BlogServiceTest {
         final Blog blog1 = new Blog();
         blog1.setBlogId(0L);
         blog1.setUserId(0L);
-        blog1.setCategoryId(0);
+        blog1.setCategoryId(0L);
         blog1.setCategoryName("categoryName");
         blog1.setBlogTags("blogTags");
         blog1.setSubUrl("subUrl");
@@ -327,7 +328,7 @@ class BlogServiceTest {
         final Blog expectedResult = new Blog();
         expectedResult.setBlogId(0L);
         expectedResult.setUserId(0L);
-        expectedResult.setCategoryId(0);
+        expectedResult.setCategoryId(0L);
         expectedResult.setCategoryName("categoryName");
         expectedResult.setBlogTags("blogTags");
         expectedResult.setSubUrl("subUrl");
@@ -335,7 +336,7 @@ class BlogServiceTest {
         final Blog blog = new Blog();
         blog.setBlogId(0L);
         blog.setUserId(0L);
-        blog.setCategoryId(0);
+        blog.setCategoryId(0L);
         blog.setCategoryName("categoryName");
         blog.setBlogTags("blogTags");
         blog.setSubUrl("subUrl");
@@ -353,7 +354,7 @@ class BlogServiceTest {
         final Blog blog = new Blog();
         blog.setBlogId(0L);
         blog.setUserId(0L);
-        blog.setCategoryId(0);
+        blog.setCategoryId(0L);
         blog.setCategoryName("categoryName");
         blog.setBlogTags("blogTags");
         blog.setSubUrl("subUrl");
@@ -362,7 +363,7 @@ class BlogServiceTest {
         final Blog blog1 = new Blog();
         blog1.setBlogId(0L);
         blog1.setUserId(0L);
-        blog1.setCategoryId(0);
+        blog1.setCategoryId(0L);
         blog1.setCategoryName("categoryName");
         blog1.setBlogTags("blogTags");
         blog1.setSubUrl("subUrl");

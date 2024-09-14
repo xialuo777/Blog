@@ -4,7 +4,7 @@
   <resultMap id="BaseResultMap" type="com.blog.entity.Tag">
     <!--@mbg.generated-->
     <!--@Table tag-->
-    <id column="tag_id" jdbcType="INTEGER" property="tagId" />
+    <id column="tag_id" jdbcType="BIGINT" property="tagId" />
     <result column="tag_name" jdbcType="VARCHAR" property="tagName" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="delete_flag" jdbcType="INTEGER" property="deleteFlag" />
@@ -13,17 +13,17 @@
     <!--@mbg.generated-->
     tag_id, tag_name, create_time, delete_flag
   </sql>
-  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     <!--@mbg.generated-->
     select 
     <include refid="Base_Column_List" />
     from tag
-    where tag_id = #{tagId,jdbcType=INTEGER}
+    where tag_id = #{tagId,jdbcType=BIGINT}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
     <!--@mbg.generated-->
     delete from tag
-    where tag_id = #{tagId,jdbcType=INTEGER}
+    where tag_id = #{tagId,jdbcType=BIGINT}
   </delete>
   <insert id="insert" keyColumn="tag_id" keyProperty="tagId" parameterType="com.blog.entity.Tag" useGeneratedKeys="true">
     <!--@mbg.generated-->
@@ -72,7 +72,7 @@
         delete_flag = #{deleteFlag,jdbcType=INTEGER},
       </if>
     </set>
-    where tag_id = #{tagId,jdbcType=INTEGER}
+    where tag_id = #{tagId,jdbcType=BIGINT}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.blog.entity.Tag">
     <!--@mbg.generated-->
@@ -80,7 +80,7 @@
     set tag_name = #{tagName,jdbcType=VARCHAR},
       create_time = #{createTime,jdbcType=TIMESTAMP},
       delete_flag = #{deleteFlag,jdbcType=INTEGER}
-    where tag_id = #{tagId,jdbcType=INTEGER}
+    where tag_id = #{tagId,jdbcType=BIGINT}
   </update>
 
   <select id="selectByTagName" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -91,16 +91,16 @@
   </select>
 
   <insert id="insertList" keyProperty="tagId" parameterType="java.util.List" useGeneratedKeys="true">
-    insert into tag(tag_name)
+    insert into tag(tag_id, tag_name)
     values
     <foreach collection="list" item="item" separator=",">
-      (#{item.tagName,jdbcType=VARCHAR})
+      (#{item.tagId,jdbcType=BIGINT},#{item.tagName,jdbcType=VARCHAR})
     </foreach>
   </insert>
 
   <select id="selectListByTagNames" resultType="com.blog.entity.Tag">
     select * from tag where tag_name in
-    <foreach item="tagName" collection="list" open="(" separator="," close=")">
+    <foreach close=")" collection="list" item="tagName" open="(" separator=",">
       #{tagName}
     </foreach>
   </select>

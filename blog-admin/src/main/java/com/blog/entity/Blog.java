@@ -2,67 +2,194 @@ package com.blog.entity;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-
-import lombok.Data;
-
 import java.util.Date;
 
-/**
- * @author: zhang
- * @time: 2024-09-14 10:46
- */
 @ApiModel(description = "blog")
-@Data
 public class Blog {
-    @ApiModelProperty(value = "博客id")
+    @ApiModelProperty(value = "")
     private Long blogId;
 
-    @ApiModelProperty(value = "博客标题")
+    @ApiModelProperty(value = "")
     private String blogTitle;
 
-    @ApiModelProperty(value = "用户id")
+    @ApiModelProperty(value = "")
     private Long userId;
 
-    @ApiModelProperty(value = "博客简介")
+    @ApiModelProperty(value = "")
     private String blogDesc;
 
-    @ApiModelProperty(value = "博客内容")
+    @ApiModelProperty(value = "")
     private String blogContent;
 
-    @ApiModelProperty(value = "分类id")
-    private Integer categoryId;
+    @ApiModelProperty(value = "")
+    private Long categoryId;
 
-    @ApiModelProperty(value = "分类名称")
+    @ApiModelProperty(value = "")
     private String categoryName;
 
-    @ApiModelProperty(value = "状态 (1公开 2私密 3草稿)", required = true)
+    @ApiModelProperty(value = "")
     private Integer blogStatus;
 
-    @ApiModelProperty(value = "博客标签")
+    @ApiModelProperty(value = "")
     private String blogTags;
 
-    @ApiModelProperty(value = "缩略图")
+    @ApiModelProperty(value = "")
     private String thumbnail;
 
-    @ApiModelProperty(value = "浏览量")
+    @ApiModelProperty(value = "")
     private Long viewCount;
 
-    @ApiModelProperty(value = "创建时间")
+    @ApiModelProperty(value = "")
     private Date creatTime;
 
-    @ApiModelProperty(value = "更新时间")
+    @ApiModelProperty(value = "")
     private Date updateTime;
 
-    @ApiModelProperty(value = "是否置顶 (0否 1是)", required = true)
+    @ApiModelProperty(value = "")
     private Integer isTop;
 
-    @ApiModelProperty(value = "是否允许评论 (0是 1否)")
+    @ApiModelProperty(value = "")
     private Integer enableComment;
 
-    @ApiModelProperty(value = "是否删除 (0否 1是)")
+    @ApiModelProperty(value = "")
     private Integer isDelete;
 
-    @ApiModelProperty(value = "博客网址")
+    @ApiModelProperty(value = "")
     private String subUrl;
 
+    public Long getBlogId() {
+        return blogId;
+    }
+
+    public void setBlogId(Long blogId) {
+        this.blogId = blogId;
+    }
+
+    public String getBlogTitle() {
+        return blogTitle;
+    }
+
+    public void setBlogTitle(String blogTitle) {
+        this.blogTitle = blogTitle;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getBlogDesc() {
+        return blogDesc;
+    }
+
+    public void setBlogDesc(String blogDesc) {
+        this.blogDesc = blogDesc;
+    }
+
+    public String getBlogContent() {
+        return blogContent;
+    }
+
+    public void setBlogContent(String blogContent) {
+        this.blogContent = blogContent;
+    }
+
+    public Long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(Long categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public Integer getBlogStatus() {
+        return blogStatus;
+    }
+
+    public void setBlogStatus(Integer blogStatus) {
+        this.blogStatus = blogStatus;
+    }
+
+    public String getBlogTags() {
+        return blogTags;
+    }
+
+    public void setBlogTags(String blogTags) {
+        this.blogTags = blogTags;
+    }
+
+    public String getThumbnail() {
+        return thumbnail;
+    }
+
+    public void setThumbnail(String thumbnail) {
+        this.thumbnail = thumbnail;
+    }
+
+    public Long getViewCount() {
+        return viewCount;
+    }
+
+    public void setViewCount(Long viewCount) {
+        this.viewCount = viewCount;
+    }
+
+    public Date getCreatTime() {
+        return creatTime;
+    }
+
+    public void setCreatTime(Date creatTime) {
+        this.creatTime = creatTime;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public Integer getIsTop() {
+        return isTop;
+    }
+
+    public void setIsTop(Integer isTop) {
+        this.isTop = isTop;
+    }
+
+    public Integer getEnableComment() {
+        return enableComment;
+    }
+
+    public void setEnableComment(Integer enableComment) {
+        this.enableComment = enableComment;
+    }
+
+    public Integer getIsDelete() {
+        return isDelete;
+    }
+
+    public void setIsDelete(Integer isDelete) {
+        this.isDelete = isDelete;
+    }
+
+    public String getSubUrl() {
+        return subUrl;
+    }
+
+    public void setSubUrl(String subUrl) {
+        this.subUrl = subUrl;
+    }
 }

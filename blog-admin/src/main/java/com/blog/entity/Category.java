@@ -1,38 +1,35 @@
 package com.blog.entity;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
-
-/**
- * @author: zhang
- * @time: 2024-09-14 10:48
- */
-@ApiModel(description = "category")
 @Data
+@ApiModel(description = "category")
+@AllArgsConstructor
+@NoArgsConstructor
 public class Category {
-    @ApiModelProperty(value = "博客分类id")
-    private Integer categoryId;
+    @ApiModelProperty(value = "")
+    private Long categoryId;
 
-    @ApiModelProperty(value = "博客分类名称")
+    @ApiModelProperty(value = "")
     private String categoryName;
 
-    @ApiModelProperty(value = "博客分类排序，即分类列表的显示顺序，值越低显示越靠前")
+    @ApiModelProperty(value = "")
     private Integer categoryRank;
 
-    @ApiModelProperty(value = "分类创建时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @ApiModelProperty(value = "")
     private Date createTime;
 
-    @ApiModelProperty(value = "是否删除该分类 0 否 1 是")
-    private Integer deleteFlag;
+    @ApiModelProperty(value = "")
+    private Boolean deleteFlag;
 
-    public Category(Integer categoryId, String categoryName) {
+
+    public Category(Long categoryId, String categoryName) {
         this.categoryId = categoryId;
         this.categoryName = categoryName;
     }
-
 }

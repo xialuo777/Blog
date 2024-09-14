@@ -32,7 +32,7 @@ class CommentServiceTest {
     @Test
     void addComment() {
         final BlogComment blogComment = new BlogComment();
-        blogComment.setCommentId(0);
+        blogComment.setCommentId(0L);
         blogComment.setBlogId(0L);
         blogComment.setCommentator("commentator");
         blogComment.setCommentatorId(0L);
@@ -41,7 +41,7 @@ class CommentServiceTest {
         commentServiceUnderTest.addComment(blogComment);
 
         final BlogComment record = new BlogComment();
-        record.setCommentId(0);
+        record.setCommentId(0L);
         record.setBlogId(0L);
         record.setCommentator("commentator");
         record.setCommentatorId(0L);
@@ -52,7 +52,7 @@ class CommentServiceTest {
     @Test
     void selectCommentById() {
         final BlogComment blogComment = new BlogComment();
-        blogComment.setCommentId(0);
+        blogComment.setCommentId(0L);
         blogComment.setBlogId(0L);
         blogComment.setCommentator("commentator");
         blogComment.setCommentatorId(0L);
@@ -60,23 +60,23 @@ class CommentServiceTest {
         final Optional<BlogComment> expectedResult = Optional.of(blogComment);
 
         final BlogComment blogComment1 = new BlogComment();
-        blogComment1.setCommentId(0);
+        blogComment1.setCommentId(0L);
         blogComment1.setBlogId(0L);
         blogComment1.setCommentator("commentator");
         blogComment1.setCommentatorId(0L);
         blogComment1.setCommentBody("commentBody");
-        when(mockBlogCommentMapper.selectByPrimaryKey(0)).thenReturn(blogComment1);
+        when(mockBlogCommentMapper.selectByPrimaryKey(0L)).thenReturn(blogComment1);
 
-        final Optional<BlogComment> result = commentServiceUnderTest.selectCommentById(0);
+        final Optional<BlogComment> result = commentServiceUnderTest.selectCommentById(0L);
 
         assertThat(result).isEqualTo(expectedResult);
     }
 
     @Test
     void selectCommentById_Without_Comment() {
-        when(mockBlogCommentMapper.selectByPrimaryKey(0)).thenReturn(null);
+        when(mockBlogCommentMapper.selectByPrimaryKey(0L)).thenReturn(null);
 
-        final Optional<BlogComment> result = commentServiceUnderTest.selectCommentById(0);
+        final Optional<BlogComment> result = commentServiceUnderTest.selectCommentById(0L);
 
         assertThat(result).isEmpty();
     }
@@ -84,9 +84,9 @@ class CommentServiceTest {
     @Test
     void deleteComment() {
 
-        commentServiceUnderTest.deleteComment(0);
+        commentServiceUnderTest.deleteComment(0L);
 
-        verify(mockBlogCommentMapper).deleteByPrimaryKey(0);
+        verify(mockBlogCommentMapper).deleteByPrimaryKey(0L);
     }
 
 
@@ -98,13 +98,13 @@ class CommentServiceTest {
 
         List<BlogCommentBo> firstCommentList = new ArrayList<>();
         BlogCommentBo firstComment = new BlogCommentBo();
-        firstComment.setCommentId(1);
+        firstComment.setCommentId(1L);
         firstComment.setLastId(0);
         firstCommentList.add(firstComment);
 
         List<BlogCommentBo> secondCommentList = new ArrayList<>();
         BlogCommentBo secondComment = new BlogCommentBo();
-        secondComment.setCommentId(2);
+        secondComment.setCommentId(2L);
         secondComment.setLastId(1);
         secondCommentList.add(secondComment);
 
@@ -146,17 +146,17 @@ class CommentServiceTest {
 
         List<BlogCommentBo> firstCommentList = new ArrayList<>();
         BlogCommentBo firstComment = new BlogCommentBo();
-        firstComment.setCommentId(1);
+        firstComment.setCommentId(1L);
         firstComment.setLastId(0);
         firstCommentList.add(firstComment);
 
         List<BlogCommentBo> secondCommentList = new ArrayList<>();
         BlogCommentBo secondComment = new BlogCommentBo();
-        secondComment.setCommentId(2);
+        secondComment.setCommentId(2L);
         secondComment.setLastId(1);
         secondCommentList.add(secondComment);
         BlogCommentBo unlinkedComment = new BlogCommentBo();
-        unlinkedComment.setCommentId(3);
+        unlinkedComment.setCommentId(3L);
         unlinkedComment.setLastId(2);
         secondCommentList.add(unlinkedComment);
 

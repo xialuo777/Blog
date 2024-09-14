@@ -1,7 +1,6 @@
 package com.blog.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.blog.authentication.CurrentUserHolder;
 import com.blog.util.bo.BlogCommentBo;
 import com.blog.util.dto.PageRequest;
 import com.blog.entity.Blog;
@@ -14,7 +13,6 @@ import com.blog.service.CommentService;
 import com.blog.service.UserService;
 import com.blog.vo.comment.CommentInVo;
 import lombok.RequiredArgsConstructor;
-import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,14 +25,12 @@ import java.util.Map;
 @RestController
 @RequestMapping("/comments")
 @RequiredArgsConstructor
-public class CommentController {
+public class CommentController extends BaseController{
     private final CommentService commentService;
     private final UserService userService;
     private final BlogService blogService;
-    private final CurrentUserHolder currentUserHolder;
 
-    public static final String PAGE_NO = "pageNo";
-    public static final String PAGE_SIZE = "pageSize";
+
 
     /**
      * 添加评论
@@ -46,12 +42,12 @@ public class CommentController {
     public ResponseResult<String> addComment(@RequestBody CommentInVo commentVo) {
         User user = userService.selectUserByUserId(commentVo.getCommentatorId())
                 .orElseThrow(()->new BusinessException("用户不存在！"));
-        if (user.getStatus() == 1) {
+        if (!validUserStatus(user)) {
             return ResponseResult.fail("该用户已被封禁，无法评论！");
         }
         Blog blog = blogService.getBlogById(commentVo.getBlogId())
                 .orElseThrow(()->new BusinessException("该博客不存在！"));
-        if (blog.getEnableComment() == 1) {
+        if (!validBlogEnableComment(blog)) {
             return ResponseResult.fail("该博客已关闭评论功能！");
         }
         BlogComment blogComment = new BlogComment();
@@ -70,11 +66,11 @@ public class CommentController {
 
      */
     @DeleteMapping("/blog/delete")
-    public ResponseResult<String> deleteComment(Integer commentId) {
+    public ResponseResult<String> deleteComment(Long commentId) {
         BlogComment blogComment = commentService.selectCommentById(commentId)
                 .orElseThrow(()->new BusinessException("该评论不存在！"));
         Long commentatorId = blogComment.getCommentatorId();
-        if (!currentUserHolder.getUserId().equals(commentatorId)) {
+        if (!isValidUser(commentatorId)) {
            return ResponseResult.fail("没有权限删除！");
         }
         commentService.deleteComment(commentId);
@@ -91,8 +87,8 @@ public class CommentController {
 
     @GetMapping("/{blogId}")
     public ResponseResult<List<BlogCommentBo>> getCommentListAll(@PathVariable Long blogId, @RequestParam Map<String,Object> params) {
-        if (ObjectUtils.isEmpty(params.get(PAGE_NO)) || ObjectUtils.isEmpty(params.get(PAGE_SIZE))) {
-            return ResponseResult.fail("参数异常！");
+        if (!validPageParams(params)){
+            return ResponseResult.fail("分页参数异常");
         }
         blogService.getBlogById(blogId).orElseThrow(() -> new BusinessException("该博客不存在！"));
         PageRequest pageRequest = new PageRequest(params);

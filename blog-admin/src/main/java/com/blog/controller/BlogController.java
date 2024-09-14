@@ -44,9 +44,9 @@ public class BlogController extends BaseController{
      */
     @PostMapping("/save")
     public ResponseResult<String> saveBlog(@RequestBody BlogInVo blogInVo) {
-        User user = userService.selectUserByUserId(blogInVo.getUserId())
+        User user = userService.selectUserByUserId(currentUserHolder.getUserId())
                 .orElseThrow(() -> new BusinessException("用户不存在！"));
-        if (user.getStatus()==1){
+        if (!validUserStatus(user)){
             return ResponseResult.fail("该用户已被封禁，无法发布文章！");
         }
         Blog blog = new Blog();
@@ -79,8 +79,8 @@ public class BlogController extends BaseController{
      */
     @GetMapping("/list")
     public ResponseResult<PageResult<BlogDesc>> getCurrentUserBlogList(@RequestParam Map<String, Object> params) {
-        if (CollectionUtils.isEmpty(params)){
-            return ResponseResult.fail("分页参数为空");
+        if (!validPageParams(params)){
+            return ResponseResult.fail("分页参数异常");
         }
         PageRequest pageRequest = new PageRequest(params);
         Long userId = currentUserHolder.getUserId();
@@ -120,8 +120,8 @@ public class BlogController extends BaseController{
      */
     @GetMapping("/category/{categoryId}")
     public ResponseResult<List<BlogInVo>> getBlogListByCategoryId(@PathVariable Long categoryId, @RequestParam Map<String, Object> params) {
-        if (CollectionUtils.isEmpty(params)){
-            return ResponseResult.fail("分页参数为空");
+        if (!validPageParams(params)){
+            return ResponseResult.fail("分页参数异常");
         }
         PageRequest pageRequest = new PageRequest(params);
         List<Blog> blogList = blogService.getBlogListByCategoryId(categoryId, pageRequest.getPageNo(), pageRequest.getPageSize());
@@ -132,6 +132,36 @@ public class BlogController extends BaseController{
                 .map(blog -> BeanUtil.copyProperties(blog, BlogInVo.class))
                 .collect(Collectors.toList());
         return ResponseResult.success(blogInVoList);
+    }
+
+    /**
+     * 根据博客id删除博客
+     * @param blogId 接收删除博客的id信息
+     * @return ResponseResult
+     * @author zhang
+     */
+    @DeleteMapping("/delete/{blogId}")
+    public ResponseResult<String> deleteBlog(@PathVariable Long blogId) {
+        blogService.getBlogById(blogId)
+                .orElseThrow(() -> new BusinessException("文章不存在！"));
+        blogService.deleteBlog(blogId);
+        return ResponseResult.success("删除成功");
+    }
+
+    /**
+     * 获取所有博客列表
+     * @param params 接受列表查询的分页信息
+     * @return ResponseResult
+     */
+    @GetMapping("/blog/list")
+    public ResponseResult<List<BlogDesc>> getBlogList(@RequestParam Map<String, Object> params) {
+        if (!validPageParams(params)){
+            return ResponseResult.fail("分页参数为空");
+        }
+        PageRequest pageRequest = new PageRequest(params);
+        List<BlogDesc> blogDescList = blogService.getBlogList(pageRequest.getPageNo(), pageRequest.getPageSize())
+                .orElseThrow(() -> new BusinessException("博客列表为空"));
+        return ResponseResult.success(blogDescList);
     }
 
 }
