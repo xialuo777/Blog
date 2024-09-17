@@ -1,5 +1,6 @@
 package com.blog.util;
 
+import com.blog.constant.Constant;
 import com.blog.entity.User;
 import com.blog.enums.ErrorCode;
 import com.blog.exception.BusinessException;
@@ -16,9 +17,9 @@ public class UserTransUtils {
             throw new BusinessException(ErrorCode.FAIL, "参数user为null");
         }
         Map<String, Object> userMap = new HashMap<>(3);
-        userMap.put("id", user.getUserId());
-        userMap.put("nickName", user.getNickName());
-        userMap.put("account", user.getAccount());
+        userMap.put(Constant.ID, user.getUserId());
+        userMap.put(Constant.NICK_NAME, user.getNickName());
+        userMap.put(Constant.ACCOUNT, user.getAccount());
         return userMap;
     }
 }

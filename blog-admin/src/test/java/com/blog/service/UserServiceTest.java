@@ -92,7 +92,8 @@ class UserServiceTest {
         user.setPhone("13781342354");
         when(mockUserMapper.findByEmail("2436056388@qq.com")).thenReturn(user);
 
-        assertThrows(BusinessException.class, () -> mockUserService.userLogin(loginer));
+        BusinessException businessException = assertThrows(BusinessException.class, () -> mockUserService.userLogin(loginer));
+        assertEquals("密码错误，登陆失败，请重新输入", businessException.getMessage());
     }
 
 
@@ -101,7 +102,9 @@ class UserServiceTest {
         final Loginer loginer = new Loginer("2436056388@qq.com", "password");
         when(mockUserMapper.findByEmail("2436056388@qq.com")).thenReturn(null);
 
-        assertThatThrownBy(() -> mockUserService.userLogin(loginer)).isInstanceOf(BusinessException.class);
+        BusinessException businessException = assertThrows(BusinessException.class, () -> mockUserService.userLogin(loginer));
+        assertEquals(ErrorCode.USER_NOT_FOUND.getCode(), businessException.getCode());
+        assertTrue(businessException.getMessage().contains("邮箱{}未注册，请注册" ));
     }
 
     @Test
@@ -203,7 +206,10 @@ class UserServiceTest {
         emailCodeBo.setCode("tested");
         when(mockRedisProcessor.get(RedisTransKey.getEmailKey("2436056388@qq.com"))).thenReturn(emailCodeBo);
 
-        assertThrows(BusinessException.class, () -> mockUserService.userRegister(register));
+        BusinessException businessException = assertThrows(BusinessException.class, () -> mockUserService.userRegister(register));
+        assertEquals(ErrorCode.PARAMS_ERROR.getCode(), businessException.getCode());
+        assertTrue(businessException.getMessage().contains("请确认邮箱输入是否正确" ));
+
 
     }
 
@@ -223,7 +229,9 @@ class UserServiceTest {
         emailCodeBo.setCode("testes");
         when(mockRedisProcessor.get(RedisTransKey.getEmailKey("2436056388@qq.com"))).thenReturn(emailCodeBo);
 
-        assertThrows(BusinessException.class, () -> mockUserService.userRegister(register));
+        BusinessException businessException = assertThrows(BusinessException.class, () -> mockUserService.userRegister(register));
+        assertEquals(ErrorCode.PARAMS_ERROR.getCode(), businessException.getCode());
+        assertTrue(businessException.getMessage().contains("请确认邮箱验证码是否正确" ));
 
     }
     @Test
@@ -236,7 +244,9 @@ class UserServiceTest {
         register.setEmail("2436056388@qq.com");
         register.setPhone("13781342354");
         register.setEmailCode("tested");
-        assertThrows(BusinessException.class, () -> mockUserService.userRegister(register));
+        BusinessException businessException = assertThrows(BusinessException.class, () -> mockUserService.userRegister(register));
+        assertEquals(ErrorCode.PARAMS_ERROR.getCode(), businessException.getCode());
+        assertTrue(businessException.getMessage().contains("两次输入密码不一致，请重新输入" ));
 
     }
     @Test
@@ -259,7 +269,9 @@ class UserServiceTest {
         user.setPhone("13781342354");
         when(mockUserMapper.findByEmail("2436056388@qq.com")).thenReturn(user);
 
-        assertThatThrownBy(() -> mockUserService.userRegister(register)).isInstanceOf(BusinessException.class);
+        BusinessException businessException = assertThrows(BusinessException.class, () -> mockUserService.userRegister(register));
+        assertEquals(ErrorCode.USER_ALREADY_EXISTS.getCode(), businessException.getCode());
+        assertTrue(businessException.getMessage().contains("邮箱已注册，请重新输入" ));
     }
 
 
@@ -283,7 +295,10 @@ class UserServiceTest {
     void selectUserByEmail_Without_User() {
         when(mockUserMapper.findByEmail("2436056388@qq.com")).thenReturn(null);
 
-        assertThatThrownBy(() -> mockUserService.selectUserByEmail("2436056388@qq.com")).isInstanceOf(BusinessException.class);
+        BusinessException businessException = assertThrows(BusinessException.class, () -> mockUserService.selectUserByEmail("2436056388@qq.com"));
+        assertEquals(ErrorCode.USER_NOT_FOUND.getCode(), businessException.getCode());
+        assertTrue(businessException.getMessage().contains("邮箱{}未注册，请注册" ));
+
     }
     @Test
     void selectUsersByNickName_NickNameNotFound() {
@@ -297,7 +312,8 @@ class UserServiceTest {
                 mockUserService.selectUsersByNickName(nickName, pageNo, pageSize)
         );
 
-        assertEquals("用户不存在 [\"未找到用户\"]", exception.getMessage());
+        assertEquals(ErrorCode.USER_NOT_FOUND.getCode(), exception.getCode());
+        assertTrue(exception.getMessage().contains("未找到用户" ));
 
         verify(mockUserMapper).selectUsersByNickName(nickName);
     }

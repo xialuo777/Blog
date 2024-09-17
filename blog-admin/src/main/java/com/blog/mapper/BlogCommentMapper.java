@@ -6,6 +6,7 @@ import com.blog.util.bo.BlogCommentBo;
 import java.util.List;
 
 public interface BlogCommentMapper {
+
     int deleteByPrimaryKey(Long commentId);
 
     int insert(BlogComment record);

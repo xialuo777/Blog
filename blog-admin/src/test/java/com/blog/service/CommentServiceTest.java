@@ -39,14 +39,7 @@ class CommentServiceTest {
         blogComment.setCommentBody("commentBody");
 
         commentServiceUnderTest.addComment(blogComment);
-
-        final BlogComment record = new BlogComment();
-        record.setCommentId(0L);
-        record.setBlogId(0L);
-        record.setCommentator("commentator");
-        record.setCommentatorId(0L);
-        record.setCommentBody("commentBody");
-        verify(mockBlogCommentMapper).insertSelective(record);
+        verify(mockBlogCommentMapper).insertSelective(blogComment);
     }
 
     @Test
@@ -99,13 +92,13 @@ class CommentServiceTest {
         List<BlogCommentBo> firstCommentList = new ArrayList<>();
         BlogCommentBo firstComment = new BlogCommentBo();
         firstComment.setCommentId(1L);
-        firstComment.setLastId(0);
+        firstComment.setLastId(0L);
         firstCommentList.add(firstComment);
 
         List<BlogCommentBo> secondCommentList = new ArrayList<>();
         BlogCommentBo secondComment = new BlogCommentBo();
         secondComment.setCommentId(2L);
-        secondComment.setLastId(1);
+        secondComment.setLastId(1L);
         secondCommentList.add(secondComment);
 
         when(mockBlogCommentMapper.queryFirstCommentList(blogId)).thenReturn(firstCommentList);
@@ -147,17 +140,17 @@ class CommentServiceTest {
         List<BlogCommentBo> firstCommentList = new ArrayList<>();
         BlogCommentBo firstComment = new BlogCommentBo();
         firstComment.setCommentId(1L);
-        firstComment.setLastId(0);
+        firstComment.setLastId(0L);
         firstCommentList.add(firstComment);
 
         List<BlogCommentBo> secondCommentList = new ArrayList<>();
         BlogCommentBo secondComment = new BlogCommentBo();
         secondComment.setCommentId(2L);
-        secondComment.setLastId(1);
+        secondComment.setLastId(1L);
         secondCommentList.add(secondComment);
         BlogCommentBo unlinkedComment = new BlogCommentBo();
         unlinkedComment.setCommentId(3L);
-        unlinkedComment.setLastId(2);
+        unlinkedComment.setLastId(2L);
         secondCommentList.add(unlinkedComment);
 
         when(mockBlogCommentMapper.queryFirstCommentList(blogId)).thenReturn(firstCommentList);

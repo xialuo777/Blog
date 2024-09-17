@@ -1,6 +1,7 @@
 package com.blog.service;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.blog.exception.BusinessException;
 import com.blog.util.bo.BlogCommentBo;
 import com.blog.util.dto.PageRequest;
 import com.blog.entity.BlogComment;
@@ -10,9 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author: zhang
@@ -34,7 +33,6 @@ public class CommentService {
     public void deleteComment(Long commentId) {
         blogCommentMapper.deleteByPrimaryKey(commentId);
     }
-
     public List<BlogCommentBo> queryCommentList(PageRequest pageRequest, Long blogId) {
         int pageSize = pageRequest.getPageSize();
         int pageNo = pageRequest.getPageNo();
@@ -49,15 +47,14 @@ public class CommentService {
 
 
     private List<BlogCommentBo> addAllNodes(List<BlogCommentBo> firstCommentList, List<BlogCommentBo> secondCommentList) {
-        List<BlogCommentBo> tempSecondList = new ArrayList<>(secondCommentList);
-
-        for (BlogCommentBo comment : tempSecondList) {
-            if (addNode(firstCommentList, comment)) {
-                secondCommentList.remove(comment);
-            }
-        }
-
-        return firstCommentList;
+       while (CollectionUtil.isNotEmpty(secondCommentList)){
+           for (int i = secondCommentList.size() - 1; i >= 0; i--) {
+               if (addNode(firstCommentList, secondCommentList.get(i))) {
+                   secondCommentList.remove(i);
+               }
+           }
+       }
+       return firstCommentList;
     }
 
     private boolean addNode(List<BlogCommentBo> firstCommentList, BlogCommentBo blogCommentBo) {
@@ -66,15 +63,13 @@ public class CommentService {
             if (commentBo.getCommentId().equals(blogCommentBo.getLastId())){
                 commentBo.getNextNodes().add(blogCommentBo);
                 return true;
-            }else {
                 //若不是当前评论的回复，则判断其下一个节点是否为空，若不为空，则递归判断
-                if (CollectionUtil.isNotEmpty(commentBo.getNextNodes())){
+            }else if (CollectionUtil.isNotEmpty(commentBo.getNextNodes())){
                     if (addNode(commentBo.getNextNodes(), blogCommentBo)){
                         return true;
                     }
                 }
             }
-        }
         return false;
     }
 }

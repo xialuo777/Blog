@@ -1,6 +1,7 @@
 package com.blog.service;
 
 import com.blog.entity.Admin;
+import com.blog.enums.ErrorCode;
 import com.blog.exception.BusinessException;
 import com.blog.mapper.AdminMapper;
 import com.blog.util.JwtProcessor;
@@ -17,7 +18,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -56,7 +57,18 @@ class AdminServiceTest {
     void adminLogin_WithWrongPassword() {
         final AdminInVo adminInVo = new AdminInVo("account", "password1");
         when(mockAdminMapper.selectByAccount("account")).thenReturn(new Admin(0L, "account", "password"));
-        assertThrows(BusinessException.class, () -> adminServiceUnderTest.adminLogin(adminInVo));
+        BusinessException exception = assertThrows(BusinessException.class, () -> adminServiceUnderTest.adminLogin(adminInVo));
+        assertTrue(exception.getMessage().contains("密码错误" ));
+
+    }
+
+    @Test
+    void adminLogin_accountNotFound() {
+        AdminInVo adminInVo = new AdminInVo("account", "password");
+
+        when(mockAdminMapper.selectByAccount("account")).thenReturn(null);
+        BusinessException exception = assertThrows(BusinessException.class, () -> adminServiceUnderTest.adminLogin(adminInVo));
+        assertEquals("该管理员账号不存在", exception.getMessage());
     }
 
 
@@ -76,7 +88,6 @@ class AdminServiceTest {
     void updateAdmin() {
 
         final Admin admin = new Admin(0L, "account", "password");
-
         adminServiceUnderTest.updateAdmin(admin);
 
         verify(mockAdminMapper).updateByPrimaryKeySelective(new Admin(0L, "account", "password"));

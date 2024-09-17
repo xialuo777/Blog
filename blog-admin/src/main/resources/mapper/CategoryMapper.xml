@@ -26,14 +26,14 @@
     delete from category
     where category_id = #{categoryId,jdbcType=BIGINT}
   </delete>
-  <insert id="insert" keyColumn="category_id" keyProperty="categoryId" parameterType="com.blog.entity.Category" useGeneratedKeys="true">
+  <insert id="insert" keyColumn="category_id" keyProperty="categoryId" parameterType="com.blog.entity.Category">
     <!--@mbg.generated-->
-    insert into category (category_name, category_rank, create_time, 
+    insert into category (category_id,category_name, category_rank, create_time,
       delete_flag)
-    values (#{categoryName,jdbcType=VARCHAR}, #{categoryRank,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, 
+    values (#{categoryId,jdbcType=BIGINT},#{categoryName,jdbcType=VARCHAR}, #{categoryRank,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP},
       #{deleteFlag,jdbcType=BOOLEAN})
   </insert>
-  <insert id="insertSelective" keyColumn="category_id" keyProperty="categoryId" parameterType="com.blog.entity.Category" useGeneratedKeys="true">
+  <insert id="insertSelective" keyColumn="category_id" keyProperty="categoryId" parameterType="com.blog.entity.Category">
     <!--@mbg.generated-->
     insert into category
     <trim prefix="(" suffix=")" suffixOverrides=",">

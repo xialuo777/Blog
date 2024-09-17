@@ -25,14 +25,14 @@
     delete from tag
     where tag_id = #{tagId,jdbcType=BIGINT}
   </delete>
-  <insert id="insert" keyColumn="tag_id" keyProperty="tagId" parameterType="com.blog.entity.Tag" useGeneratedKeys="true">
+  <insert id="insert" keyColumn="tag_id" keyProperty="tagId" parameterType="com.blog.entity.Tag">
     <!--@mbg.generated-->
     insert into tag (tag_name, create_time, delete_flag
       )
     values (#{tagName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{deleteFlag,jdbcType=INTEGER}
       )
   </insert>
-  <insert id="insertSelective" keyColumn="tag_id" keyProperty="tagId" parameterType="com.blog.entity.Tag" useGeneratedKeys="true">
+  <insert id="insertSelective" keyColumn="tag_id" keyProperty="tagId" parameterType="com.blog.entity.Tag">
     <!--@mbg.generated-->
     insert into tag
     <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -90,7 +90,7 @@
     where tag_name = #{tagName,jdbcType=VARCHAR} AND delete_flag = 0
   </select>
 
-  <insert id="insertList" keyProperty="tagId" parameterType="java.util.List" useGeneratedKeys="true">
+  <insert id="insertList" keyProperty="tagId" parameterType="java.util.List">
     insert into tag(tag_id, tag_name)
     values
     <foreach collection="list" item="item" separator=",">

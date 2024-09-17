@@ -52,7 +52,7 @@ public class UserService {
         boolean loginFlag = SecurityUtils.checkPassword(password, user.getPassword());
         if (!loginFlag) {
             log.error("密码错误，登陆失败，请重新输入");
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码错误，登陆失败，请重新输入");
+            throw new BusinessException("密码错误，登陆失败，请重新输入");
         }
         /*将用户信息存放在token中，时效为7天*/
         Map<String, Object> userMap = UserTransUtils.getUserMap(user);
@@ -116,7 +116,7 @@ public class UserService {
         }
         if (!emailCodeBo.getEmail().equals(email)) {
             log.error("邮箱输入错误，注册失败：{}", account);
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请确认邮箱验证码是否正确");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请确认邮箱输入是否正确");
         }
 
         /*封装用户*/

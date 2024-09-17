@@ -48,9 +48,9 @@ public class JwtProcessor {
     public Map<String, Object> extractUserMap(String token) {
         Map<String, Object> map = extractAllClaims(token);
         Map<String, Object> userMap = new HashMap<>(3);
-        userMap.put("id", map.get("id"));
-        userMap.put("nickName", map.get("nickName"));
-        userMap.put("account", map.get("account"));
+        userMap.put(Constant.ID, map.get(Constant.ID));
+        userMap.put(Constant.NICK_NAME, map.get(Constant.NICK_NAME));
+        userMap.put(Constant.ACCOUNT, map.get(Constant.ACCOUNT));
         return userMap;
     }
 
