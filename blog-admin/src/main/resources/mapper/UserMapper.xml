@@ -176,11 +176,4 @@
     select count(1) from user
   </select>
 
-  <select id="selectUserByComment" resultMap="BaseResultMap">
-    select
-      <include refid="Base_Column_List"/>
-    from user
-    left join blog_comment b on user.user_id = b.commentator_id
-    where comment_id = #{commentId}
-  </select>
 </mapper>

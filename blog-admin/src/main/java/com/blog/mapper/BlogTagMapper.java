@@ -38,6 +38,7 @@ public interface BlogTagMapper {
      * 根据博客id删除博客标签关联信息
      *
      * @param blogId 博客id
+     * @return int
      */
-    void deleteByBlogId(Long blogId);
+    int deleteByBlogId(Long blogId);
 }

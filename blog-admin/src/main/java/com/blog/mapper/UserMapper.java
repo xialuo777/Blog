@@ -91,10 +91,4 @@ public interface UserMapper {
      */
     int selectTotalCount();
 
-    /**
-     * 根据评论id查询用户信息
-     * @param userId 用户id
-     * @return User
-     */
-    User selectUserByComment(Long userId);
 }

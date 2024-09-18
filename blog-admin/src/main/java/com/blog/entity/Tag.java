@@ -29,8 +29,4 @@ public class Tag {
         this.tagId = nextId;
         this.tagName = tagName;
     }
-
-    public Tag(String newTag) {
-        this.tagName = newTag;
-    }
 }

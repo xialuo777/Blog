@@ -54,7 +54,7 @@ public class AuthenticationFilter implements Filter {
                 filterChain.doFilter(request, response);
                 return;
             }
-            //extractUserId内部进行token验证时会对invalidToken的异常进行处理
+            //extractUserMap内部进行token验证时会对invalidToken的异常进行处理
             Map<String, Object> userMap = jwtProcessor.extractUserMap(accessToken);
             Long userId = (Long) userMap.get(Constant.ID);
             currentUserHolder.setUserId(userId);

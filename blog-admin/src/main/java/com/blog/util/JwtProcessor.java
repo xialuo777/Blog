@@ -32,7 +32,8 @@ public class JwtProcessor {
      */
     public Boolean validateToken(String token, Long userId) {
         final Map<String, Object> userMap = extractUserMap(token);
-        return userMap.get(Constant.ID).equals(userId);
+        Long id =  Long.valueOf(String.valueOf(userMap.get(Constant.ID)));
+        return id.equals(userId);
     }
 
 

@@ -1,6 +1,7 @@
 package com.blog.mapper;
 
 import com.blog.entity.Admin;
+import com.blog.entity.Blog;
 import com.blog.entity.BlogComment;
 import org.junit.jupiter.api.Test;
 import org.mybatis.spring.boot.test.autoconfigure.MybatisTest;
@@ -9,8 +10,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.blog.mapper.AssertHelperSipf.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -87,18 +87,35 @@ class BlogCommentMapperTest {
     @Test
     @Sql(statements = delete_all_sql)
     void selectByBlogId() {
-        insert();
-        BlogComment blogComment = getDbRecord(BlogComment.class, jdbcTemplate, query_all_sql);
-        List<BlogComment> blogComments = blogCommentMapper.selectByBlogId(blogComment.getBlogId());
-        blogComments.forEach(item -> assertBean(item, blogComment));
+        List<BlogComment> lists = new ArrayList<>();
+        Map<Long, BlogComment> map = new HashMap<>();
+        int nums = 10;
+        for (int i = 0; i < nums; i++) {
+            BlogComment blogComment = randomT(BlogComment.class);
+            blogComment.setBlogId(1L);
+            lists.add(blogComment);
+            blogCommentMapper.insert(blogComment);
+            map.put(blogComment.getCommentId(),blogComment);
+        }
+        List<BlogComment> list = blogCommentMapper.selectByBlogId(1L);
+        assertEquals(nums, list.size());
+        for (BlogComment blogComment : list) {
+            assertBean(map.get(blogComment.getCommentId()), blogComment);
+        }
     }
 
     @Test
     @Sql(statements = delete_all_sql)
     void selectCommentCountByBlogId() {
-        insert();
-        BlogComment blogComment = getDbRecord(BlogComment.class, jdbcTemplate, query_all_sql);
-        assertEquals(1, blogCommentMapper.selectCommentCountByBlogId(blogComment.getBlogId()));
+        List<BlogComment> lists = new ArrayList<>();
+        int nums = 10;
+        for (int i = 0; i < nums; i++) {
+            BlogComment blogComment = randomT(BlogComment.class);
+            blogComment.setBlogId(1L);
+            lists.add(blogComment);
+            blogCommentMapper.insert(blogComment);
+        }
+        assertEquals(nums, blogCommentMapper.selectCommentCountByBlogId(1L));
     }
 
     @Test

@@ -29,8 +29,7 @@ import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
@@ -146,8 +145,8 @@ class BlogServiceTest {
            when(mockCurrentUserHolder.getUserId()).thenReturn(2L);
            snowFlakeUtilMocked.when(()->SnowFlakeUtil.nextId()).thenReturn(1L);
 
-           assertThatThrownBy(() -> blogServiceUnderTest.saveBlog(blog))
-                   .isInstanceOf(BusinessException.class);
+           BusinessException businessException = assertThrows(BusinessException.class, () -> blogServiceUnderTest.saveBlog(blog));
+           assertTrue(businessException.getMessage().contains("输入标签数量限制为{}，请重新输入"));
        }
     }
     @Test
@@ -275,8 +274,9 @@ class BlogServiceTest {
         Category categoryExist = new Category(1L, "categoryName");
         when(mockCategoryMapper.selectByPrimaryKey(1L)).thenReturn(categoryExist);
 
-        assertThatThrownBy(() -> blogServiceUnderTest.updateBlog(blog))
-                .isInstanceOf(BusinessException.class);
+        BusinessException businessException = assertThrows(BusinessException.class, () -> blogServiceUnderTest.updateBlog(blog));
+        assertTrue(businessException.getMessage().contains("输入标签数量限制为{}，请重新输入"));
+
     }
 
     @Test

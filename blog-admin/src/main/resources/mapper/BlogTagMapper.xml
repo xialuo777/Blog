@@ -24,15 +24,20 @@
     delete from blog_tag
     where id = #{id,jdbcType=BIGINT}
   </delete>
-  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.blog.entity.BlogTag">
+  <insert id="insert" parameterType="com.blog.entity.BlogTag">
     <!--@mbg.generated-->
-    insert into blog_tag (id,blog_id, tag_id)
-    values (#{id,jdbcType=BIGINT},#{blogId,jdbcType=BIGINT}, #{tagId,jdbcType=BIGINT})
+    insert into blog_tag (id, blog_id, tag_id
+      )
+    values (#{id,jdbcType=BIGINT}, #{blogId,jdbcType=BIGINT}, #{tagId,jdbcType=BIGINT}
+      )
   </insert>
-  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.blog.entity.BlogTag">
+  <insert id="insertSelective" parameterType="com.blog.entity.BlogTag">
     <!--@mbg.generated-->
     insert into blog_tag
     <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
       <if test="blogId != null">
         blog_id,
       </if>
@@ -41,6 +46,9 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
       <if test="blogId != null">
         #{blogId,jdbcType=BIGINT},
       </if>
