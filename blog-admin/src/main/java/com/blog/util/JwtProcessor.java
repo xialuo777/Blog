@@ -32,7 +32,7 @@ public class JwtProcessor {
      */
     public Boolean validateToken(String token, Long userId) {
         final Map<String, Object> userMap = extractUserMap(token);
-        Long id =  Long.valueOf(String.valueOf(userMap.get(Constant.ID)));
+        Long id =  Long.valueOf(String.valueOf(userMap.get(Constant.USER_MAP_KEY_ID)));
         return id.equals(userId);
     }
 
@@ -49,9 +49,9 @@ public class JwtProcessor {
     public Map<String, Object> extractUserMap(String token) {
         Map<String, Object> map = extractAllClaims(token);
         Map<String, Object> userMap = new HashMap<>(3);
-        userMap.put(Constant.ID, map.get(Constant.ID));
-        userMap.put(Constant.NICK_NAME, map.get(Constant.NICK_NAME));
-        userMap.put(Constant.ACCOUNT, map.get(Constant.ACCOUNT));
+        userMap.put(Constant.USER_MAP_KEY_ID, map.get(Constant.USER_MAP_KEY_ID));
+        userMap.put(Constant.USER_MAP_KEY_NICK_NAME, map.get(Constant.USER_MAP_KEY_NICK_NAME));
+        userMap.put(Constant.USER_MAP_KEY_ACCOUNT, map.get(Constant.USER_MAP_KEY_ACCOUNT));
         return userMap;
     }
 

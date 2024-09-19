@@ -5,9 +5,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.blog.constant.Constant;
 import com.blog.exception.BusinessException;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +21,6 @@ import java.util.Map;
 class JwtProcessorTest {
     private JwtProcessor jwtProcessorUnderTest;
     private final String secretKey = "3b1eef9f4d6944ca7c864c748fc4fc1c7ee66db08fc6288d85a85445832378526ab5c00e63bdabfbf0243acd1934bdfb661cc06837378d8df2c674e5365cede1";
-    private final int jwtExpiration = 15;
 
 
     @BeforeEach
@@ -73,9 +69,9 @@ class JwtProcessorTest {
     @Test
     void testValidateToken_ExpiredToken_ThrowsBusinessException() {
         Map<String, Object> claims = new HashMap<>();
-        claims.put(Constant.ID, 1L);
-        claims.put(Constant.NICK_NAME, "TestUser");
-        claims.put(Constant.ACCOUNT, "testAccount");
+        claims.put(Constant.USER_MAP_KEY_ID, 1L);
+        claims.put(Constant.USER_MAP_KEY_NICK_NAME, "TestUser");
+        claims.put(Constant.USER_MAP_KEY_ACCOUNT, "testAccount");
         Long userId = 1L;
 
         Date expirationDate = new Date(System.currentTimeMillis() - (1000 * 60 * 60 * 24)); // 一天前
@@ -91,9 +87,9 @@ class JwtProcessorTest {
     @Test
     void testGenerateToken() {
         Map<String, Object> userMap = new HashMap<>();
-        userMap.put(Constant.ID, 1L);
-        userMap.put(Constant.NICK_NAME, "TestUser");
-        userMap.put(Constant.ACCOUNT, "testAccount");
+        userMap.put(Constant.USER_MAP_KEY_ID, 1L);
+        userMap.put(Constant.USER_MAP_KEY_NICK_NAME, "TestUser");
+        userMap.put(Constant.USER_MAP_KEY_ACCOUNT, "testAccount");
 
         String token = jwtProcessorUnderTest.generateToken(userMap);
 
@@ -113,9 +109,9 @@ class JwtProcessorTest {
     @Test
     void testExtractUserMap_ValidToken_ReturnsUserMap() {
         Map<String, Object> claims = new HashMap<>();
-        claims.put(Constant.ID, 1L);
-        claims.put(Constant.NICK_NAME, "TestUser");
-        claims.put(Constant.ACCOUNT, "testAccount");
+        claims.put(Constant.USER_MAP_KEY_ID, 1L);
+        claims.put(Constant.USER_MAP_KEY_NICK_NAME, "TestUser");
+        claims.put(Constant.USER_MAP_KEY_ACCOUNT, "testAccount");
 
         String token = Jwts.builder()
                 .setClaims(claims)
@@ -127,9 +123,9 @@ class JwtProcessorTest {
 
         assertNotNull(userMap);
         assertEquals(3, userMap.size());
-        assertEquals(1, userMap.get(Constant.ID));
-        assertEquals("TestUser", userMap.get(Constant.NICK_NAME));
-        assertEquals("testAccount", userMap.get(Constant.ACCOUNT));
+        assertEquals(1, userMap.get(Constant.USER_MAP_KEY_ID));
+        assertEquals("TestUser", userMap.get(Constant.USER_MAP_KEY_NICK_NAME));
+        assertEquals("testAccount", userMap.get(Constant.USER_MAP_KEY_ACCOUNT));
     }
 
     @Test
@@ -143,9 +139,9 @@ class JwtProcessorTest {
     @Test
     void testExtractUserMap_ExpiredToken_ThrowsBusinessException() {
         Map<String, Object> claims = new HashMap<>();
-        claims.put(Constant.ID, 1L);
-        claims.put(Constant.NICK_NAME, "TestUser");
-        claims.put(Constant.ACCOUNT, "testAccount");
+        claims.put(Constant.USER_MAP_KEY_ID, 1L);
+        claims.put(Constant.USER_MAP_KEY_NICK_NAME, "TestUser");
+        claims.put(Constant.USER_MAP_KEY_ACCOUNT, "testAccount");
 
         Date expirationDate = new Date(System.currentTimeMillis() - (1000 * 60 * 60 * 24)); // 一天前
         String expiredToken = Jwts.builder()

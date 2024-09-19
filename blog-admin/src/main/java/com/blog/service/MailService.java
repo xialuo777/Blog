@@ -41,7 +41,7 @@ public class MailService {
         emailCodeBo.setEmail(toEmail);
         emailCodeBo.setCode(code);
         /*redis缓存emailCodeBo，key为邮箱，时间为60s*/
-        redisProcessor.set(RedisTransKey.emailKey(toEmail), emailCodeBo, 60, TimeUnit.SECONDS);
+        redisProcessor.set(RedisTransKey.emailKey(toEmail), emailCodeBo, 1, TimeUnit.DAYS);
         sendCodeMailMessage(toEmail, code);
     }
 

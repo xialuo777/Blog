@@ -17,9 +17,9 @@ public class UserTransUtils {
             throw new BusinessException(ErrorCode.FAIL, "参数user为null");
         }
         Map<String, Object> userMap = new HashMap<>(3);
-        userMap.put(Constant.ID, user.getUserId());
-        userMap.put(Constant.NICK_NAME, user.getNickName());
-        userMap.put(Constant.ACCOUNT, user.getAccount());
+        userMap.put(Constant.USER_MAP_KEY_ID, user.getUserId());
+        userMap.put(Constant.USER_MAP_KEY_NICK_NAME, user.getNickName());
+        userMap.put(Constant.USER_MAP_KEY_ACCOUNT, user.getAccount());
         return userMap;
     }
 }

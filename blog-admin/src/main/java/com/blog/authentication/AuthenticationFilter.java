@@ -47,8 +47,7 @@ public class AuthenticationFilter implements Filter {
 
 
         String requestUri = request.getRequestURI();
-        /*登录、注册、令牌刷新等操作不验证身份，对其他的业务操作进行验证*/
-
+        //登录、注册、令牌刷新等操作不验证身份，对其他的业务操作进行验证
         try {
             if (ALLOWED_PATHS.contains(requestUri)) {
                 filterChain.doFilter(request, response);
@@ -56,7 +55,7 @@ public class AuthenticationFilter implements Filter {
             }
             //extractUserMap内部进行token验证时会对invalidToken的异常进行处理
             Map<String, Object> userMap = jwtProcessor.extractUserMap(accessToken);
-            Long userId = (Long) userMap.get(Constant.ID);
+            Long userId = (Long) userMap.get(Constant.USER_MAP_KEY_ID);
             currentUserHolder.setUserId(userId);
             filterChain.doFilter(request, response);
         } finally {

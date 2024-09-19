@@ -74,7 +74,7 @@ class RedisProcessorTest {
     void testSet_ThrownException() {
         String key = "testKey";
         Object value = "testValue";
-        Long time = -1L;
+        Long time = 0L;
         TimeUnit timeType = TimeUnit.DAYS;
 
         BusinessException businessException = assertThrows(BusinessException.class, () -> redisProcessorUnderTest.set(key, value, time, timeType));

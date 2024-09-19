@@ -84,7 +84,7 @@ class AuthenticationFilterTest {
         request.setRequestURI(requestUri);
 
         Map<String, Object> userMap = new HashMap<>();
-        userMap.put(Constant.ID, userId);
+        userMap.put(Constant.USER_MAP_KEY_ID, userId);
 
         when(mockJwtProcessor.extractUserMap(accessToken)).thenReturn(userMap);
 

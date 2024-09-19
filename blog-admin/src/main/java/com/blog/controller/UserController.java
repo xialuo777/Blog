@@ -103,7 +103,7 @@ public class UserController extends BaseController {
     @PostMapping("/refresh")
     public ResponseResult<String> refreshToken(String refreshToken) {
         Map<String, Object> userMap = jwtProcessor.extractUserMap(refreshToken);
-        Long userId = (Long) userMap.get(Constant.ID);
+        Long userId = (Long) userMap.get(Constant.USER_MAP_KEY_ID);
         User user = userMapper.selectByPrimaryKey(userId);
         if (!validUserStatus(user)) {
             log.error("该用户处于异常状态，无法执行下一步操作");
@@ -124,6 +124,7 @@ public class UserController extends BaseController {
         Long userId = currentUserHolder.getUserId();
         User user = userService.selectUserByUserId(userId)
                 .orElseThrow(()->new BusinessException("用户不存在"));
+        Object o = redisProcessor.get(RedisTransKey.getRefreshTokenKey(user.getEmail()));
         String accessToken = (String) redisProcessor.get(RedisTransKey.getTokenKey(user.getEmail()));
         if (!jwtProcessor.validateToken(accessToken, userId)) {
             return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
@@ -141,7 +142,7 @@ public class UserController extends BaseController {
      * @return ResponseResult
      * @author zhang
      */
-    @DeleteMapping("/delete")
+    @PostMapping("/delete")
     public ResponseResult<String> delete() {
         Long userId = currentUserHolder.getUserId();
         User user = userService.selectUserByUserId(userId)
@@ -160,7 +161,7 @@ public class UserController extends BaseController {
      * @return ResponseResult
      * @author zhang
      */
-    @PutMapping("/update")
+    @PostMapping("/update")
     public ResponseResult<String> updateUser(@RequestBody UserInfoVo userInfoVo) {
         String accessToken = (String) redisProcessor.get(RedisTransKey.getTokenKey(userInfoVo.getEmail()));
         Long userId = currentUserHolder.getUserId();
@@ -186,14 +187,21 @@ public class UserController extends BaseController {
      * @time 2024-09-13 16:53
      */
 
-    @PutMapping("/update/password")
+    @PostMapping("/update/password")
     public ResponseResult<String> updatePassword(String oldPassword, String newPassword) {
         if (StringUtil.isEmpty(oldPassword) || StringUtil.isEmpty(newPassword)) {
             return ResponseResult.fail("输入密码不能为空");
         }
+
         Long userId = currentUserHolder.getUserId();
+
         User user = userService.selectUserByUserId(userId)
                 .orElseThrow(() -> new BusinessException("用户不存在！"));
+
+        String accessToken = (String) redisProcessor.get(RedisTransKey.getTokenKey(user.getEmail()));
+        if (!jwtProcessor.validateToken(accessToken, userId)) {
+            return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
+        }
         if (!SecurityUtils.checkPassword(oldPassword, user.getPassword())){
             return ResponseResult.fail("密码错误，请重新输入");
         }
@@ -214,6 +222,10 @@ public class UserController extends BaseController {
         Long userId = currentUserHolder.getUserId();
         User user = userService.selectUserByUserId(userId)
                 .orElseThrow(() -> new BusinessException("用户不存在！"));
+        String accessToken = (String) redisProcessor.get(RedisTransKey.getTokenKey(user.getEmail()));
+        if (!jwtProcessor.validateToken(accessToken, userId)) {
+            return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
+        }
         UserInfoVo userInfoVo = new UserInfoVo();
         BeanUtil.copyProperties(user, userInfoVo);
         return ResponseResult.success(userInfoVo);
@@ -249,7 +261,7 @@ public class UserController extends BaseController {
     @GetMapping("/getUsers")
     public ResponseResult<Object> getUsers(@RequestParam Map<String, Object> params) {
         if (!validPageParams(params)){
-            return ResponseResult.fail("分页参数为空");
+            return ResponseResult.fail("分页参数异常");
         }
         PageRequest pageRequest = new PageRequest(params);
         List<User> users = userService.getUsers(pageRequest.getPageNo(), pageRequest.getPageSize())

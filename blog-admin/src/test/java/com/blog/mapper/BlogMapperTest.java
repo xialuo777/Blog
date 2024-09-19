@@ -17,75 +17,79 @@ import static org.junit.jupiter.api.Assertions.*;
 @MybatisTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class BlogMapperTest {
-    private final String delete_all_sql = "delete from blog";
-    private final String query_all_sql = "select * from blog";
+    private final String DELETE_ALL_SQL = "delete from blog";
+    private final String QUERY_ALL_SQL = "select * from blog";
     @Autowired
     private BlogMapper blogMapper;
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void deleteByPrimaryKey() {
-        insert();
-        Blog dbRecord = getDbRecord(Blog.class, jdbcTemplate, query_all_sql);
+        Blog blog = randomT(Blog.class);
+        blogMapper.insert(blog);
+        Blog dbRecord = getDbRecord(Blog.class, jdbcTemplate, QUERY_ALL_SQL);
         int i = blogMapper.deleteByPrimaryKey(dbRecord.getBlogId());
         assertEquals(1, i);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void insert() {
         Blog blog = randomT(Blog.class);
         int insert = blogMapper.insert(blog);
-        Blog dbRecord = getDbRecord(Blog.class, jdbcTemplate, query_all_sql);
+        Blog dbRecord = getDbRecord(Blog.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(dbRecord, blog);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void insertSelective() {
         Blog blog = randomT(Blog.class);
         int insert = blogMapper.insertSelective(blog);
-        Blog dbRecord = getDbRecord(Blog.class, jdbcTemplate, query_all_sql);
+        Blog dbRecord = getDbRecord(Blog.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(dbRecord, blog);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void selectByPrimaryKey() {
-        insert();
-        Blog dbRecord = getDbRecord(Blog.class, jdbcTemplate, query_all_sql);
+        Blog blog1 = randomT(Blog.class);
+        blogMapper.insert(blog1);
+        Blog dbRecord = getDbRecord(Blog.class, jdbcTemplate, QUERY_ALL_SQL);
         Blog blog = blogMapper.selectByPrimaryKey(dbRecord.getBlogId());
         assertBean(dbRecord, blog);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void updateByPrimaryKeySelective() {
-        insert();
-        Blog dbRecord = getDbRecord(Blog.class, jdbcTemplate, query_all_sql);
+        Blog blog1 = randomT(Blog.class);
+        blogMapper.insert(blog1);
+        Blog dbRecord = getDbRecord(Blog.class, jdbcTemplate, QUERY_ALL_SQL);
         Blog blog = randomT(Blog.class);
         blog.setBlogId(dbRecord.getBlogId());
         int i = blogMapper.updateByPrimaryKeySelective(blog);
-        Blog dbRecord2 = getDbRecord(Blog.class, jdbcTemplate, query_all_sql);
+        Blog dbRecord2 = getDbRecord(Blog.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(dbRecord2, blog);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void updateByPrimaryKey() {
-        insert();
-        Blog dbRecord = getDbRecord(Blog.class, jdbcTemplate, query_all_sql);
+        Blog blog1 = randomT(Blog.class);
+        blogMapper.insert(blog1);
+        Blog dbRecord = getDbRecord(Blog.class, jdbcTemplate, QUERY_ALL_SQL);
         Blog blog = randomT(Blog.class);
         blog.setBlogId(dbRecord.getBlogId());
         int i = blogMapper.updateByPrimaryKeySelective(blog);
-        Blog dbRecord2 = getDbRecord(Blog.class, jdbcTemplate, query_all_sql);
+        Blog dbRecord2 = getDbRecord(Blog.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(dbRecord2, blog);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void selectListByUserId() {
         List<Blog> lists = new ArrayList<>();
         Map<Long, Blog> map = new HashMap<>();
@@ -106,7 +110,7 @@ class BlogMapperTest {
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void selectListByCategoryId() {
         List<Blog> lists = new ArrayList<>();
         Map<Long, Blog> map = new HashMap<>();
@@ -127,7 +131,7 @@ class BlogMapperTest {
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void selectList() {
         List<Blog> lists = new ArrayList<>();
         Map<Long, BlogDesc> map = new HashMap<>();

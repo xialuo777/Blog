@@ -18,85 +18,89 @@ import static org.junit.jupiter.api.Assertions.*;
 @MybatisTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class TagMapperTest {
-    private final String delete_all_sql = "delete from tag";
-    private final String query_all_sql = "select * from tag";
+    private final String DELETE_ALL_SQL = "delete from tag";
+    private final String QUERY_ALL_SQL = "select * from tag";
     @Autowired
     private TagMapper tagMapper;
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void deleteByPrimaryKey() {
-        insert();
-        Tag dbRecord = getDbRecord(Tag.class, jdbcTemplate, query_all_sql);
+        Tag tag1 = randomT(Tag.class);
+        tagMapper.insert(tag1);
+        Tag dbRecord = getDbRecord(Tag.class, jdbcTemplate, QUERY_ALL_SQL);
         int i = tagMapper.deleteByPrimaryKey(dbRecord.getTagId());
         assertEquals(1,i);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void insert() {
         Tag tag = randomT(Tag.class);
         tagMapper.insert(tag);
-        Tag dbRecord = getDbRecord(Tag.class, jdbcTemplate, query_all_sql);
+        Tag dbRecord = getDbRecord(Tag.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(dbRecord,tag);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void insertSelective() {
         Tag tag = randomT(Tag.class);
         tagMapper.insert(tag);
-        Tag dbRecord = getDbRecord(Tag.class, jdbcTemplate, query_all_sql);
+        Tag dbRecord = getDbRecord(Tag.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(dbRecord,tag);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void selectByPrimaryKey() {
-        insert();
-        Tag dbRecord = getDbRecord(Tag.class, jdbcTemplate, query_all_sql);
+        Tag tag1 = randomT(Tag.class);
+        tagMapper.insert(tag1);
+        Tag dbRecord = getDbRecord(Tag.class, jdbcTemplate, QUERY_ALL_SQL);
         Tag tag = tagMapper.selectByPrimaryKey(dbRecord.getTagId());
         assertBean(tag,dbRecord);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void updateByPrimaryKeySelective() {
-        insert();
-        Tag dbRecord = getDbRecord(Tag.class, jdbcTemplate, query_all_sql);
+        Tag tag1 = randomT(Tag.class);
+        tagMapper.insert(tag1);
+        Tag dbRecord = getDbRecord(Tag.class, jdbcTemplate, QUERY_ALL_SQL);
         Tag tag = randomT(Tag.class);
         tag.setTagId(dbRecord.getTagId());
         tagMapper.updateByPrimaryKeySelective(tag);
-        Tag dbRecord2 = getDbRecord(Tag.class, jdbcTemplate, query_all_sql);
+        Tag dbRecord2 = getDbRecord(Tag.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(dbRecord2,tag);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void updateByPrimaryKey() {
-        insert();
-        Tag dbRecord = getDbRecord(Tag.class, jdbcTemplate, query_all_sql);
+        Tag tag1 = randomT(Tag.class);
+        tagMapper.insert(tag1);
+        Tag dbRecord = getDbRecord(Tag.class, jdbcTemplate, QUERY_ALL_SQL);
         Tag tag = randomT(Tag.class);
         tag.setTagId(dbRecord.getTagId());
         tagMapper.updateByPrimaryKeySelective(tag);
-        Tag dbRecord2 = getDbRecord(Tag.class, jdbcTemplate, query_all_sql);
+        Tag dbRecord2 = getDbRecord(Tag.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(dbRecord2,tag);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void selectByTagName() {
         Tag tag1 = randomT(Tag.class);
         tag1.setDeleteFlag(0);
         tagMapper.insert(tag1);
-        Tag dbRecord = getDbRecord(Tag.class, jdbcTemplate, query_all_sql);
+        Tag dbRecord = getDbRecord(Tag.class, jdbcTemplate, QUERY_ALL_SQL);
         Tag tag = tagMapper.selectByTagName(dbRecord.getTagName());
         assertBean(tag,dbRecord);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void insertList() {
         Map<Long,Tag> map = new HashMap<>();
         List<Tag> list = new ArrayList<>();
@@ -118,7 +122,7 @@ class TagMapperTest {
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void selectListByTagNames() {
         Map<Long,Tag> map = new HashMap<>();
         List<Tag> list = new ArrayList<>();

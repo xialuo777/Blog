@@ -26,8 +26,9 @@ public class SecurityUtilsTest {
     /*测试密码是否加密*/
     @Test
     public void encodePassword_PasswordIsEncoded_EncodedPasswordMatchesExpected() {
-        String password = "password";
+        String password = "passwordTest";
         String encodedPassword = SecurityUtils.encodePassword(password);
+        System.out.println(encodedPassword);
         assertTrue(passwordEncoder.matches(password, encodedPassword));
     }
 

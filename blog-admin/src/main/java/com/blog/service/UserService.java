@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import static com.blog.util.UserTransUtils.getUserMap;
+
 /**
  * @author: zhang
  * @time: 2024-09-14 12:50
@@ -55,7 +57,7 @@ public class UserService {
             throw new BusinessException("密码错误，登陆失败，请重新输入");
         }
         /*将用户信息存放在token中，时效为7天*/
-        Map<String, Object> userMap = UserTransUtils.getUserMap(user);
+        Map<String, Object> userMap = getUserMap(user);
         String accessToken = jwtProcessor.generateToken(userMap);
         String refreshToken = jwtProcessor.generateRefreshToken(userMap);
         redisProcessor.set(RedisTransKey.refreshTokenKey(email), refreshToken, 7, TimeUnit.DAYS);
@@ -77,7 +79,7 @@ public class UserService {
         }
         User user = userMapper.selectByPrimaryKey(userId);
         //没过期生成一个新的token
-        Map<String, Object> userMap = UserTransUtils.getUserMap(user);
+        Map<String, Object> userMap = getUserMap(user);
         String accessToken = jwtProcessor.generateToken(userMap);
         String newRefreshToken = jwtProcessor.generateRefreshToken(userMap);
         redisProcessor.set(RedisTransKey.refreshTokenKey(user.getEmail()), newRefreshToken);

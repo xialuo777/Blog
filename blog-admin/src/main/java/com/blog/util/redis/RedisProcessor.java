@@ -57,10 +57,10 @@ public class RedisProcessor {
      */
 
     public void set(String key, Object value, long time,TimeUnit timeType) {
-        if (time > 0) {
-            redisTemplate.opsForValue().set(key, value, time, timeType);
-        } else {
+        if (time <= 0) {
             throw new BusinessException("设置的保存时间小于0");
+
         }
+        redisTemplate.opsForValue().set(key, value, time, timeType);
     }
 }

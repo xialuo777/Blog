@@ -17,101 +17,110 @@ import static org.junit.jupiter.api.Assertions.*;
 @MybatisTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class UserMapperTest {
-    private final String delete_all_sql = "delete from user";
-    private final String query_all_sql = "select * from user";
+    private final String DELETE_ALL_SQL = "delete from user";
+    private final String QUERY_ALL_SQL = "select * from user";
     @Autowired
     private UserMapper userMapper;
     @Autowired
     private JdbcTemplate jdbcTemplate;
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void deleteByPrimaryKey() {
-        insert();
-        User dbRecord = getDbRecord(User.class, jdbcTemplate, query_all_sql);
+        User user1 = randomT(User.class);
+        userMapper.insert(user1);
+        User dbRecord = getDbRecord(User.class, jdbcTemplate, QUERY_ALL_SQL);
         int i = userMapper.deleteByPrimaryKey(dbRecord.getUserId());
         assertEquals(1,i);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void insert() {
         User user = randomT(User.class);
         userMapper.insert(user);
-        User dbRecord = getDbRecord(User.class, jdbcTemplate, query_all_sql);
+        User dbRecord = getDbRecord(User.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(user, dbRecord);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void insertSelective() {
         User user = randomT(User.class);
         userMapper.insert(user);
-        User dbRecord = getDbRecord(User.class, jdbcTemplate, query_all_sql);
+        User dbRecord = getDbRecord(User.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(user, dbRecord);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void selectByPrimaryKey() {
-        insert();
-        User dbRecord = getDbRecord(User.class, jdbcTemplate, query_all_sql);
+        User user1 = randomT(User.class);
+        userMapper.insert(user1);
+        User dbRecord = getDbRecord(User.class, jdbcTemplate, QUERY_ALL_SQL);
         User user = userMapper.selectByPrimaryKey(dbRecord.getUserId());
         assertBean(user, dbRecord);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void updateByPrimaryKeySelective() {
-        insert();
-        User dbRecord = getDbRecord(User.class, jdbcTemplate, query_all_sql);
+        User user1 = randomT(User.class);
+        userMapper.insert(user1);
+        User dbRecord = getDbRecord(User.class, jdbcTemplate, QUERY_ALL_SQL);
         User user = randomT(User.class);
         user.setUserId(dbRecord.getUserId());
         userMapper.updateByPrimaryKeySelective(user);
-        User dbRecord2 = getDbRecord(User.class, jdbcTemplate, query_all_sql);
+        User dbRecord2 = getDbRecord(User.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(user, dbRecord2);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void updateByPrimaryKey() {
-        insert();
-        User dbRecord = getDbRecord(User.class, jdbcTemplate, query_all_sql);
+        User user1 = randomT(User.class);
+        userMapper.insert(user1);
+        User dbRecord = getDbRecord(User.class, jdbcTemplate, QUERY_ALL_SQL);
         User user = randomT(User.class);
         user.setUserId(dbRecord.getUserId());
         userMapper.updateByPrimaryKeySelective(user);
-        User dbRecord2 = getDbRecord(User.class, jdbcTemplate, query_all_sql);
+        User dbRecord2 = getDbRecord(User.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(user, dbRecord2);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void insertUser() {
         User user = randomT(User.class);
+        user.setDescription(null);
+        user.setStatus(0);
+        user.setWebsite(null);
         userMapper.insertUser(user);
-        User dbRecord = getDbRecord(User.class, jdbcTemplate, query_all_sql);
+        User dbRecord = getDbRecord(User.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(user, dbRecord);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void deleteByEmail() {
-        insert();
-        User dbRecord = getDbRecord(User.class, jdbcTemplate, query_all_sql);
+        User user1 = randomT(User.class);
+        userMapper.insert(user1);
+        User dbRecord = getDbRecord(User.class, jdbcTemplate, QUERY_ALL_SQL);
         int i = userMapper.deleteByEmail(dbRecord.getEmail());
         assertEquals(1, i);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void findByEmail() {
-        insert();
-        User dbRecord = getDbRecord(User.class, jdbcTemplate, query_all_sql);
+        User user1 = randomT(User.class);
+        userMapper.insert(user1);
+        User dbRecord = getDbRecord(User.class, jdbcTemplate, QUERY_ALL_SQL);
         User user = userMapper.findByEmail(dbRecord.getEmail());
         assertBean(user, dbRecord);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void selectUsersByNickName() {
         List<User> lists = new ArrayList<>();
         Map<Long, User> map = new HashMap<>();
@@ -131,7 +140,7 @@ class UserMapperTest {
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void selectUsers() {
         List<User> lists = new ArrayList<>();
         Map<Long, User> map = new HashMap<>();
@@ -150,7 +159,7 @@ class UserMapperTest {
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void selectTotalCount() {
         List<User> lists = new ArrayList<>();
         int nums = 10;

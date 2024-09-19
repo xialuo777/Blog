@@ -14,8 +14,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @MybatisTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class AdminMapperTest {
-    private final String delete_all_sql = "delete from admin";
-    private final String query_all_sql = "select * from admin";
+    private final String DELETE_ALL_SQL = "delete from admin";
+    private final String QUERY_ALL_SQL = "select * from admin";
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -23,76 +23,80 @@ class AdminMapperTest {
     private AdminMapper adminMapper;
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void deleteByPrimaryKey() {
-        insert();
-        Admin record = getDbRecord(Admin.class, jdbcTemplate, query_all_sql);
+        Admin admin = randomT(Admin.class);
+        adminMapper.insert(admin);
+        Admin record = getDbRecord(Admin.class, jdbcTemplate, QUERY_ALL_SQL);
         int deleteByPrimaryKey = adminMapper.deleteByPrimaryKey(record.getAdminId());
         assertEquals(1, deleteByPrimaryKey);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void insert() {
         Admin admin = randomT(Admin.class);
         int insert = adminMapper.insert(admin);
-        Admin record = getDbRecord(Admin.class, jdbcTemplate, query_all_sql);
+        Admin record = getDbRecord(Admin.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(record, admin);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void insertSelective() {
-
         Admin admin = randomT(Admin.class);
         int insertSelective = adminMapper.insertSelective(admin);
-        Admin record = getDbRecord(Admin.class, jdbcTemplate, query_all_sql);
+        Admin record = getDbRecord(Admin.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(record, admin);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void selectByPrimaryKey() {
-        insert();
-        Admin record = getDbRecord(Admin.class, jdbcTemplate, query_all_sql);
-        Admin admin = adminMapper.selectByPrimaryKey(record.getAdminId());
-        assertBean(admin, record);
+        Admin admin = randomT(Admin.class);
+        adminMapper.insert(admin);
+        Admin record = getDbRecord(Admin.class, jdbcTemplate, QUERY_ALL_SQL);
+        Admin admin1 = adminMapper.selectByPrimaryKey(record.getAdminId());
+        assertBean(admin1, record);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void updateByPrimaryKeySelective() {
-        insert();
-        Admin record = getDbRecord(Admin.class, jdbcTemplate, query_all_sql);
+        Admin admin1 = randomT(Admin.class);
+        adminMapper.insert(admin1);
+        Admin record = getDbRecord(Admin.class, jdbcTemplate, QUERY_ALL_SQL);
         Admin admin = new Admin();
         admin.setAccount("adminUp");
         admin.setPassword(record.getPassword());
         admin.setAdminId(record.getAdminId());
         adminMapper.updateByPrimaryKey(admin);
 
-        Admin record2 = getDbRecord(Admin.class, jdbcTemplate, query_all_sql);
+        Admin record2 = getDbRecord(Admin.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(record2, admin);
     }
 
     @Test
-    @Sql(statements = delete_all_sql)
+    @Sql(statements = DELETE_ALL_SQL)
     void updateByPrimaryKey() {
-        insert();
-        Admin record = getDbRecord(Admin.class, jdbcTemplate, query_all_sql);
+        Admin admin1 = randomT(Admin.class);
+        adminMapper.insert(admin1);
+        Admin record = getDbRecord(Admin.class, jdbcTemplate, QUERY_ALL_SQL);
         Admin admin = new Admin();
         admin.setAccount("adminUp");
         admin.setPassword("12345678");
         admin.setAdminId(record.getAdminId());
         adminMapper.updateByPrimaryKey(admin);
 
-        Admin record2 = getDbRecord(Admin.class, jdbcTemplate, query_all_sql);
+        Admin record2 = getDbRecord(Admin.class, jdbcTemplate, QUERY_ALL_SQL);
         assertBean(record2, admin);
     }
 
     @Test
     void selectByAccount() {
-        insert();
-        Admin record = getDbRecord(Admin.class, jdbcTemplate, query_all_sql);
+        Admin admin1 = randomT(Admin.class);
+        adminMapper.insert(admin1);
+        Admin record = getDbRecord(Admin.class, jdbcTemplate, QUERY_ALL_SQL);
         Admin admin = adminMapper.selectByAccount(record.getAccount());
         assertBean(admin, record);
     }
