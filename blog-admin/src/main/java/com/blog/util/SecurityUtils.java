@@ -1,7 +1,5 @@
 package com.blog.util;
 
-import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
-import org.jasypt.encryption.pbe.config.EnvironmentPBEConfig;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 public class SecurityUtils {
