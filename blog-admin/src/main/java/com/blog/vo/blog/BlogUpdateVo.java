@@ -4,9 +4,14 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 @Data
 @ApiModel(description = "修改文章Vo")
+@AllArgsConstructor
+@NoArgsConstructor
 public class BlogUpdateVo {
     /**
      * 文章id

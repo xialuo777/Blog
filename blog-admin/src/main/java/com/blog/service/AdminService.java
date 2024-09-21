@@ -4,10 +4,10 @@ import com.blog.entity.Admin;
 import com.blog.exception.BusinessException;
 import com.blog.mapper.AdminMapper;
 import com.blog.util.JwtProcessor;
+import com.blog.util.SecurityUtils;
 import com.blog.util.bo.LoginResponse;
 import com.blog.util.redis.RedisProcessor;
 import com.blog.util.redis.RedisTransKey;
-import com.blog.vo.admin.AdminInVo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,23 +32,24 @@ public class AdminService {
     private final JwtProcessor jwtProcessor;
     private final RedisProcessor redisProcessor;
 
-    public LoginResponse adminLogin(AdminInVo adminInVo) {
-        Admin admin = Optional.ofNullable(adminMapper.selectByAccount(adminInVo.getAccount()))
+    public LoginResponse adminLogin(Admin admin) {
+        Admin adminDb = Optional.ofNullable(adminMapper.selectByAccount(admin.getAccount()))
                 .orElseThrow(() -> new BusinessException("该管理员账号不存在"));
-        if (!admin.getPassword().equals(adminInVo.getPassword())) {
+        if (!SecurityUtils.checkPassword(admin.getPassword(), adminDb.getPassword())) {
             throw new BusinessException("密码错误");
         }
         Map<String, Object> adminMap = new HashMap<>(2);
-        adminMap.put("account",admin.getAccount());
-        adminMap.put("id",admin.getAdminId());
+        adminMap.put("account", admin.getAccount());
+        adminMap.put("id", admin.getAdminId());
         String accessToken = jwtProcessor.generateToken(adminMap);
         String refreshToken = jwtProcessor.generateRefreshToken(adminMap);
 
-        redisProcessor.set(RedisTransKey.tokenKey(admin.getAccount()),accessToken,7, TimeUnit.DAYS);
-        redisProcessor.set(RedisTransKey.refreshTokenKey(admin.getAccount()),refreshToken,7, TimeUnit.DAYS);
+        redisProcessor.set(RedisTransKey.tokenKey(admin.getAccount()), accessToken, 7, TimeUnit.DAYS);
+        redisProcessor.set(RedisTransKey.refreshTokenKey(admin.getAccount()), refreshToken, 7, TimeUnit.DAYS);
 
         return new LoginResponse(accessToken, refreshToken);
     }
+
     public Optional<Admin> getAdminById(Long adminId) {
         return Optional.ofNullable(adminMapper.selectByPrimaryKey(adminId));
     }

@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.blog.util.SecurityUtils.encodePassword;
+
 
 /**
  * @author: zhang
@@ -53,7 +55,9 @@ public class AdminController extends BaseController{
      */
     @PostMapping("/login")
     public ResponseResult<LoginResponse> login(@RequestBody AdminInVo adminInVo) {
-        LoginResponse loginResponse = adminService.adminLogin(adminInVo);
+        Admin admin = new Admin();
+        BeanUtil.copyProperties(adminInVo,admin);
+        LoginResponse loginResponse = adminService.adminLogin(admin);
         return ResponseResult.success(loginResponse);
     }
 
@@ -63,7 +67,7 @@ public class AdminController extends BaseController{
      * @return ResponseResult
      * @author zhang
      */
-    @PutMapping("/update")
+    @PostMapping("/update")
     public ResponseResult<String> updateAdmin(@RequestBody AdminInVo adminInVo) {
         String accessToken = (String) redisProcessor.get(RedisTransKey.getTokenKey(adminInVo.getAccount()));
         Long adminId = currentUserHolder.getUserId();
@@ -71,8 +75,8 @@ public class AdminController extends BaseController{
             return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
         }
         Admin admin = adminService.getAdminById(adminId).orElseThrow(() -> new BusinessException("该管理员账户不存在"));
-
         BeanUtil.copyProperties(adminInVo, admin, CopyOptions.create().setIgnoreNullValue(true).setIgnoreCase(true));
+        admin.setPassword(encodePassword(adminInVo.getPassword()));
         adminService.updateAdmin(admin);
         return ResponseResult.success("管理员信息更新成功");
     }
@@ -96,7 +100,7 @@ public class AdminController extends BaseController{
      * @return ResponseResult
      * @author zhang
      */
-    @DeleteMapping("/user/delete/{userId}")
+    @PostMapping("/user/delete/{userId}")
     public ResponseResult<String> delete(@PathVariable Long userId) {
         userService.selectUserByUserId(userId)
                 .orElseThrow(() -> new BusinessException("用户不存在"));
@@ -110,7 +114,7 @@ public class AdminController extends BaseController{
      * @param status  用于接收修改用户状态的信息
      * @return ResponseResult
      */
-    @PutMapping("/user/status")
+    @PostMapping("/user/status")
     public ResponseResult<String> updateUserStatus(@RequestParam Long userId, @RequestParam Integer status) {
         User user = userService.selectUserByUserId(userId)
                 .orElseThrow(() -> new BusinessException("用户不存在"));
@@ -168,7 +172,7 @@ public class AdminController extends BaseController{
      * @return ResponseResult
      * @author zhang
      */
-    @DeleteMapping("/delete/{blogId}")
+    @PostMapping("/delete/{blogId}")
     public ResponseResult<String> deleteBlog(@PathVariable Long blogId) {
         blogService.getBlogById(blogId)
                 .orElseThrow(() -> new BusinessException("文章不存在！"));

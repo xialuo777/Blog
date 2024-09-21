@@ -1636,3 +1636,149 @@ public class AdminController extends BaseController{
 
 }
 ```
+
+# Controller单元测试
+
+在`controller`层进行单元测试发起请求有以下几种方式(重点在第四个方法)：
+
+### 1. 使用`WebClient`
+
+Spring 5引入了`WebClient`，这是一个非阻塞的、反应式的客户端来发送HTTP请求。以下是如何在`JUnit`测试中使用`WebClient`：
+
+```java
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class WebClientIntegrationTest {
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private WebClient webClient;
+
+    @Test
+    public void testYourEndpoint() {
+        Mono<String> response = webClient.get()
+                .uri("http://localhost:" + port + "/your-endpoint")
+                .retrieve()
+                .bodyToMono(String.class);
+
+        StepVerifier.create(response)
+                .expectNext("Expected Response")
+                .verifyComplete();
+    }
+}
+```
+
+### 2. 使用Apache HttpClient
+
+Apache HttpClient是一个广泛使用的HTTP客户端库。以下是如何在JUnit测试中使用它：
+
+```java
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.util.EntityUtils;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+
+public class HttpClientTest {
+
+    @Test
+    public void testYourEndpoint() throws IOException {
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        HttpGet request = new HttpGet("http://localhost:8080/your-endpoint");
+
+        try (CloseableHttpClient client = httpClient) {
+            CloseableHttpResponse response = client.execute(request);
+            assertEquals(200, response.getStatusLine().getStatusCode());
+            String responseBody = EntityUtils.toString(response.getEntity());
+            assertEquals("Expected Response", responseBody);
+        }
+    }
+}
+```
+
+### 3. 使用OkHttp
+
+OkHttp是一个适用于Java应用程序的HTTP客户端。以下是如何在JUnit测试中使用OkHttp：
+
+```java
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+
+public class OkHttpTest {
+
+    @Test
+    public void testYourEndpoint() throws IOException {
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url("http://localhost:8080/your-endpoint")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            assertEquals(200, response.code());
+            assertEquals("Expected Response", response.body().string());
+        }
+    }
+}
+```
+
+### 4. 使用JUnit 5的`@HttpTest`
+
+JUnit 5提供了一个实验性的`@HttpTest`注解，它结合了`RestTemplate`和嵌入式的服务器。以下是如何使用它：
+
+```java
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+public class HttpTestExample {
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    @Test
+    public void testYourEndpoint() {
+        ResponseEntity<String> response = restTemplate.getForEntity("/your-endpoint", String.class);
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("Expected Response", response.getBody());
+    }
+}
+```
+
+#### 上述4方法代码详解
+1. **注解**：
+   - `@ExtendWith(SpringExtension.class)`: 这是JUnit 5的注解，用于集成Spring Test框架。它允许Spring Test的注解和JUnit 5的注解一起使用。
+   - `@SpringBootTest`: 这个注解用于指示JUnit加载Spring Boot应用程序上下文。`webEnvironment = WebEnvironment.RANDOM_PORT`属性指定测试应该在一个随机端口上启动嵌入式服务器。
+2. **类和成员变量**：
+   - `TestRestTemplate restTemplate`: 这是一个Spring Boot提供的特殊`RestTemplate`实现，用于测试。它被注入到测试类中，以便发送HTTP请求。
+3. **测试方法**：
+   - `@Test`: 标记这个方法为一个测试方法。
+   - `testYourEndpoint()`: 这个方法使用`TestRestTemplate`发送一个GET请求到`/your-endpoint`，并验证响应状态和内容。
+#### 为什么URL路径可以不使用完整的URL路径？
+在测试方法中，使用`restTemplate.getForEntity("/your-endpoint", String.class);`发送请求时，没有指定完整的URL（如`http://localhost:port/your-endpoint`），这是因为：
+1. **随机端口**：由于`@SpringBootTest`注解的`webEnvironment = WebEnvironment.RANDOM_PORT`属性，Spring Boot会启动一个嵌入式服务器，并随机选择一个可用端口。`TestRestTemplate`自动配置了该端口，因此不需要在URL中指定。
+2. **基础URL**：`TestRestTemplate`在内部已经配置了基础URL，即`http://localhost:port`（其中`port`是随机分配的端口）。因此，当你在测试中只提供路径（如`/your-endpoint`）时，`TestRestTemplate`会自动将基础URL与提供的路径结合起来，形成一个完整的URL进行请求。
+使用这种简写方式，可以使测试代码更加简洁，并减少在测试中硬编码URL的需要。这也意味着，如果端口发生变化（例如，因为随机分配），测试代码不需要修改，因为它依赖于Spring Boot提供的自动配置。
+总的来说，Spring Boot测试框架通过`TestRestTemplate`和其他自动配置特性，简化了集成测试的编写过程，允许开发者专注于测试逻辑，而不是测试环境配置。

@@ -1,0 +1,2 @@
+delete from user;
+insert into user (user_id, account, description, nick_name, password, email, phone, status, website) values (11111111, 'user', 'user', 'user', '$2a$10$3B6lwO2MDvgwF87hxLY7L.ClOePWwRsG3gO446TU7Fl0FSwrPrZdG', '2436056388@qq.com', 'user', '1', 'http://www.myblog.com');

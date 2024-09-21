@@ -2,11 +2,9 @@ package com.blog.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
-import cn.hutool.core.collection.CollectionUtil;
 import com.blog.authentication.CurrentUserHolder;
 import com.blog.constant.Constant;
 import com.blog.entity.User;
-
 import com.blog.enums.ErrorCode;
 import com.blog.exception.BusinessException;
 import com.blog.exception.ResponseResult;
@@ -17,20 +15,21 @@ import com.blog.util.JwtProcessor;
 import com.blog.util.SecurityUtils;
 import com.blog.util.UserTransUtils;
 import com.blog.util.bo.LoginResponse;
+import com.blog.util.bo.PasswordBo;
 import com.blog.util.dto.PageRequest;
 import com.blog.util.dto.PageResult;
 import com.blog.util.redis.RedisProcessor;
 import com.blog.util.redis.RedisTransKey;
-import com.blog.vo.user.UserInfoVo;
 import com.blog.vo.user.Loginer;
 import com.blog.vo.user.Register;
+import com.blog.vo.user.UserInfoVo;
 import com.blog.vo.user.UserVo;
 import com.github.pagehelper.util.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
 import javax.validation.constraints.Email;
 import java.util.List;
 import java.util.Map;
@@ -101,7 +100,7 @@ public class UserController extends BaseController {
      * @author zhang
      */
     @PostMapping("/refresh")
-    public ResponseResult<String> refreshToken(String refreshToken) {
+    public ResponseResult<String> refreshToken(@RequestBody String refreshToken) {
         Map<String, Object> userMap = jwtProcessor.extractUserMap(refreshToken);
         Long userId = (Long) userMap.get(Constant.USER_MAP_KEY_ID);
         User user = userMapper.selectByPrimaryKey(userId);
@@ -181,14 +180,15 @@ public class UserController extends BaseController {
 
     /**
      * 修改用户密码
-     * @param oldPassword 旧密码
-     * @param newPassword 新密码
+     * @param passwordBo 密码业务对象
      * @return ResponseResult
      * @time 2024-09-13 16:53
      */
 
     @PostMapping("/update/password")
-    public ResponseResult<String> updatePassword(String oldPassword, String newPassword) {
+    public ResponseResult<String> updatePassword(@RequestBody PasswordBo passwordBo) {
+        String oldPassword = passwordBo.getOldPassword();
+        String newPassword = passwordBo.getNewPassword();
         if (StringUtil.isEmpty(oldPassword) || StringUtil.isEmpty(newPassword)) {
             return ResponseResult.fail("输入密码不能为空");
         }
@@ -203,7 +203,7 @@ public class UserController extends BaseController {
             return ResponseResult.fail(ErrorCode.TOKEN_ERROR.getCode(), "token验证失败");
         }
         if (!SecurityUtils.checkPassword(oldPassword, user.getPassword())){
-            return ResponseResult.fail("密码错误，请重新输入");
+            return ResponseResult.fail("密码验证失败，请重新输入");
         }
         user.setPassword(SecurityUtils.encodePassword(newPassword));
         userService.updateUser(user);
@@ -240,8 +240,8 @@ public class UserController extends BaseController {
      */
     @GetMapping("/{nickName}")
     public ResponseResult<PageResult<UserVo>> getUsersByNickName(@PathVariable String nickName, @RequestParam Map<String, Object> params) {
-        if (CollectionUtil.isEmpty(params)){
-            return ResponseResult.fail("分页参数为空");
+        if (!validPageParams(params)){
+            return ResponseResult.fail("分页参数异常");
         }
         PageRequest pageRequest = new PageRequest(params);
         List<User> users = userService.selectUsersByNickName(nickName, pageRequest.getPageNo(), pageRequest.getPageSize());

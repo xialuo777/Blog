@@ -1,10 +1,11 @@
 package com.blog.service;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.blog.entity.Admin;
-import com.blog.enums.ErrorCode;
 import com.blog.exception.BusinessException;
 import com.blog.mapper.AdminMapper;
 import com.blog.util.JwtProcessor;
+import com.blog.util.SecurityUtils;
 import com.blog.util.bo.LoginResponse;
 import com.blog.util.redis.RedisProcessor;
 import com.blog.vo.admin.AdminInVo;
@@ -44,11 +45,12 @@ class AdminServiceTest {
     void adminLogin() {
         final AdminInVo adminInVo = new AdminInVo("account", "password");
         final LoginResponse expectedResult = new LoginResponse("accessToken", "refreshToken");
-        when(mockAdminMapper.selectByAccount("account")).thenReturn(new Admin(0L, "account", "password"));
+        when(mockAdminMapper.selectByAccount("account")).thenReturn(new Admin(0L, "account", SecurityUtils.encodePassword("password")));
         when(mockJwtProcessor.generateToken(anyObject())).thenReturn("accessToken");
         when(mockJwtProcessor.generateRefreshToken(anyObject())).thenReturn("refreshToken");
-
-        final LoginResponse result = adminServiceUnderTest.adminLogin(adminInVo);
+        Admin admin = new Admin();
+        BeanUtil.copyProperties(adminInVo,admin);
+        final LoginResponse result = adminServiceUnderTest.adminLogin(admin);
 
         assertThat(result).isEqualTo(expectedResult);
         verify(mockRedisProcessor).set("user:token:account", "accessToken", 7L, TimeUnit.DAYS);
@@ -57,7 +59,9 @@ class AdminServiceTest {
     void adminLogin_WithWrongPassword() {
         final AdminInVo adminInVo = new AdminInVo("account", "password1");
         when(mockAdminMapper.selectByAccount("account")).thenReturn(new Admin(0L, "account", "password"));
-        BusinessException exception = assertThrows(BusinessException.class, () -> adminServiceUnderTest.adminLogin(adminInVo));
+        Admin admin = new Admin();
+        BeanUtil.copyProperties(adminInVo,admin);
+        BusinessException exception = assertThrows(BusinessException.class, () -> adminServiceUnderTest.adminLogin(admin));
         assertTrue(exception.getMessage().contains("密码错误" ));
 
     }
@@ -67,7 +71,9 @@ class AdminServiceTest {
         AdminInVo adminInVo = new AdminInVo("account", "password");
 
         when(mockAdminMapper.selectByAccount("account")).thenReturn(null);
-        BusinessException exception = assertThrows(BusinessException.class, () -> adminServiceUnderTest.adminLogin(adminInVo));
+        Admin admin = new Admin();
+        BeanUtil.copyProperties(adminInVo,admin);
+        BusinessException exception = assertThrows(BusinessException.class, () -> adminServiceUnderTest.adminLogin(admin));
         assertEquals("该管理员账号不存在", exception.getMessage());
     }
 

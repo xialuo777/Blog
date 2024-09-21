@@ -153,7 +153,7 @@
         u.user_id as user_id, u.nick_name as nick_name, u.email as user_email
         from blog_comment b
         left join user u on b.commentator_id = u.user_id
-    where b.blog_id = #{blogId,jdbcType=BIGINT} and b.last_id is null
+    where b.blog_id = #{blogId,jdbcType=BIGINT} and b.last_id = 0
   </select>
 
   <select id="querySecondCommentList" resultType="com.blog.util.bo.BlogCommentBo">
@@ -162,6 +162,6 @@
     u.user_id as user_id, u.nick_name as nick_name, u.email as user_email
     from blog_comment b
     left join user u on b.commentator_id = u.user_id
-    where b.blog_id = #{blogId,jdbcType=BIGINT} and b.last_id is not null
+    where b.blog_id = #{blogId,jdbcType=BIGINT} and b.last_id != 0
   </select>
 </mapper>

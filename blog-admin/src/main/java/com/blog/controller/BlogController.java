@@ -3,15 +3,14 @@ package com.blog.controller;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.copier.CopyOptions;
 import com.blog.authentication.CurrentUserHolder;
-import com.blog.util.dto.PageRequest;
-import com.blog.util.dto.PageResult;
 import com.blog.entity.Blog;
 import com.blog.entity.User;
-
 import com.blog.exception.BusinessException;
 import com.blog.exception.ResponseResult;
 import com.blog.service.BlogService;
 import com.blog.service.UserService;
+import com.blog.util.dto.PageRequest;
+import com.blog.util.dto.PageResult;
 import com.blog.vo.blog.BlogDesc;
 import com.blog.vo.blog.BlogDetail;
 import com.blog.vo.blog.BlogInVo;
@@ -19,6 +18,7 @@ import com.blog.vo.blog.BlogUpdateVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -62,10 +62,17 @@ public class BlogController extends BaseController{
      * @return ResponseResult
      * @author zhang
      */
-    @PutMapping("/update/{blogId}")
+    @PostMapping("/update/{blogId}")
     public ResponseResult<String> updateBlog(@RequestBody BlogUpdateVo blogUpdateVo, @PathVariable Long blogId) {
         Blog blog = blogService.getBlogById(blogId)
                 .orElseThrow(() -> new BusinessException("文章不存在！"));
+        if (!currentUserHolder.getUserId().equals(blog.getUserId())){
+            return ResponseResult.fail("您没有权限修改该文章！");
+        }
+        User user = userService.selectUserByUserId(blog.getUserId()).orElseThrow(()->new BusinessException("用户不存在！"));
+        if (!validUserStatus(user)){
+            return ResponseResult.fail("该用户已被封禁，无法修改文章！");
+        }
         BeanUtil.copyProperties(blogUpdateVo, blog, CopyOptions.create().setIgnoreNullValue(true).setIgnoreCase(true));
         blogService.updateBlog(blog);
         return ResponseResult.success("文章更新成功");
@@ -140,10 +147,13 @@ public class BlogController extends BaseController{
      * @return ResponseResult
      * @author zhang
      */
-    @DeleteMapping("/delete/{blogId}")
+    @PostMapping("/delete/{blogId}")
     public ResponseResult<String> deleteBlog(@PathVariable Long blogId) {
-        blogService.getBlogById(blogId)
+        Blog blog = blogService.getBlogById(blogId)
                 .orElseThrow(() -> new BusinessException("文章不存在！"));
+        if (!currentUserHolder.getUserId().equals(blog.getUserId())){
+            return ResponseResult.fail("您没有权限删除该文章！");
+        }
         blogService.deleteBlog(blogId);
         return ResponseResult.success("删除成功");
     }
@@ -156,7 +166,7 @@ public class BlogController extends BaseController{
     @GetMapping("/blog/list")
     public ResponseResult<List<BlogDesc>> getBlogList(@RequestParam Map<String, Object> params) {
         if (!validPageParams(params)){
-            return ResponseResult.fail("分页参数为空");
+            return ResponseResult.fail("分页参数异常");
         }
         PageRequest pageRequest = new PageRequest(params);
         List<BlogDesc> blogDescList = blogService.getBlogList(pageRequest.getPageNo(), pageRequest.getPageSize())

@@ -1,8 +1,6 @@
 package com.blog.controller;
 
 import cn.hutool.core.bean.BeanUtil;
-import com.blog.util.bo.BlogCommentBo;
-import com.blog.util.dto.PageRequest;
 import com.blog.entity.Blog;
 import com.blog.entity.BlogComment;
 import com.blog.entity.User;
@@ -11,6 +9,9 @@ import com.blog.exception.ResponseResult;
 import com.blog.service.BlogService;
 import com.blog.service.CommentService;
 import com.blog.service.UserService;
+import com.blog.util.SnowFlakeUtil;
+import com.blog.util.bo.BlogCommentBo;
+import com.blog.util.dto.PageRequest;
 import com.blog.vo.comment.CommentInVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -52,6 +53,7 @@ public class CommentController extends BaseController{
         }
         BlogComment blogComment = new BlogComment();
         BeanUtil.copyProperties(commentVo, blogComment);
+        blogComment.setCommentId(SnowFlakeUtil.nextId());
         blogComment.setCommentator(user.getNickName());
         blogComment.setCommentatorId(user.getUserId());
         commentService.addComment(blogComment);
@@ -65,8 +67,8 @@ public class CommentController extends BaseController{
      * @author zhang
 
      */
-    @DeleteMapping("/blog/delete")
-    public ResponseResult<String> deleteComment(Long commentId) {
+    @PostMapping("/blog/delete/{commentId}")
+    public ResponseResult<String> deleteComment(@PathVariable Long commentId) {
         BlogComment blogComment = commentService.selectCommentById(commentId)
                 .orElseThrow(()->new BusinessException("该评论不存在！"));
         Long commentatorId = blogComment.getCommentatorId();
