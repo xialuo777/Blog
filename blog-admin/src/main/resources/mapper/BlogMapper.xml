@@ -246,14 +246,14 @@
         select
           <include refid="Base_Column_List" />
             from blog b
-            where b.user_id = #{userId,jdbcType=BIGINT} and b.blog_status = 0
+            where b.user_id = #{userId,jdbcType=BIGINT} and b.blog_status = 1
   </select>
 
   <select id="selectListByCategoryId" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />
     from blog b
-    where b.category_id = #{categoryId,jdbcType=INTEGER} and b.blog_status = 0
+    where b.category_id = #{categoryId,jdbcType=INTEGER} and b.blog_status = 1
   </select>
 
   <select id="selectList" resultType="com.blog.vo.blog.BlogDesc">

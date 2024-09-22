@@ -12,14 +12,20 @@ import com.blog.vo.user.Loginer;
 import com.blog.vo.user.Register;
 import com.blog.vo.user.UserInfoVo;
 import com.blog.vo.user.UserVo;
-import com.ccb.sunmao.test.AbstractIntTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.Extensions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,15 +36,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
-
-class UserControllerTest extends AbstractIntTest {
+@Extensions({@ExtendWith({SpringExtension.class}), @ExtendWith({OutputCaptureExtension.class})})
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+)
+class UserControllerTest {
     @MockBean
     private RedisProcessor redisProcessor;
     @MockBean
     private JwtProcessor jwtProcessor;
     @MockBean
     private CurrentUserHolder currentUserHolder;
-
+    @Autowired
+    private TestRestTemplate testRestTemplate;
 
     @BeforeEach
     public void init() {
