@@ -6,7 +6,7 @@ spring:
     url: jdbc:mysql://localhost:3306/blog_db
     type: com.alibaba.druid.pool.DruidDataSource
     username: root
-    password: ENC(Lu25MLSvN3H8YpNlM14Y9Q==)
+    password: 123456
 
 
 #邮箱配置
